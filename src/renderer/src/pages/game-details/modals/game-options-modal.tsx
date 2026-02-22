@@ -4,7 +4,12 @@ import { Button, CheckboxField, Modal, TextField } from "@renderer/components";
 import type { Game, LibraryGame, ShortcutLocation } from "@types";
 import { gameDetailsContext } from "@renderer/context";
 import { DeleteGameModal } from "@renderer/pages/downloads/delete-game-modal";
-import { useDownload, useToast, useUserDetails } from "@renderer/hooks";
+import {
+  useAppSelector,
+  useDownload,
+  useToast,
+  useUserDetails,
+} from "@renderer/hooks";
 import { RemoveGameFromLibraryModal } from "./remove-from-library-modal";
 import { ResetAchievementsModal } from "./reset-achievements-modal";
 import { ChangeGamePlaytimeModal } from "./change-game-playtime-modal";
@@ -49,6 +54,7 @@ export function GameOptionsModal({
   onNavigateHome,
 }: Readonly<GameOptionsModalProps>) {
   const { t } = useTranslation("game_details");
+  const { t: tSettings } = useTranslation("settings");
 
   const { showSuccessToast, showErrorToast } = useToast();
 
@@ -61,6 +67,10 @@ export function GameOptionsModal({
   } = useContext(gameDetailsContext);
 
   const { hasActiveSubscription } = useUserDetails();
+
+  const backupProvider = useAppSelector(
+    (state) => state.userPreferences.value?.backupProvider ?? "hydra-cloud"
+  );
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showRemoveGameModal, setShowRemoveGameModal] = useState(false);
@@ -337,6 +347,13 @@ export function GameOptionsModal({
     isGameDownloading || deleting || !game.download?.downloadPath;
   const isResetAchievementsDisabled =
     deleting || isDeletingAchievements || !hasAchievements || !userDetails;
+  const isAutomaticCloudSyncDisabled =
+    !game.executablePath ||
+    (backupProvider === "hydra-cloud" && !hasActiveSubscription);
+  const cloudProviderLabel =
+    backupProvider === "local"
+      ? tSettings("local_backup")
+      : tSettings("hydra_cloud");
 
   return (
     <>
@@ -525,12 +542,12 @@ export function GameOptionsModal({
                       <div className="game-options-modal__cloud-sync-label">
                         {t("enable_automatic_cloud_sync")}
                         <span className="game-options-modal__cloud-sync-hydra-cloud">
-                          Hydra Cloud
+                          {cloudProviderLabel}
                         </span>
                       </div>
                     }
                     checked={automaticCloudSync}
-                    disabled={!hasActiveSubscription || !game.executablePath}
+                    disabled={isAutomaticCloudSyncDisabled}
                     onChange={handleToggleAutomaticCloudSync}
                   />
                 </div>

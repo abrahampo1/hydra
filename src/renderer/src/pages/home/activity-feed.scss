@@ -24,15 +24,13 @@
     gap: globals.$spacing-unit;
     overflow-y: auto;
     max-height: 320px;
-    scrollbar-width: thin;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 
     &::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 2px;
+      width: 0;
+      height: 0;
+      display: none;
     }
   }
 
