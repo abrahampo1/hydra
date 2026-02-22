@@ -12,12 +12,19 @@ import { memo, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./library-game-card-large.scss";
 
+interface ProgressInfo {
+  raw: number;
+  formatted: string;
+}
+
 interface LibraryGameCardLargeProps {
   game: LibraryGame;
   onContextMenu: (
     game: LibraryGame,
     position: { x: number; y: number }
   ) => void;
+  downloadProgress: ProgressInfo | null;
+  extractionProgress: ProgressInfo | null;
 }
 
 const normalizePathForCss = (url: string | null | undefined): string => {
@@ -37,10 +44,49 @@ const getImageWithCustomPriority = (
 export const LibraryGameCardLarge = memo(function LibraryGameCardLarge({
   game,
   onContextMenu,
+  downloadProgress,
+  extractionProgress,
 }: Readonly<LibraryGameCardLargeProps>) {
   const { t } = useTranslation("library");
   const { formatPlayTime, handleCardClick, handleContextMenuClick } =
     useGameCard(game, onContextMenu);
+
+  const gameState = useMemo(() => {
+    if (extractionProgress) return "extracting";
+    if (downloadProgress) return "downloading";
+    if (game.download?.queued) return "queued";
+    if (game.download?.status === "paused") return "paused";
+    if (
+      game.download?.progress === 1 &&
+      game.download?.status === "complete" &&
+      !game.executablePath
+    )
+      return "installer-ready";
+    if (!game.executablePath) return "not-installed";
+    return "installed";
+  }, [
+    extractionProgress,
+    downloadProgress,
+    game.download,
+    game.executablePath,
+  ]);
+
+  const stateLabel = useMemo(() => {
+    switch (gameState) {
+      case "extracting":
+        return extractionProgress!.formatted;
+      case "downloading":
+        return downloadProgress!.formatted;
+      case "queued":
+        return t("queued");
+      case "paused":
+        return t("paused");
+      case "installer-ready":
+        return t("installer_ready");
+      default:
+        return null;
+    }
+  }, [gameState, extractionProgress, downloadProgress, t]);
 
   const sizeBars = useMemo(() => {
     const items: {
@@ -131,10 +177,22 @@ export const LibraryGameCardLarge = memo(function LibraryGameCardLarge({
 
   const logoImage = game.customLogoImageUrl ?? game.logoImageUrl;
 
+  const wrapperClass = useMemo(() => {
+    const base = "library-game-card-large";
+    if (gameState === "not-installed") return `${base} ${base}--not-installed`;
+    if (gameState === "installer-ready")
+      return `${base} ${base}--installer-ready`;
+    if (gameState === "downloading") return `${base} ${base}--downloading`;
+    if (gameState === "extracting") return `${base} ${base}--extracting`;
+    if (gameState === "queued") return `${base} ${base}--queued`;
+    if (gameState === "paused") return `${base} ${base}--paused`;
+    return base;
+  }, [gameState]);
+
   return (
     <button
       type="button"
-      className={`library-game-card-large${!game.executablePath ? " library-game-card-large--not-installed" : ""}`}
+      className={wrapperClass}
       onClick={handleCardClick}
       onContextMenu={handleContextMenuClick}
     >
@@ -167,18 +225,28 @@ export const LibraryGameCardLarge = memo(function LibraryGameCardLarge({
             </div>
           )}
 
-          <div className="library-game-card-large__playtime">
-            {game.hasManuallyUpdatedPlaytime ? (
-              <AlertFillIcon
-                size={11}
-                className="library-game-card-large__manual-playtime"
-              />
-            ) : (
-              <ClockIcon size={11} />
+          <div className="library-game-card-large__top-right">
+            {stateLabel && (
+              <div
+                className={`library-game-card-large__status-badge library-game-card-large__status-badge--${gameState}`}
+              >
+                {stateLabel}
+              </div>
             )}
-            <span className="library-game-card-large__playtime-text">
-              {formatPlayTime(game.playTimeInMilliseconds)}
-            </span>
+
+            <div className="library-game-card-large__playtime">
+              {game.hasManuallyUpdatedPlaytime ? (
+                <AlertFillIcon
+                  size={11}
+                  className="library-game-card-large__manual-playtime"
+                />
+              ) : (
+                <ClockIcon size={11} />
+              )}
+              <span className="library-game-card-large__playtime-text">
+                {formatPlayTime(game.playTimeInMilliseconds)}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -225,6 +293,17 @@ export const LibraryGameCardLarge = memo(function LibraryGameCardLarge({
             </div>
           )}
         </div>
+
+        {(gameState === "downloading" || gameState === "extracting") && (
+          <div className="library-game-card-large__progress-bar">
+            <div
+              className={`library-game-card-large__progress-fill library-game-card-large__progress-fill--${gameState}`}
+              style={{
+                width: `${(gameState === "downloading" ? downloadProgress!.raw : extractionProgress!.raw) * 100}%`,
+              }}
+            />
+          </div>
+        )}
       </div>
     </button>
   );

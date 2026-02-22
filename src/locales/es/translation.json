@@ -931,7 +931,12 @@
     "favorites": "Favoritos",
     "disk_usage": "Uso de disco",
     "disk_usage_tooltip": "Tamaño instalado en el disco",
-    "installer_size_tooltip": "Tamaño del instalador"
+    "installer_size_tooltip": "Tamaño del instalador",
+    "downloading_progress": "Descargando",
+    "extracting_progress": "Extrayendo",
+    "installer_ready": "Instalador Listo",
+    "queued": "En cola",
+    "paused": "Pausado"
   },
   "notifications_page": {
     "title": "Notificaciones",

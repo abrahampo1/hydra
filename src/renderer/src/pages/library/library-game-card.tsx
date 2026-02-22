@@ -1,13 +1,19 @@
 import { LibraryGame } from "@types";
 import { useGameCard } from "@renderer/hooks";
-import { memo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import {
   ClockIcon,
   AlertFillIcon,
   TrophyIcon,
   ImageIcon,
 } from "@primer/octicons-react";
+import { useTranslation } from "react-i18next";
 import "./library-game-card.scss";
+
+interface ProgressInfo {
+  raw: number;
+  formatted: string;
+}
 
 interface LibraryGameCardProps {
   game: LibraryGame;
@@ -19,6 +25,8 @@ interface LibraryGameCardProps {
   ) => void;
   onShowTooltip?: (gameId: string) => void;
   onHideTooltip?: () => void;
+  downloadProgress: ProgressInfo | null;
+  extractionProgress: ProgressInfo | null;
 }
 
 export const LibraryGameCard = memo(function LibraryGameCard({
@@ -26,20 +34,72 @@ export const LibraryGameCard = memo(function LibraryGameCard({
   onMouseEnter,
   onMouseLeave,
   onContextMenu,
+  downloadProgress,
+  extractionProgress,
 }: Readonly<LibraryGameCardProps>) {
   const { formatPlayTime, handleCardClick, handleContextMenuClick } =
     useGameCard(game, onContextMenu);
+  const { t } = useTranslation("library");
 
   const coverImage = game.coverImageUrl?.replaceAll("\\", "/") ?? "";
 
   const [imageError, setImageError] = useState(false);
+
+  const gameState = useMemo(() => {
+    if (extractionProgress) return "extracting";
+    if (downloadProgress) return "downloading";
+    if (game.download?.queued) return "queued";
+    if (game.download?.status === "paused") return "paused";
+    if (
+      game.download?.progress === 1 &&
+      game.download?.status === "complete" &&
+      !game.executablePath
+    )
+      return "installer-ready";
+    if (!game.executablePath) return "not-installed";
+    return "installed";
+  }, [
+    extractionProgress,
+    downloadProgress,
+    game.download,
+    game.executablePath,
+  ]);
+
+  const stateLabel = useMemo(() => {
+    switch (gameState) {
+      case "extracting":
+        return extractionProgress!.formatted;
+      case "downloading":
+        return downloadProgress!.formatted;
+      case "queued":
+        return t("queued");
+      case "paused":
+        return t("paused");
+      case "installer-ready":
+        return t("installer_ready");
+      default:
+        return null;
+    }
+  }, [gameState, extractionProgress, downloadProgress, t]);
+
+  const wrapperClass = useMemo(() => {
+    const base = "library-game-card__wrapper";
+    if (gameState === "not-installed") return `${base} ${base}--not-installed`;
+    if (gameState === "installer-ready")
+      return `${base} ${base}--installer-ready`;
+    if (gameState === "downloading") return `${base} ${base}--downloading`;
+    if (gameState === "extracting") return `${base} ${base}--extracting`;
+    if (gameState === "queued") return `${base} ${base}--queued`;
+    if (gameState === "paused") return `${base} ${base}--paused`;
+    return base;
+  }, [gameState]);
 
   return (
     <button
       type="button"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`library-game-card__wrapper${!game.executablePath ? " library-game-card__wrapper--not-installed" : ""}`}
+      className={wrapperClass}
       title={game.title}
       onClick={handleCardClick}
       onContextMenu={handleContextMenuClick}
@@ -62,6 +122,14 @@ export const LibraryGameCard = memo(function LibraryGameCard({
               {formatPlayTime(game.playTimeInMilliseconds, true)}
             </span>
           </div>
+
+          {stateLabel && (
+            <div
+              className={`library-game-card__status-badge library-game-card__status-badge--${gameState}`}
+            >
+              {stateLabel}
+            </div>
+          )}
         </div>
 
         {(game.achievementCount ?? 0) > 0 && (
@@ -94,6 +162,17 @@ export const LibraryGameCard = memo(function LibraryGameCard({
                 }}
               />
             </div>
+          </div>
+        )}
+
+        {(gameState === "downloading" || gameState === "extracting") && (
+          <div className="library-game-card__progress-bar">
+            <div
+              className={`library-game-card__progress-fill library-game-card__progress-fill--${gameState}`}
+              style={{
+                width: `${(gameState === "downloading" ? downloadProgress!.raw : extractionProgress!.raw) * 100}%`,
+              }}
+            />
           </div>
         )}
       </div>

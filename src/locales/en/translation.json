@@ -919,7 +919,12 @@
     "favorites": "Favorites",
     "disk_usage": "Disk usage",
     "disk_usage_tooltip": "Installed size on disk",
-    "installer_size_tooltip": "Installer size"
+    "installer_size_tooltip": "Installer size",
+    "downloading_progress": "Downloading",
+    "extracting_progress": "Extracting",
+    "installer_ready": "Installer Ready",
+    "queued": "Queued",
+    "paused": "Paused"
   },
   "achievement": {
     "achievement_unlocked": "Achievement unlocked",

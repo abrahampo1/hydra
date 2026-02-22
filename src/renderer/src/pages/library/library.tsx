@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useLibrary, useAppDispatch, useAppSelector } from "@renderer/hooks";
+import {
+  useLibrary,
+  useAppDispatch,
+  useAppSelector,
+  useDownload,
+} from "@renderer/hooks";
 import { setHeaderTitle } from "@renderer/features";
 import { TelescopeIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +19,8 @@ import "./library.scss";
 
 export default function Library() {
   const { library, updateLibrary } = useLibrary();
+  const { lastPacket, progress } = useDownload();
+  const extraction = useAppSelector((state) => state.download.extraction);
 
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     const savedViewMode = localStorage.getItem("library-view-mode");
@@ -132,6 +139,29 @@ export default function Library() {
     };
   }, [library]);
 
+  const getGameDownloadProgress = useCallback(
+    (game: LibraryGame) => {
+      if (lastPacket?.gameId === game.id) {
+        return { raw: lastPacket.progress, formatted: progress };
+      }
+      return null;
+    },
+    [lastPacket, progress]
+  );
+
+  const getGameExtractionProgress = useCallback(
+    (game: LibraryGame) => {
+      if (extraction?.visibleId === game.id) {
+        return {
+          raw: extraction.progress,
+          formatted: `${Math.round(extraction.progress * 100)}%`,
+        };
+      }
+      return null;
+    },
+    [extraction]
+  );
+
   const hasGames = library.length > 0;
 
   return (
@@ -185,6 +215,8 @@ export default function Library() {
                   key={`${game.shop}-${game.objectId}`}
                   game={game}
                   onContextMenu={handleOpenContextMenu}
+                  downloadProgress={getGameDownloadProgress(game)}
+                  extractionProgress={getGameExtractionProgress(game)}
                 />
               ))}
             </motion.div>
@@ -209,6 +241,8 @@ export default function Library() {
                     onMouseEnter={handleOnMouseEnterGameCard}
                     onMouseLeave={handleOnMouseLeaveGameCard}
                     onContextMenu={handleOpenContextMenu}
+                    downloadProgress={getGameDownloadProgress(game)}
+                    extractionProgress={getGameExtractionProgress(game)}
                   />
                 </li>
               ))}
