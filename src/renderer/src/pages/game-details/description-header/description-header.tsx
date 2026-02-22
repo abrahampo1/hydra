@@ -157,7 +157,8 @@ export function DescriptionHeader() {
                       loading="lazy"
                       onError={(e) => {
                         if (game.libraryImageUrl) {
-                          (e.target as HTMLImageElement).src = game.libraryImageUrl;
+                          (e.target as HTMLImageElement).src =
+                            game.libraryImageUrl;
                         }
                       }}
                     />
