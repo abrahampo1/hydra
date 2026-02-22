@@ -1,15 +1,10 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, CheckboxField, Modal, TextField } from "@renderer/components";
+import { Button, Modal, TextField } from "@renderer/components";
 import type { Game, LibraryGame, ShortcutLocation } from "@types";
 import { gameDetailsContext } from "@renderer/context";
 import { DeleteGameModal } from "@renderer/pages/downloads/delete-game-modal";
-import {
-  useAppSelector,
-  useDownload,
-  useToast,
-  useUserDetails,
-} from "@renderer/hooks";
+import { useDownload, useToast, useUserDetails } from "@renderer/hooks";
 import { RemoveGameFromLibraryModal } from "./remove-from-library-modal";
 import { ResetAchievementsModal } from "./reset-achievements-modal";
 import { ChangeGamePlaytimeModal } from "./change-game-playtime-modal";
@@ -22,7 +17,6 @@ import {
   HistoryIcon,
   TrophyIcon,
   DownloadIcon,
-  SyncIcon,
   PinIcon,
 } from "@primer/octicons-react";
 import SteamLogo from "@renderer/assets/steam-logo.svg?react";
@@ -54,8 +48,6 @@ export function GameOptionsModal({
   onNavigateHome,
 }: Readonly<GameOptionsModalProps>) {
   const { t } = useTranslation("game_details");
-  const { t: tSettings } = useTranslation("settings");
-
   const { showSuccessToast, showErrorToast } = useToast();
 
   const {
@@ -66,12 +58,6 @@ export function GameOptionsModal({
     achievements,
   } = useContext(gameDetailsContext);
 
-  const { hasActiveSubscription } = useUserDetails();
-
-  const backupProvider = useAppSelector(
-    (state) => state.userPreferences.value?.backupProvider ?? "hydra-cloud"
-  );
-
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showRemoveGameModal, setShowRemoveGameModal] = useState(false);
   const [launchOptions, setLaunchOptions] = useState(game.launchOptions ?? "");
@@ -79,9 +65,6 @@ export function GameOptionsModal({
     useState(false);
   const [showChangePlaytimeModal, setShowChangePlaytimeModal] = useState(false);
   const [isDeletingAchievements, setIsDeletingAchievements] = useState(false);
-  const [automaticCloudSync, setAutomaticCloudSync] = useState(
-    game.automaticCloudSync ?? false
-  );
   const [creatingSteamShortcut, setCreatingSteamShortcut] = useState(false);
   const [saveFolderPath, setSaveFolderPath] = useState<string | null>(null);
   const [loadingSaveFolder, setLoadingSaveFolder] = useState(false);
@@ -324,36 +307,11 @@ export function GameOptionsModal({
     }
   };
 
-  const handleToggleAutomaticCloudSync = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setAutomaticCloudSync(event.target.checked);
-
-    const gameKey = getGameKey(game.shop, game.objectId);
-    const gameData = (await levelDBService.get(
-      gameKey,
-      "games"
-    )) as Game | null;
-    if (gameData) {
-      const updated = { ...gameData, automaticCloudSync: event.target.checked };
-      await levelDBService.put(gameKey, updated, "games");
-    }
-
-    updateGame();
-  };
-
   const isDownloadsDisabled = deleting || isGameDownloading || !repacks.length;
   const isDeleteFilesDisabled =
     isGameDownloading || deleting || !game.download?.downloadPath;
   const isResetAchievementsDisabled =
     deleting || isDeletingAchievements || !hasAchievements || !userDetails;
-  const isAutomaticCloudSyncDisabled =
-    !game.executablePath ||
-    (backupProvider === "hydra-cloud" && !hasActiveSubscription);
-  const cloudProviderLabel =
-    backupProvider === "local"
-      ? tSettings("local_backup")
-      : tSettings("hydra_cloud");
 
   return (
     <>
@@ -529,27 +487,6 @@ export function GameOptionsModal({
                       }
                     />
                   </div>
-                </div>
-              )}
-
-              {game.shop !== "custom" && (
-                <div className="game-options-modal__action-row">
-                  <span className="game-options-modal__action-icon">
-                    <SyncIcon size={16} />
-                  </span>
-                  <CheckboxField
-                    label={
-                      <div className="game-options-modal__cloud-sync-label">
-                        {t("enable_automatic_cloud_sync")}
-                        <span className="game-options-modal__cloud-sync-hydra-cloud">
-                          {cloudProviderLabel}
-                        </span>
-                      </div>
-                    }
-                    checked={automaticCloudSync}
-                    disabled={isAutomaticCloudSyncDisabled}
-                    onChange={handleToggleAutomaticCloudSync}
-                  />
                 </div>
               )}
             </div>

@@ -293,6 +293,7 @@
     "mapping_method_label": "Método de mapeado",
     "files_automatically_mapped": "Archivos automáticamente mapeados",
     "no_backups_created": "Sin copias de seguridad creadas para este juego",
+    "loading_backups": "Cargando tus copias de seguridad\u2026",
     "manage_files": "Administrar archivos",
     "loading_save_preview": "Buscando partidas guardadas…",
     "wine_prefix": "Prefijo de Wine",

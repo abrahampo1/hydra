@@ -341,6 +341,7 @@
     "mapping_method_label": "Mapping method",
     "files_automatically_mapped": "Files automatically mapped",
     "no_backups_created": "No backups created for this game",
+    "loading_backups": "Loading your backups\u2026",
     "manage_files": "Manage files",
     "loading_save_preview": "Searching for save games…",
     "wine_prefix": "Wine Prefix",

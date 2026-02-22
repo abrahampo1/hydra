@@ -44,6 +44,7 @@ export interface CloudSyncContext {
   restoringBackup: boolean;
   uploadingBackup: boolean;
   loadingPreview: boolean;
+  loadingArtifacts: boolean;
   freezingArtifact: boolean;
 }
 
@@ -65,6 +66,7 @@ export const cloudSyncContext = createContext<CloudSyncContext>({
   restoringBackup: false,
   uploadingBackup: false,
   loadingPreview: false,
+  loadingArtifacts: false,
   freezingArtifact: false,
 });
 
@@ -107,6 +109,7 @@ export function CloudSyncContextProvider({
   const [uploadingBackup, setUploadingBackup] = useState(false);
   const [showCloudSyncFilesModal, setShowCloudSyncFilesModal] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
+  const [loadingArtifacts, setLoadingArtifacts] = useState(false);
   const [freezingArtifact, setFreezingArtifact] = useState(false);
 
   const userPreferences = useAppSelector(
@@ -141,23 +144,32 @@ export function CloudSyncContextProvider({
       return;
     }
 
-    if (backupProvider === "local") {
-      const results = await window.electron.localBackup
-        .listBackups(objectId, shop)
-        .catch(() => []);
-      setArtifacts(results.map(mapGoogleDriveArtifact));
-    } else {
-      const params = new URLSearchParams({
-        objectId,
-        shop,
-      });
+    setLoadingArtifacts(true);
 
-      const results = await window.electron.hydraApi
-        .get<GameArtifact[]>(`/profile/games/artifacts?${params.toString()}`, {
-          needsSubscription: true,
-        })
-        .catch(() => []);
-      setArtifacts(results);
+    try {
+      if (backupProvider === "local") {
+        const results = await window.electron.localBackup
+          .listBackups(objectId, shop)
+          .catch(() => []);
+        setArtifacts(results.map(mapGoogleDriveArtifact));
+      } else {
+        const params = new URLSearchParams({
+          objectId,
+          shop,
+        });
+
+        const results = await window.electron.hydraApi
+          .get<GameArtifact[]>(
+            `/profile/games/artifacts?${params.toString()}`,
+            {
+              needsSubscription: true,
+            }
+          )
+          .catch(() => []);
+        setArtifacts(results);
+      }
+    } finally {
+      setLoadingArtifacts(false);
     }
   }, [objectId, shop, backupProvider]);
 
@@ -222,6 +234,14 @@ export function CloudSyncContextProvider({
   );
 
   useEffect(() => {
+    const removeUploadStartedListener = window.electron.onUploadStarted(
+      objectId,
+      shop,
+      () => {
+        setUploadingBackup(true);
+      }
+    );
+
     const removeUploadCompleteListener = window.electron.onUploadComplete(
       objectId,
       shop,
@@ -243,6 +263,7 @@ export function CloudSyncContextProvider({
       });
 
     return () => {
+      removeUploadStartedListener();
       removeUploadCompleteListener();
       removeDownloadCompleteListener();
     };
@@ -277,6 +298,7 @@ export function CloudSyncContextProvider({
     setShowCloudSyncModal(false);
     setRestoringBackup(false);
     setUploadingBackup(false);
+    setLoadingArtifacts(false);
   }, [objectId, shop]);
 
   const backupState = useMemo(() => {
@@ -301,6 +323,7 @@ export function CloudSyncContextProvider({
         uploadingBackup,
         showCloudSyncFilesModal,
         loadingPreview,
+        loadingArtifacts,
         freezingArtifact,
         setShowCloudSyncModal,
         uploadSaveGame,

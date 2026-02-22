@@ -1,4 +1,4 @@
-import { Button, Modal, ModalProps } from "@renderer/components";
+import { Button, CheckboxField, Modal, ModalProps } from "@renderer/components";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { cloudSyncContext, gameDetailsContext } from "@renderer/context";
 import "./cloud-sync-modal.scss";
@@ -16,14 +16,20 @@ import {
   TrashIcon,
   UploadIcon,
 } from "@primer/octicons-react";
-import { useAppSelector, useDate, useToast } from "@renderer/hooks";
+import {
+  useAppSelector,
+  useDate,
+  useToast,
+  useUserDetails,
+} from "@renderer/hooks";
 import { useTranslation } from "react-i18next";
 import { AxiosProgressEvent } from "axios";
-import { formatDownloadProgress } from "@renderer/helpers";
+import { formatDownloadProgress, getGameKey } from "@renderer/helpers";
 import { CloudSyncRenameArtifactModal } from "../cloud-sync-rename-artifact-modal/cloud-sync-rename-artifact-modal";
-import { GameArtifact } from "@types";
+import { Game, GameArtifact } from "@types";
 import { motion, AnimatePresence } from "framer-motion";
 import { orderBy } from "lodash-es";
+import { levelDBService } from "@renderer/services/leveldb.service";
 
 export interface CloudSyncModalProps
   extends Omit<ModalProps, "children" | "title"> {}
@@ -32,11 +38,14 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
   const [deletingArtifact, setDeletingArtifact] = useState(false);
   const [backupDownloadProgress, setBackupDownloadProgress] =
     useState<AxiosProgressEvent | null>(null);
+  const [backupUploadProgress, setBackupUploadProgress] =
+    useState<AxiosProgressEvent | null>(null);
   const [artifactToRename, setArtifactToRename] = useState<GameArtifact | null>(
     null
   );
 
   const { t } = useTranslation("game_details");
+  const { t: tSettings } = useTranslation("settings");
   const { formatDate, formatDateTime } = useDate();
 
   const {
@@ -44,7 +53,7 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
     backupPreview,
     uploadingBackup,
     restoringBackup,
-    loadingPreview,
+    loadingArtifacts,
     freezingArtifact,
     backupProvider,
     uploadSaveGame,
@@ -53,12 +62,40 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
     toggleArtifactFreeze,
     setShowCloudSyncFilesModal,
     getGameBackupPreview,
+    getGameArtifacts,
   } = useContext(cloudSyncContext);
 
-  const { objectId, shop, gameTitle, game, lastDownloadedOption } =
+  const { objectId, shop, gameTitle, game, lastDownloadedOption, updateGame } =
     useContext(gameDetailsContext);
 
   const { showSuccessToast, showErrorToast } = useToast();
+  const { hasActiveSubscription } = useUserDetails();
+
+  const [automaticCloudSync, setAutomaticCloudSync] = useState(
+    game?.automaticCloudSync ?? false
+  );
+
+  useEffect(() => {
+    setAutomaticCloudSync(game?.automaticCloudSync ?? false);
+  }, [game?.automaticCloudSync]);
+
+  const handleToggleAutomaticCloudSync = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setAutomaticCloudSync(event.target.checked);
+
+    const gameKey = getGameKey(game!.shop, game!.objectId);
+    const gameData = (await levelDBService.get(
+      gameKey,
+      "games"
+    )) as Game | null;
+    if (gameData) {
+      const updated = { ...gameData, automaticCloudSync: event.target.checked };
+      await levelDBService.put(gameKey, updated, "games");
+    }
+
+    updateGame();
+  };
 
   const handleDeleteArtifactClick = async (gameArtifactId: string) => {
     setDeletingArtifact(true);
@@ -81,8 +118,16 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
           setBackupDownloadProgress(progressEvent);
         }
       );
+    const removeBackupUploadProgressListener = window.electron.onUploadProgress(
+      objectId!,
+      shop,
+      (progressEvent) => {
+        setBackupUploadProgress(progressEvent);
+      }
+    );
     return () => {
       removeBackupDownloadProgressListener();
+      removeBackupUploadProgressListener();
     };
   }, [backupPreview, objectId, shop]);
 
@@ -109,8 +154,9 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
   useEffect(() => {
     if (visible) {
       getGameBackupPreview();
+      getGameArtifacts();
     }
-  }, [getGameBackupPreview, visible]);
+  }, [getGameBackupPreview, getGameArtifacts, visible]);
 
   const userDetails = useAppSelector((state) => state.userDetails.userDetails);
   const backupsPerGameLimit =
@@ -126,7 +172,23 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
     window.electron.platform === "linux" && !game?.winePrefixPath;
 
   const isWorking = uploadingBackup || restoringBackup;
-  const progressValue = backupDownloadProgress?.progress ?? 0;
+  const downloadProgressValue = backupDownloadProgress?.progress ?? 0;
+  const uploadProgressValue = backupUploadProgress?.progress ?? 0;
+  const progressValue = uploadingBackup
+    ? uploadProgressValue
+    : downloadProgressValue;
+
+  const isLoading = loadingArtifacts && artifacts.length === 0;
+  const isContentReady = !loadingArtifacts;
+
+  const isAutomaticCloudSyncDisabled =
+    !game?.executablePath ||
+    (backupProvider === "hydra-cloud" && !hasActiveSubscription);
+
+  const cloudProviderLabel =
+    backupProvider === "local"
+      ? tSettings("local_backup")
+      : tSettings("hydra_cloud");
 
   const sortedArtifacts = useMemo(
     () => orderBy(artifacts, [(a) => !a.isFrozen], ["asc"]),
@@ -165,9 +227,10 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
           <div className="cloud-sync-modal__header-actions">
             <Button
               type="button"
-              onClick={() =>
-                uploadSaveGame(lastDownloadedOption?.title ?? null)
-              }
+              onClick={() => {
+                setBackupUploadProgress(null);
+                uploadSaveGame(lastDownloadedOption?.title ?? null);
+              }}
               tooltip={
                 isMissingWinePrefix ? t("missing_wine_prefix") : undefined
               }
@@ -189,6 +252,34 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
           </div>
         </div>
 
+        {/* Auto-sync toggle */}
+        <div className="cloud-sync-modal__auto-sync">
+          <div className="cloud-sync-modal__auto-sync-info">
+            <SyncIcon
+              size={16}
+              className={
+                automaticCloudSync && !isAutomaticCloudSyncDisabled
+                  ? "cloud-sync-modal__auto-sync-icon--active"
+                  : "cloud-sync-modal__auto-sync-icon"
+              }
+            />
+            <div className="cloud-sync-modal__auto-sync-text">
+              <span className="cloud-sync-modal__auto-sync-label">
+                {t("enable_automatic_cloud_sync")}
+              </span>
+              <span className="cloud-sync-modal__auto-sync-provider">
+                {cloudProviderLabel}
+              </span>
+            </div>
+          </div>
+          <CheckboxField
+            label=""
+            checked={automaticCloudSync}
+            disabled={isAutomaticCloudSyncDisabled}
+            onChange={handleToggleAutomaticCloudSync}
+          />
+        </div>
+
         {/* Progress bar */}
         <AnimatePresence>
           {isWorking && (
@@ -205,10 +296,10 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
                   {uploadingBackup
                     ? t("uploading_backup")
                     : t("restoring_backup", {
-                        progress: formatDownloadProgress(progressValue),
+                        progress: formatDownloadProgress(downloadProgressValue),
                       })}
                 </span>
-                {restoringBackup && progressValue > 0 && (
+                {progressValue > 0 && (
                   <span className="cloud-sync-modal__progress-percentage">
                     {formatDownloadProgress(progressValue)}
                   </span>
@@ -221,12 +312,12 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
                       ? "cloud-sync-modal__progress-fill--uploading"
                       : "cloud-sync-modal__progress-fill--restoring"
                   } ${
-                    uploadingBackup || progressValue === 0
+                    progressValue === 0
                       ? "cloud-sync-modal__progress-fill--indeterminate"
                       : ""
                   }`}
                   style={
-                    !uploadingBackup && progressValue > 0
+                    progressValue > 0
                       ? { width: `${progressValue * 100}%` }
                       : undefined
                   }
@@ -237,24 +328,40 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
           )}
         </AnimatePresence>
 
-        {/* Loading preview skeleton */}
+        {/* Loading state */}
         <AnimatePresence>
-          {loadingPreview && artifacts.length === 0 && (
+          {isLoading && (
             <motion.div
-              className="cloud-sync-modal__skeleton"
+              className="cloud-sync-modal__loading"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="cloud-sync-modal__skeleton-item" />
-              <div className="cloud-sync-modal__skeleton-item" />
+              <div className="cloud-sync-modal__loading-header">
+                <SyncIcon size={14} className="cloud-sync-modal__sync-icon" />
+                <span>{t("loading_backups")}</span>
+              </div>
+              <div className="cloud-sync-modal__skeleton">
+                <div className="cloud-sync-modal__skeleton-item">
+                  <div className="cloud-sync-modal__skeleton-line cloud-sync-modal__skeleton-line--title" />
+                  <div className="cloud-sync-modal__skeleton-line cloud-sync-modal__skeleton-line--meta" />
+                </div>
+                <div className="cloud-sync-modal__skeleton-item">
+                  <div className="cloud-sync-modal__skeleton-line cloud-sync-modal__skeleton-line--title" />
+                  <div className="cloud-sync-modal__skeleton-line cloud-sync-modal__skeleton-line--meta" />
+                </div>
+                <div className="cloud-sync-modal__skeleton-item">
+                  <div className="cloud-sync-modal__skeleton-line cloud-sync-modal__skeleton-line--title" />
+                  <div className="cloud-sync-modal__skeleton-line cloud-sync-modal__skeleton-line--meta" />
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Backups list header */}
-        {!loadingPreview && (
+        {isContentReady && (
           <div className="cloud-sync-modal__backups-header">
             <h2>{t("backups")}</h2>
             {isHydraCloud && (
@@ -266,7 +373,7 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
         )}
 
         {/* Artifacts list */}
-        {!loadingPreview && artifacts.length > 0 ? (
+        {isContentReady && artifacts.length > 0 ? (
           <ul className="cloud-sync-modal__artifacts">
             <AnimatePresence mode="popLayout">
               {sortedArtifacts.map((artifact) => (
@@ -387,7 +494,7 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
             </AnimatePresence>
           </ul>
         ) : (
-          !loadingPreview && (
+          isContentReady && (
             <motion.div
               className="cloud-sync-modal__empty-state"
               initial={{ opacity: 0, y: 8 }}
