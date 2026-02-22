@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Sidebar, BottomPanel, Header, Toast } from "@renderer/components";
-import { WorkWonders } from "workwonders-sdk";
+import { Sidebar, BottomPanel, Header } from "@renderer/components";
+import { Toaster } from "sileo";
 import {
   useAppDispatch,
   useAppSelector,
@@ -15,7 +15,6 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   setUserPreferences,
   toggleDraggingDisabled,
-  closeToast,
   setUserDetails,
   setProfileBackground,
   setGameRunning,
@@ -52,8 +51,6 @@ export function App() {
 
   const { clearDownload, setLastPacket } = useDownload();
 
-  const workwondersRef = useRef<WorkWonders | null>(null);
-
   const {
     hasActiveSubscription,
     fetchUserDetails,
@@ -73,13 +70,12 @@ export function App() {
     (state) => state.window.draggingDisabled
   );
 
-  const toast = useAppSelector((state) => state.toast);
-
   const { showSuccessToast } = useToast();
 
   const [showArchiveDeletionModal, setShowArchiveDeletionModal] =
     useState(false);
   const [archivePaths, setArchivePaths] = useState<string[]>([]);
+  const [archiveTotalSize, setArchiveTotalSize] = useState(0);
 
   useEffect(() => {
     Promise.all([
@@ -116,33 +112,6 @@ export function App() {
     return () => unsubscribe();
   }, [updateLibrary]);
 
-  const setupWorkWonders = useCallback(
-    async (token?: string, locale?: string) => {
-      if (workwondersRef.current) return;
-
-      workwondersRef.current = new WorkWonders();
-
-      const possibleLocales = ["en", "pt", "ru"];
-
-      const parsedLocale =
-        possibleLocales.find((l) => l === locale?.slice(0, 2)) ?? "en";
-
-      await workwondersRef.current.init({
-        organization: "hydra",
-        token,
-        locale: parsedLocale,
-      });
-
-      await workwondersRef.current.changelog.initChangelogWidget();
-      workwondersRef.current.changelog.initChangelogWidgetMini();
-
-      if (token) {
-        workwondersRef.current.feedback.initFeedbackWidget();
-      }
-    },
-    [workwondersRef]
-  );
-
   const setupExternalResources = useCallback(async () => {
     const cachedUserDetails = window.localStorage.getItem("userDetails");
 
@@ -154,14 +123,11 @@ export function App() {
       dispatch(setProfileBackground(profileBackground));
     }
 
-    const userPreferences = await window.electron.getUserPreferences();
     const userDetails = await fetchUserDetails().catch(() => null);
 
     if (userDetails) {
       updateUserDetails(userDetails);
     }
-
-    setupWorkWonders(userDetails?.workwondersJwt, userPreferences?.language);
 
     if (!document.getElementById("external-resources")) {
       const $script = document.createElement("script");
@@ -169,7 +135,7 @@ export function App() {
       $script.src = `${import.meta.env.RENDERER_VITE_EXTERNAL_RESOURCES_URL}/bundle.js?t=${Date.now()}`;
       document.head.appendChild($script);
     }
-  }, [fetchUserDetails, updateUserDetails, dispatch, setupWorkWonders]);
+  }, [fetchUserDetails, updateUserDetails, dispatch]);
 
   useEffect(() => {
     setupExternalResources();
@@ -224,8 +190,9 @@ export function App() {
         dispatch(clearExtraction());
         updateLibrary();
       }),
-      window.electron.onArchiveDeletionPrompt((paths) => {
+      window.electron.onArchiveDeletionPrompt((paths, totalSizeInBytes) => {
         setArchivePaths(paths);
+        setArchiveTotalSize(totalSizeInBytes);
         setShowArchiveDeletionModal(true);
       }),
     ];
@@ -236,11 +203,7 @@ export function App() {
   }, [onSignIn, updateLibrary, clearUserDetails, dispatch]);
 
   useEffect(() => {
-    const asyncScrollAndNotify = async () => {
-      if (contentRef.current) contentRef.current.scrollTop = 0;
-      await workwondersRef.current?.notifyUrlChange?.();
-    };
-    asyncScrollAndNotify();
+    if (contentRef.current) contentRef.current.scrollTop = 0;
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -297,10 +260,6 @@ export function App() {
     };
   }, [playAudio]);
 
-  const handleToastClose = useCallback(() => {
-    dispatch(closeToast());
-  }, [dispatch]);
-
   return (
     <>
       {window.electron.platform === "win32" && (
@@ -314,14 +273,7 @@ export function App() {
         </div>
       )}
 
-      <Toast
-        visible={toast.visible}
-        title={toast.title}
-        message={toast.message}
-        type={toast.type}
-        onClose={handleToastClose}
-        duration={toast.duration}
-      />
+      <Toaster position="bottom-right" offset={{ bottom: 44, right: 16 }} />
 
       <HydraCloudModal
         visible={isHydraCloudModalVisible}
@@ -332,6 +284,7 @@ export function App() {
       <ArchiveDeletionModal
         visible={showArchiveDeletionModal}
         archivePaths={archivePaths}
+        totalSizeInBytes={archiveTotalSize}
         onClose={() => setShowArchiveDeletionModal(false)}
       />
 

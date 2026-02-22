@@ -12,6 +12,7 @@ import "@fontsource/noto-sans/700.css";
 
 import "react-loading-skeleton/dist/skeleton.css";
 import "react-tooltip/dist/react-tooltip.css";
+import "sileo/styles.css";
 
 import { App } from "./app";
 
@@ -21,7 +22,7 @@ import resources from "@locales";
 
 import { logger } from "./logger";
 import { addCookieInterceptor } from "./cookies";
-import * as Sentry from "@sentry/react";
+
 import { levelDBService } from "./services/leveldb.service";
 import Catalogue from "./pages/catalogue/catalogue";
 import Home from "./pages/home/home";
@@ -37,18 +38,6 @@ import { AchievementNotification } from "./pages/achievements/notification/achie
 import GameLauncher from "./pages/game-launcher/game-launcher";
 
 console.log = logger.log;
-
-Sentry.init({
-  dsn: import.meta.env.RENDERER_VITE_SENTRY_DSN,
-  integrations: [
-    Sentry.browserTracingIntegration(),
-    Sentry.replayIntegration(),
-  ],
-  tracesSampleRate: 0.5,
-  replaysSessionSampleRate: 0,
-  replaysOnErrorSampleRate: 0,
-  release: "hydra-launcher@" + (await window.electron.getVersion()),
-});
 
 const isStaging = await window.electron.isStaging();
 addCookieInterceptor(isStaging);

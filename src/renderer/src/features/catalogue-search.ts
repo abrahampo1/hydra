@@ -8,6 +8,8 @@ export interface CatalogueSearchState {
   page: number;
   steamUserTags: Record<string, Record<string, number>>;
   steamGenres: Record<string, string[]>;
+  viewMode: "grid" | "list";
+  filterSidebarCollapsed: boolean;
 }
 
 const initialState: CatalogueSearchState = {
@@ -22,6 +24,8 @@ const initialState: CatalogueSearchState = {
   steamUserTags: {},
   steamGenres: {},
   page: 1,
+  viewMode: "grid",
+  filterSidebarCollapsed: false,
 };
 
 export const catalogueSearchSlice = createSlice({
@@ -54,6 +58,12 @@ export const catalogueSearchSlice = createSlice({
     setGenres: (state, action: PayloadAction<Record<string, string[]>>) => {
       state.steamGenres = action.payload;
     },
+    setViewMode: (state, action: PayloadAction<"grid" | "list">) => {
+      state.viewMode = action.payload;
+    },
+    toggleFilterSidebar: (state) => {
+      state.filterSidebarCollapsed = !state.filterSidebarCollapsed;
+    },
   },
 });
 
@@ -64,4 +74,6 @@ export const {
   clearPage,
   setTags,
   setGenres,
+  setViewMode,
+  toggleFilterSidebar,
 } = catalogueSearchSlice.actions;

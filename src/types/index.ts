@@ -188,8 +188,6 @@ export interface UserDetails {
   backgroundImageUrl: string | null;
   profileVisibility: ProfileVisibility;
   bio: string;
-  featurebaseJwt: string;
-  workwondersJwt: string;
   subscription: Subscription | null;
   karma: number;
   quirks?: {
@@ -453,3 +451,26 @@ export * from "./ludusavi.types";
 export * from "./how-long-to-beat.types";
 export * from "./level.types";
 export * from "./theme.types";
+
+export interface GoogleDriveTokens {
+  accessToken: string;
+  refreshToken: string;
+  expiryDate: number;
+}
+
+export interface GoogleDriveUserInfo {
+  email: string;
+  displayName: string;
+  photoUrl: string | null;
+}
+
+export interface GoogleDriveBackupArtifact {
+  id: string;
+  name: string;
+  size: number;
+  createdAt: string;
+  modifiedAt: string;
+  gameObjectId: string;
+  gameShop: string;
+  label: string | null;
+}

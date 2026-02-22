@@ -6,10 +6,38 @@ import axios from "axios";
 import { ProcessPayload } from "./download/types";
 import { db, gamesSublevel, levelKeys } from "@main/level";
 import { CloudSync } from "./cloud-sync";
+import { LocalBackupService } from "./local-backup";
 import { logger } from "./logger";
 import path from "path";
 import { AchievementWatcherManager } from "./achievements/achievement-watcher-manager";
 import { MAIN_LOOP_INTERVAL } from "@main/constants";
+
+const uploadBackup = async (game: Game) => {
+  const userPreferences = await db
+    .get<string, UserPreferences | null>(levelKeys.userPreferences, {
+      valueEncoding: "json",
+    })
+    .catch(() => null);
+
+  const label = CloudSync.getBackupLabel(true);
+
+  if (userPreferences?.backupProvider === "local") {
+    LocalBackupService.uploadSaveGame(
+      game.objectId,
+      game.shop,
+      null,
+      label
+    ).catch((err) => {
+      logger.error("Failed to upload backup to local folder", err);
+    });
+  } else {
+    CloudSync.uploadSaveGame(game.objectId, game.shop, null, label).catch(
+      (err) => {
+        logger.error("Failed to upload backup to Hydra Cloud", err);
+      }
+    );
+  }
+};
 
 export const gamesPlaytime = new Map<
   string,
@@ -240,12 +268,7 @@ function onOpenGame(game: Game) {
       .catch(() => {});
 
     if (game.automaticCloudSync) {
-      CloudSync.uploadSaveGame(
-        game.objectId,
-        game.shop,
-        null,
-        CloudSync.getBackupLabel(true)
-      );
+      uploadBackup(game);
     }
   } else {
     createGame({ ...game, lastTimePlayed: new Date() }).catch(() => {});
@@ -327,12 +350,7 @@ const onCloseGame = (game: Game) => {
 
   if (game.remoteId) {
     if (game.automaticCloudSync) {
-      CloudSync.uploadSaveGame(
-        game.objectId,
-        game.shop,
-        null,
-        CloudSync.getBackupLabel(true)
-      );
+      uploadBackup(game);
     }
 
     const deltaToSync =

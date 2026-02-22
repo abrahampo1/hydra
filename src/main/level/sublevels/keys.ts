@@ -22,4 +22,6 @@ export const levelKeys = {
   downloadSourcesSinceValue: "downloadSourcesSinceValue", // The 'since' value API used (for modal comparison)
   localNotifications: "localNotifications",
   commonRedistPassed: "commonRedistPassed", // Whether common redistributables preflight has passed
+  googleDriveTokens: "googleDriveTokens",
+  googleDriveUserInfo: "googleDriveUserInfo",
 };

@@ -1,6 +1,6 @@
 export interface SteamGenre {
   id: string;
-  name: string;
+  description: string;
 }
 
 export interface SteamScreenshot {

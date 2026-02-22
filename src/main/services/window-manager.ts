@@ -25,7 +25,6 @@ import type {
 } from "@types";
 import { AuthPage, generateAchievementCustomNotificationTest } from "@shared";
 import { isStaging } from "@main/constants";
-import { logger } from "./logger";
 
 export class WindowManager {
   public static mainWindow: Electron.BrowserWindow | null = null;
@@ -56,36 +55,12 @@ export class WindowManager {
       show: false,
     };
 
-  private static formatVersionNumber(version: string) {
-    return version.replaceAll(".", "-");
-  }
-
   private static async loadWindowURL(window: BrowserWindow, hash: string = "") {
     // HMR for renderer base on electron-vite cli.
     // Load the remote URL for development or the local html file for production.
-    if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-      window.loadURL(`${process.env["ELECTRON_RENDERER_URL"]}#/${hash}`);
-    } else if (import.meta.env.MAIN_VITE_LAUNCHER_SUBDOMAIN) {
-      // Try to load from remote URL in production
-      try {
-        await window.loadURL(
-          `https://release-v${this.formatVersionNumber(app.getVersion())}.${import.meta.env.MAIN_VITE_LAUNCHER_SUBDOMAIN}#/${hash}`
-        );
-      } catch (error) {
-        // Fall back to local file if remote URL fails
-        logger.error(
-          "Failed to load from MAIN_VITE_LAUNCHER_SUBDOMAIN, falling back to local file:",
-          error
-        );
-        window.loadFile(path.join(__dirname, "../renderer/index.html"), {
-          hash,
-        });
-      }
-    } else {
-      window.loadFile(path.join(__dirname, "../renderer/index.html"), {
-        hash,
-      });
-    }
+    window.loadFile(path.join(__dirname, "../renderer/index.html"), {
+      hash,
+    });
   }
 
   private static async loadMainWindowURL(hash: string = "") {
@@ -144,16 +119,6 @@ export class WindowManager {
           return callback(details);
         }
 
-        if (details.url.includes("workwonders")) {
-          return callback({
-            ...details,
-            requestHeaders: {
-              Origin: "https://workwonders.app",
-              ...details.requestHeaders,
-            },
-          });
-        }
-
         const userAgent = new UserAgent();
 
         callback({
@@ -169,9 +134,7 @@ export class WindowManager {
       (details, callback) => {
         if (
           details.webContentsId !== this.mainWindow?.webContents.id ||
-          details.url.includes("featurebase") ||
-          details.url.includes("chatwoot") ||
-          details.url.includes("workwonders")
+          details.url.includes("chatwoot")
         ) {
           return callback(details);
         }
@@ -209,7 +172,7 @@ export class WindowManager {
     this.mainWindow.removeMenu();
 
     this.mainWindow.on("ready-to-show", () => {
-      if (!app.isPackaged || isStaging)
+      if (is.dev || isStaging)
         WindowManager.mainWindow?.webContents.openDevTools();
       WindowManager.mainWindow?.show();
     });

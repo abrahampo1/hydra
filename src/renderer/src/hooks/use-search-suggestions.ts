@@ -10,6 +10,8 @@ export interface SearchSuggestion {
   shop: GameShop;
   iconUrl: string | null;
   source: "library" | "catalogue";
+  coverImageUrl?: string | null;
+  genres?: string[];
 }
 
 export function useSearchSuggestions(
@@ -24,7 +26,7 @@ export function useSearchSuggestions(
   const cacheRef = useRef<Map<string, SearchSuggestion[]>>(new Map());
 
   const getLibrarySuggestions = useCallback(
-    (searchQuery: string, limit: number = 3): SearchSuggestion[] => {
+    (searchQuery: string, limit: number = 6): SearchSuggestion[] => {
       if (!searchQuery.trim()) return [];
 
       const queryLower = searchQuery.toLowerCase();
@@ -63,7 +65,7 @@ export function useSearchSuggestions(
   );
 
   const fetchCatalogueSuggestions = useCallback(
-    async (searchQuery: string, limit: number = 3) => {
+    async (searchQuery: string, limit: number = 6) => {
       if (!searchQuery.trim() || searchQuery.length < 2) {
         setSuggestions([]);
         setIsLoading(false);
@@ -140,11 +142,11 @@ export function useSearchSuggestions(
     }
 
     if (isOnLibraryPage) {
-      const librarySuggestions = getLibrarySuggestions(query, 3);
+      const librarySuggestions = getLibrarySuggestions(query, 6);
       setSuggestions(librarySuggestions);
       setIsLoading(false);
     } else {
-      debouncedFetchCatalogue(query, 3);
+      debouncedFetchCatalogue(query, 6);
     }
 
     return () => {

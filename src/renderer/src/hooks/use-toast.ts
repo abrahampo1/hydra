@@ -1,50 +1,26 @@
 import { useCallback } from "react";
-import { useAppDispatch } from "./redux";
-import { showToast } from "@renderer/features";
+import { sileo } from "sileo";
 
 export function useToast() {
-  const dispatch = useAppDispatch();
-
   const showSuccessToast = useCallback(
-    (title: string, message?: string, duration?: number) => {
-      dispatch(
-        showToast({
-          title,
-          message,
-          type: "success",
-          duration,
-        })
-      );
+    (title: string, description?: string, duration?: number) => {
+      sileo.success({ title, description, duration: duration ?? 3000 });
     },
-    [dispatch]
+    []
   );
 
   const showErrorToast = useCallback(
-    (title: string, message?: string, duration?: number) => {
-      dispatch(
-        showToast({
-          title,
-          message,
-          type: "error",
-          duration,
-        })
-      );
+    (title: string, description?: string, duration?: number) => {
+      sileo.error({ title, description, duration: duration ?? 4000 });
     },
-    [dispatch]
+    []
   );
 
   const showWarningToast = useCallback(
-    (title: string, message?: string, duration?: number) => {
-      dispatch(
-        showToast({
-          title,
-          message,
-          type: "warning",
-          duration,
-        })
-      );
+    (title: string, description?: string, duration?: number) => {
+      sileo.warning({ title, description, duration: duration ?? 3500 });
     },
-    [dispatch]
+    []
   );
 
   return { showSuccessToast, showErrorToast, showWarningToast };
