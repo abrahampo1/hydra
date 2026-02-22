@@ -53,7 +53,14 @@
       "Bash(/c/Users/abraham/AppData/Local/Programs/Python/Python39/python.exe:*)",
       "Bash(cd /e/Repositories/hydra && yarn typecheck:web 2>&1)",
       "Bash(cd /e/Repositories/hydra && npx eslint src/renderer/src/pages/game-details/modals/game-options-modal.tsx 2>&1)",
-      "Bash(cd /e/Repositories/hydra && npx prettier --write src/renderer/src/pages/game-details/modals/game-options-modal.tsx 2>&1)"
+      "Bash(cd /e/Repositories/hydra && npx prettier --write src/renderer/src/pages/game-details/modals/game-options-modal.tsx 2>&1)",
+      "WebSearch",
+      "WebFetch(domain:classicgamezone.com)",
+      "WebFetch(domain:emulatorjs.org)",
+      "WebFetch(domain:nostalgist.js.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(cd /e/Repositories/hydra && yarn build 2>&1)"
     ]
   }
 }

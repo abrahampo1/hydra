@@ -1,0 +1,6 @@
+LICENSE
+README.md
+src/hydra_python_rpc.egg-info/PKG-INFO
+src/hydra_python_rpc.egg-info/SOURCES.txt
+src/hydra_python_rpc.egg-info/dependency_links.txt
+src/hydra_python_rpc.egg-info/top_level.txt
