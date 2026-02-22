@@ -33,6 +33,8 @@ import type {
   DiskUsage,
   DownloadSource,
   LocalNotification,
+  GoogleDriveUserInfo,
+  GoogleDriveBackupArtifact,
 } from "@types";
 import type { AxiosProgressEvent } from "axios";
 
@@ -200,6 +202,10 @@ declare global {
     removeGameFromLibrary: (shop: GameShop, objectId: string) => Promise<void>;
     removeGame: (shop: GameShop, objectId: string) => Promise<void>;
     deleteGameFolder: (shop: GameShop, objectId: string) => Promise<unknown>;
+    deleteGameInstaller: (
+      shop: GameShop,
+      objectId: string
+    ) => Promise<{ ok: boolean; reason?: string }>;
     getGameByObjectId: (
       shop: GameShop,
       objectId: string
@@ -239,7 +245,7 @@ declare global {
       cb: (shop: GameShop, objectId: string, progress: number) => void
     ) => () => Electron.IpcRenderer;
     onArchiveDeletionPrompt: (
-      cb: (archivePaths: string[]) => void
+      cb: (archivePaths: string[], totalSizeInBytes: number) => void
     ) => () => Electron.IpcRenderer;
     deleteArchive: (filePath: string) => Promise<boolean>;
     getDefaultWinePrefixSelectionPath: () => Promise<string | null>;
@@ -298,6 +304,56 @@ declare global {
       objectId: string,
       shop: GameShop,
       cb: (progress: AxiosProgressEvent) => void
+    ) => () => Electron.IpcRenderer;
+
+    /* Google Drive */
+    googleDrive: {
+      authenticate: () => Promise<GoogleDriveUserInfo>;
+      disconnect: () => Promise<void>;
+      getConnectionStatus: () => Promise<{
+        connected: boolean;
+        userInfo: GoogleDriveUserInfo | null;
+      }>;
+      uploadSaveGame: (
+        objectId: string,
+        shop: GameShop,
+        downloadOptionTitle: string | null
+      ) => Promise<void>;
+      downloadBackup: (
+        objectId: string,
+        shop: GameShop,
+        fileId: string
+      ) => Promise<void>;
+      listBackups: (
+        objectId: string,
+        shop: GameShop
+      ) => Promise<GoogleDriveBackupArtifact[]>;
+      deleteBackup: (fileId: string) => Promise<void>;
+    };
+    /* Local Backup */
+    localBackup: {
+      uploadSaveGame: (
+        objectId: string,
+        shop: GameShop,
+        downloadOptionTitle: string | null
+      ) => Promise<void>;
+      downloadBackup: (
+        objectId: string,
+        shop: GameShop,
+        fileName: string
+      ) => Promise<void>;
+      listBackups: (
+        objectId: string,
+        shop: GameShop
+      ) => Promise<GoogleDriveBackupArtifact[]>;
+      deleteBackup: (fileName: string) => Promise<void>;
+      selectPath: () => Promise<string | null>;
+    };
+
+    onGoogleDriveUploadComplete: (
+      objectId: string,
+      shop: GameShop,
+      cb: () => void
     ) => () => Electron.IpcRenderer;
 
     /* Misc */
@@ -380,6 +436,7 @@ declare global {
     resetCommonRedistPreflight: () => Promise<void>;
     saveTempFile: (fileName: string, fileData: Uint8Array) => Promise<string>;
     deleteTempFile: (filePath: string) => Promise<void>;
+    openDevTools: () => Promise<void>;
     platform: NodeJS.Platform;
 
     /* Auto update */

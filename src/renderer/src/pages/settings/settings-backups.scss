@@ -1,0 +1,77 @@
+@use "../../scss/globals.scss";
+
+.settings-backups {
+  display: flex;
+  flex-direction: column;
+  gap: calc(globals.$spacing-unit * 3);
+
+  &__description {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.6;
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit * 2);
+  }
+
+  &__section-title {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  &__provider-cards {
+    display: flex;
+    gap: calc(globals.$spacing-unit * 2);
+  }
+
+  &__provider-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(globals.$spacing-unit);
+    width: 140px;
+    padding: calc(globals.$spacing-unit * 2) calc(globals.$spacing-unit * 2);
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: globals.$dark-background-color;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    &--active {
+      border-color: globals.$muted-color;
+      color: globals.$body-color;
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+
+  &__provider-card-label {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  &__status-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+  }
+
+  &__local-backup-path {
+    display: flex;
+    gap: calc(globals.$spacing-unit * 2);
+    align-items: center;
+  }
+}

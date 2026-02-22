@@ -13,9 +13,6 @@ const deleteGameFolder = async (
   objectId: string
 ): Promise<void> => {
   const gameKey = levelKeys.game(shop, objectId);
-  const download = await downloadsSublevel.get(gameKey);
-
-  if (!download) return;
 
   const deleteFile = async (filePath: string, isDirectory = false) => {
     if (fs.existsSync(filePath)) {
@@ -40,7 +37,9 @@ const deleteGameFolder = async (
     }
   };
 
-  if (download.folderName) {
+  const download = await downloadsSublevel.get(gameKey);
+
+  if (download?.folderName) {
     const folderPath = path.join(
       download.downloadPath ?? (await getDownloadsPath()),
       download.folderName
@@ -52,16 +51,24 @@ const deleteGameFolder = async (
     await deleteFile(metaPath);
   }
 
-  await downloadsSublevel.del(gameKey);
-
-  // Clear installer size from game record
-  const game = await gamesSublevel.get(gameKey);
-  if (game) {
-    await gamesSublevel.put(gameKey, {
-      ...game,
-      installerSizeInBytes: null,
-    });
+  if (download) {
+    await downloadsSublevel.del(gameKey);
   }
+
+  const game = await gamesSublevel.get(gameKey);
+  if (!game) return;
+
+  if (game.executablePath) {
+    const installedDir = path.dirname(game.executablePath);
+    await deleteFile(installedDir, true);
+  }
+
+  await gamesSublevel.put(gameKey, {
+    ...game,
+    installerSizeInBytes: null,
+    installedSizeInBytes: null,
+    executablePath: null,
+  });
 };
 
 registerEvent("deleteGameFolder", deleteGameFolder);

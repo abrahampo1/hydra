@@ -131,9 +131,42 @@ export class GameFilesManager {
       .filter((archivePath) => fs.existsSync(archivePath));
 
     if (archivePaths.length > 0) {
+      await this.handleArchiveDeletion(archivePaths);
+    }
+  }
+
+  private async handleArchiveDeletion(archivePaths: string[]) {
+    const userPreferences = await db.get<string, UserPreferences | null>(
+      levelKeys.userPreferences,
+      { valueEncoding: "json" }
+    );
+
+    if (userPreferences?.autoDeleteInstallerAfterExtraction) {
+      for (const archivePath of archivePaths) {
+        try {
+          if (fs.existsSync(archivePath)) {
+            await fs.promises.unlink(archivePath);
+            logger.info(`Auto-deleted archive: ${archivePath}`);
+          }
+        } catch (err) {
+          logger.error(`Failed to auto-delete archive: ${archivePath}`, err);
+        }
+      }
+    } else {
+      let totalSize = 0;
+      for (const archivePath of archivePaths) {
+        try {
+          const stat = await fs.promises.stat(archivePath);
+          totalSize += stat.size;
+        } catch {
+          // Ignore stat errors
+        }
+      }
+
       WindowManager.mainWindow?.webContents.send(
         "on-archive-deletion-prompt",
-        archivePaths
+        archivePaths,
+        totalSize
       );
     }
   }
@@ -490,10 +523,7 @@ export class GameFilesManager {
         await this.extractFilesInDirectory(extractionPath);
 
         if (fs.existsSync(extractionPath) && fs.existsSync(filePath)) {
-          WindowManager.mainWindow?.webContents.send(
-            "on-archive-deletion-prompt",
-            [filePath]
-          );
+          await this.handleArchiveDeletion([filePath]);
         }
 
         await downloadsSublevel.put(this.gameKey, {

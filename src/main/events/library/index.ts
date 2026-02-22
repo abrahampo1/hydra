@@ -10,6 +10,7 @@ import "./create-game-shortcut";
 import "./create-steam-shortcut";
 import "./delete-archive";
 import "./delete-game-folder";
+import "./delete-game-installer";
 import "./extract-game-download";
 import "./get-default-wine-prefix-selection-path";
 import "./get-game-by-object-id";

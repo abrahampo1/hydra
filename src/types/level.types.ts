@@ -20,8 +20,6 @@ export interface Auth {
   accessToken: string;
   refreshToken: string;
   tokenExpirationTimestamp: number;
-  featurebaseJwt: string;
-  workwondersJwt: string;
 }
 
 export interface User {
@@ -102,6 +100,8 @@ export type AchievementCustomNotificationPosition =
   | "bottom-center"
   | "bottom-right";
 
+export type BackupProvider = "hydra-cloud" | "local";
+
 export interface UserPreferences {
   downloadsPath?: string | null;
   ggDealsApiKey?: string | null;
@@ -126,12 +126,15 @@ export interface UserPreferences {
   friendStartGameNotificationsEnabled?: boolean;
   showDownloadSpeedInMegabytes?: boolean;
   extractFilesByDefault?: boolean;
+  autoDeleteInstallerAfterExtraction?: boolean;
   enableSteamAchievements?: boolean;
   autoplayGameTrailers?: boolean;
   hideToTrayOnGameStart?: boolean;
   enableNewDownloadOptionsBadges?: boolean;
   useNativeHttpDownloader?: boolean;
   createStartMenuShortcut?: boolean;
+  backupProvider?: BackupProvider;
+  localBackupPath?: string | null;
 }
 
 export interface ScreenState {

@@ -1,6 +1,12 @@
-import { useToast } from "@renderer/hooks";
+import { useAppSelector, useToast } from "@renderer/hooks";
 import { logger } from "@renderer/logger";
-import type { LudusaviBackup, GameArtifact, GameShop } from "@types";
+import type {
+  LudusaviBackup,
+  GameArtifact,
+  GameShop,
+  BackupProvider,
+  GoogleDriveBackupArtifact,
+} from "@types";
 import React, {
   createContext,
   useCallback,
@@ -23,6 +29,7 @@ export interface CloudSyncContext {
   showCloudSyncModal: boolean;
   showCloudSyncFilesModal: boolean;
   backupState: CloudSyncState;
+  backupProvider: BackupProvider;
   setShowCloudSyncModal: React.Dispatch<React.SetStateAction<boolean>>;
   downloadGameArtifact: (gameArtifactId: string) => Promise<void>;
   uploadSaveGame: (downloadOptionTitle: string | null) => Promise<void>;
@@ -44,6 +51,7 @@ export const cloudSyncContext = createContext<CloudSyncContext>({
   backupPreview: null,
   showCloudSyncModal: false,
   backupState: CloudSyncState.Unknown,
+  backupProvider: "hydra-cloud",
   setShowCloudSyncModal: () => {},
   downloadGameArtifact: async () => {},
   uploadSaveGame: async () => {},
@@ -69,6 +77,20 @@ export interface CloudSyncContextProviderProps {
   shop: GameShop;
 }
 
+const mapGoogleDriveArtifact = (
+  backup: GoogleDriveBackupArtifact
+): GameArtifact => ({
+  id: backup.id,
+  artifactLengthInBytes: backup.size,
+  downloadOptionTitle: null,
+  createdAt: backup.createdAt,
+  updatedAt: backup.modifiedAt,
+  hostname: "",
+  downloadCount: 0,
+  label: backup.label ?? undefined,
+  isFrozen: false,
+});
+
 export function CloudSyncContextProvider({
   children,
   objectId,
@@ -87,14 +109,30 @@ export function CloudSyncContextProvider({
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [freezingArtifact, setFreezingArtifact] = useState(false);
 
+  const userPreferences = useAppSelector(
+    (state) => state.userPreferences.value
+  );
+
+  const backupProvider: BackupProvider =
+    userPreferences?.backupProvider ?? "hydra-cloud";
+
   const { showSuccessToast, showErrorToast } = useToast();
 
   const downloadGameArtifact = useCallback(
     async (gameArtifactId: string) => {
       setRestoringBackup(true);
-      window.electron.downloadGameArtifact(objectId, shop, gameArtifactId);
+
+      if (backupProvider === "local") {
+        window.electron.localBackup.downloadBackup(
+          objectId,
+          shop,
+          gameArtifactId
+        );
+      } else {
+        window.electron.downloadGameArtifact(objectId, shop, gameArtifactId);
+      }
     },
-    [objectId, shop]
+    [objectId, shop, backupProvider]
   );
 
   const getGameArtifacts = useCallback(async () => {
@@ -103,20 +141,25 @@ export function CloudSyncContextProvider({
       return;
     }
 
-    const params = new URLSearchParams({
-      objectId,
-      shop,
-    });
-
-    const results = await window.electron.hydraApi
-      .get<GameArtifact[]>(`/profile/games/artifacts?${params.toString()}`, {
-        needsSubscription: true,
-      })
-      .catch(() => {
-        return [];
+    if (backupProvider === "local") {
+      const results = await window.electron.localBackup
+        .listBackups(objectId, shop)
+        .catch(() => []);
+      setArtifacts(results.map(mapGoogleDriveArtifact));
+    } else {
+      const params = new URLSearchParams({
+        objectId,
+        shop,
       });
-    setArtifacts(results);
-  }, [objectId, shop]);
+
+      const results = await window.electron.hydraApi
+        .get<GameArtifact[]>(`/profile/games/artifacts?${params.toString()}`, {
+          needsSubscription: true,
+        })
+        .catch(() => []);
+      setArtifacts(results);
+    }
+  }, [objectId, shop, backupProvider]);
 
   const getGameBackupPreview = useCallback(async () => {
     setLoadingPreview(true);
@@ -138,19 +181,29 @@ export function CloudSyncContextProvider({
   const uploadSaveGame = useCallback(
     async (downloadOptionTitle: string | null) => {
       setUploadingBackup(true);
-      window.electron
-        .uploadSaveGame(objectId, shop, downloadOptionTitle)
-        .catch((err) => {
-          setUploadingBackup(false);
-          logger.error("Failed to upload save game", { objectId, shop, err });
-          showErrorToast(t("backup_failed"));
-        });
+
+      const uploadPromise =
+        backupProvider === "local"
+          ? window.electron.localBackup.uploadSaveGame(
+              objectId,
+              shop,
+              downloadOptionTitle
+            )
+          : window.electron.uploadSaveGame(objectId, shop, downloadOptionTitle);
+
+      uploadPromise.catch((err) => {
+        setUploadingBackup(false);
+        logger.error("Failed to upload save game", { objectId, shop, err });
+        showErrorToast(t("backup_failed"));
+      });
     },
-    [objectId, shop, t, showErrorToast]
+    [objectId, shop, backupProvider, t, showErrorToast]
   );
 
   const toggleArtifactFreeze = useCallback(
     async (gameArtifactId: string, freeze: boolean) => {
+      if (backupProvider !== "hydra-cloud") return;
+
       setFreezingArtifact(true);
       try {
         const endpoint = freeze ? "freeze" : "unfreeze";
@@ -165,7 +218,7 @@ export function CloudSyncContextProvider({
         setFreezingArtifact(false);
       }
     },
-    [objectId, shop, getGameArtifacts]
+    [objectId, shop, getGameArtifacts, backupProvider]
   );
 
   useEffect(() => {
@@ -204,14 +257,18 @@ export function CloudSyncContextProvider({
 
   const deleteGameArtifact = useCallback(
     async (gameArtifactId: string) => {
-      return window.electron.hydraApi
-        .delete<{ ok: boolean }>(`/profile/games/artifacts/${gameArtifactId}`)
-        .then(() => {
-          getGameBackupPreview();
-          getGameArtifacts();
-        });
+      if (backupProvider === "local") {
+        await window.electron.localBackup.deleteBackup(gameArtifactId);
+      } else {
+        await window.electron.hydraApi.delete<{ ok: boolean }>(
+          `/profile/games/artifacts/${gameArtifactId}`
+        );
+      }
+
+      getGameBackupPreview();
+      getGameArtifacts();
     },
-    [getGameBackupPreview, getGameArtifacts]
+    [getGameBackupPreview, getGameArtifacts, backupProvider]
   );
 
   useEffect(() => {
@@ -239,6 +296,7 @@ export function CloudSyncContextProvider({
         showCloudSyncModal,
         artifacts,
         backupState,
+        backupProvider,
         restoringBackup,
         uploadingBackup,
         showCloudSyncFilesModal,

@@ -19,6 +19,8 @@ import type {
   ShortcutLocation,
   AchievementCustomNotificationPosition,
   AchievementNotificationInfo,
+  GoogleDriveUserInfo,
+  GoogleDriveBackupArtifact,
 } from "@types";
 import type { AuthPage } from "@shared";
 import type { AxiosProgressEvent } from "axios";
@@ -253,6 +255,8 @@ contextBridge.exposeInMainWorld("electron", {
     ipcRenderer.invoke("removeGame", shop, objectId),
   deleteGameFolder: (shop: GameShop, objectId: string) =>
     ipcRenderer.invoke("deleteGameFolder", shop, objectId),
+  deleteGameInstaller: (shop: GameShop, objectId: string) =>
+    ipcRenderer.invoke("deleteGameInstaller", shop, objectId),
   getGameByObjectId: (shop: GameShop, objectId: string) =>
     ipcRenderer.invoke("getGameByObjectId", shop, objectId),
   resetGameAchievements: (shop: GameShop, objectId: string) =>
@@ -303,11 +307,14 @@ contextBridge.exposeInMainWorld("electron", {
     ipcRenderer.on("on-extraction-progress", listener);
     return () => ipcRenderer.removeListener("on-extraction-progress", listener);
   },
-  onArchiveDeletionPrompt: (cb: (archivePaths: string[]) => void) => {
+  onArchiveDeletionPrompt: (
+    cb: (archivePaths: string[], totalSizeInBytes: number) => void
+  ) => {
     const listener = (
       _event: Electron.IpcRendererEvent,
-      archivePaths: string[]
-    ) => cb(archivePaths);
+      archivePaths: string[],
+      totalSizeInBytes: number
+    ) => cb(archivePaths, totalSizeInBytes);
     ipcRenderer.on("on-archive-deletion-prompt", listener);
     return () =>
       ipcRenderer.removeListener("on-archive-deletion-prompt", listener);
@@ -378,6 +385,88 @@ contextBridge.exposeInMainWorld("electron", {
     return () =>
       ipcRenderer.removeListener(
         `on-backup-download-complete-${objectId}-${shop}`,
+        listener
+      );
+  },
+
+  /* Google Drive */
+  googleDrive: {
+    authenticate: () =>
+      ipcRenderer.invoke(
+        "googleDriveAuthenticate"
+      ) as Promise<GoogleDriveUserInfo>,
+    disconnect: () =>
+      ipcRenderer.invoke("googleDriveDisconnect") as Promise<void>,
+    getConnectionStatus: () =>
+      ipcRenderer.invoke("googleDriveGetConnectionStatus") as Promise<{
+        connected: boolean;
+        userInfo: GoogleDriveUserInfo | null;
+      }>,
+    uploadSaveGame: (
+      objectId: string,
+      shop: GameShop,
+      downloadOptionTitle: string | null
+    ) =>
+      ipcRenderer.invoke(
+        "googleDriveUploadSaveGame",
+        objectId,
+        shop,
+        downloadOptionTitle
+      ) as Promise<void>,
+    downloadBackup: (objectId: string, shop: GameShop, fileId: string) =>
+      ipcRenderer.invoke(
+        "googleDriveDownloadBackup",
+        objectId,
+        shop,
+        fileId
+      ) as Promise<void>,
+    listBackups: (objectId: string, shop: GameShop) =>
+      ipcRenderer.invoke("googleDriveListBackups", objectId, shop) as Promise<
+        GoogleDriveBackupArtifact[]
+      >,
+    deleteBackup: (fileId: string) =>
+      ipcRenderer.invoke("googleDriveDeleteBackup", fileId) as Promise<void>,
+  },
+  /* Local Backup */
+  localBackup: {
+    uploadSaveGame: (
+      objectId: string,
+      shop: GameShop,
+      downloadOptionTitle: string | null
+    ) =>
+      ipcRenderer.invoke(
+        "localBackupUploadSaveGame",
+        objectId,
+        shop,
+        downloadOptionTitle
+      ) as Promise<void>,
+    downloadBackup: (objectId: string, shop: GameShop, fileName: string) =>
+      ipcRenderer.invoke(
+        "localBackupDownloadBackup",
+        objectId,
+        shop,
+        fileName
+      ) as Promise<void>,
+    listBackups: (objectId: string, shop: GameShop) =>
+      ipcRenderer.invoke("localBackupListBackups", objectId, shop) as Promise<
+        GoogleDriveBackupArtifact[]
+      >,
+    deleteBackup: (fileName: string) =>
+      ipcRenderer.invoke("localBackupDeleteBackup", fileName) as Promise<void>,
+    selectPath: () =>
+      ipcRenderer.invoke("localBackupSelectPath") as Promise<string | null>,
+  },
+
+  onGoogleDriveUploadComplete: (
+    objectId: string,
+    shop: GameShop,
+    cb: () => void
+  ) => {
+    const listener = (_event: Electron.IpcRendererEvent) => cb();
+    ipcRenderer.on(`on-upload-complete-${objectId}-${shop}`, listener);
+    return () =>
+      ipcRenderer.removeListener(
+        `on-upload-complete-${objectId}-${shop}`,
         listener
       );
   },
@@ -487,6 +576,7 @@ contextBridge.exposeInMainWorld("electron", {
   getHydraDeckyPluginInfo: () => ipcRenderer.invoke("getHydraDeckyPluginInfo"),
   checkHomebrewFolderExists: () =>
     ipcRenderer.invoke("checkHomebrewFolderExists"),
+  openDevTools: () => ipcRenderer.invoke("openDevTools"),
   platform: process.platform,
 
   /* Auto update */
