@@ -360,4 +360,66 @@
     justify-content: flex-end;
     gap: globals.$spacing-unit;
   }
+
+  // -- Skeleton loading --
+  &__progress-bar--skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 25%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: settings-storage-shimmer 1.5s infinite;
+  }
+
+  &__skeleton-block {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 25%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: settings-storage-shimmer 1.5s infinite;
+  }
+
+  &__skeleton-text {
+    display: inline-block;
+    height: 12px;
+    border-radius: 4px;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 25%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: settings-storage-shimmer 1.5s infinite;
+
+    &--xs {
+      width: 50px;
+    }
+
+    &--sm {
+      width: 90px;
+    }
+
+    &--md {
+      width: 130px;
+    }
+
+    &--lg {
+      width: 160px;
+    }
+  }
+}
+
+@keyframes settings-storage-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }

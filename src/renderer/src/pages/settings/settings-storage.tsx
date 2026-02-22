@@ -40,6 +40,7 @@ export function SettingsStorage() {
 
   const [library, setLibrary] = useState<LibraryGame[]>([]);
   const [diskUsage, setDiskUsage] = useState<DiskUsage | null>(null);
+  const [loading, setLoading] = useState(true);
   const [deletingGameId, setDeletingGameId] = useState<string | null>(null);
   const [hoveredGameId, setHoveredGameId] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] =
@@ -57,6 +58,8 @@ export function SettingsStorage() {
       const usage = await window.electron.getDiskFreeSpace(downloadsPath);
       setDiskUsage(usage);
     }
+
+    setLoading(false);
   }, [userPreferences?.downloadsPath]);
 
   useEffect(() => {
@@ -159,100 +162,115 @@ export function SettingsStorage() {
       <div className="settings-storage__section">
         <h3 className="settings-storage__section-title">{t("disk_space")}</h3>
 
-        {diskUsage && (
+        {loading ? (
           <div className="settings-storage__disk-overview">
             <div className="settings-storage__disk-labels">
-              <span>{t("used_space", { space: formatBytes(usedSpace) })}</span>
-              <span>
-                {t("free_space", { space: formatBytes(diskUsage.free) })}
-              </span>
+              <span className="settings-storage__skeleton-text settings-storage__skeleton-text--sm" />
+              <span className="settings-storage__skeleton-text settings-storage__skeleton-text--sm" />
             </div>
-
-            <div className="settings-storage__progress-bar">
-              {otherUsedSpace > 0 && (
-                <div
-                  className="settings-storage__disk-segment settings-storage__disk-segment--other"
-                  style={{
-                    width: `${(otherUsedSpace / diskUsage.total) * 100}%`,
-                  }}
-                  title={`${t("other_usage")} — ${formatBytes(otherUsedSpace)}`}
-                />
-              )}
-              {gamesWithStorage.map((game, index) => {
-                const gameTotal =
-                  (game.installerSizeInBytes ?? 0) +
-                  (game.installedSizeInBytes ?? 0);
-                const percent = (gameTotal / diskUsage.total) * 100;
-                const isHovered = hoveredGameId === game.id;
-
-                if (percent < 0.1) return null;
-
-                return (
-                  <div
-                    key={game.id}
-                    className={`settings-storage__disk-segment ${isHovered ? "settings-storage__disk-segment--hovered" : ""}`}
-                    style={{
-                      width: `${percent}%`,
-                      backgroundColor: getGameColor(index),
-                    }}
-                    title={`${game.title} — ${formatBytes(gameTotal)}`}
-                    onMouseEnter={() => setHoveredGameId(game.id)}
-                    onMouseLeave={() => setHoveredGameId(null)}
-                  />
-                );
-              })}
-            </div>
-
-            <div className="settings-storage__disk-legend">
-              <span>
-                {t("total_space", { space: formatBytes(diskUsage.total) })}
-              </span>
-              {totalGamesSize > 0 && (
-                <div className="settings-storage__legend-items">
-                  {gamesWithStorage.slice(0, 5).map((game, index) => {
-                    const gameTotal =
-                      (game.installerSizeInBytes ?? 0) +
-                      (game.installedSizeInBytes ?? 0);
-                    return (
-                      <div
-                        key={game.id}
-                        className={`settings-storage__legend-item ${hoveredGameId === game.id ? "settings-storage__legend-item--hovered" : ""}`}
-                        onMouseEnter={() => setHoveredGameId(game.id)}
-                        onMouseLeave={() => setHoveredGameId(null)}
-                      >
-                        <span
-                          className="settings-storage__legend-dot"
-                          style={{ backgroundColor: getGameColor(index) }}
-                        />
-                        <span className="settings-storage__legend-label">
-                          {game.title}
-                        </span>
-                        <span className="settings-storage__legend-size">
-                          {formatBytes(gameTotal)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                  {otherUsedSpace > 0 && (
-                    <div className="settings-storage__legend-item">
-                      <span
-                        className="settings-storage__legend-dot"
-                        style={{
-                          backgroundColor: "rgba(255, 255, 255, 0.2)",
-                        }}
-                      />
-                      <span className="settings-storage__legend-label">
-                        {t("other_usage")}
-                      </span>
-                      <span className="settings-storage__legend-size">
-                        {formatBytes(otherUsedSpace)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
+            <div className="settings-storage__progress-bar settings-storage__progress-bar--skeleton" />
+            <div className="settings-storage__disk-labels">
+              <span className="settings-storage__skeleton-text settings-storage__skeleton-text--md" />
             </div>
           </div>
+        ) : (
+          diskUsage && (
+            <div className="settings-storage__disk-overview">
+              <div className="settings-storage__disk-labels">
+                <span>
+                  {t("used_space", { space: formatBytes(usedSpace) })}
+                </span>
+                <span>
+                  {t("free_space", { space: formatBytes(diskUsage.free) })}
+                </span>
+              </div>
+
+              <div className="settings-storage__progress-bar">
+                {otherUsedSpace > 0 && (
+                  <div
+                    className="settings-storage__disk-segment settings-storage__disk-segment--other"
+                    style={{
+                      width: `${(otherUsedSpace / diskUsage.total) * 100}%`,
+                    }}
+                    title={`${t("other_usage")} — ${formatBytes(otherUsedSpace)}`}
+                  />
+                )}
+                {gamesWithStorage.map((game, index) => {
+                  const gameTotal =
+                    (game.installerSizeInBytes ?? 0) +
+                    (game.installedSizeInBytes ?? 0);
+                  const percent = (gameTotal / diskUsage.total) * 100;
+                  const isHovered = hoveredGameId === game.id;
+
+                  if (percent < 0.1) return null;
+
+                  return (
+                    <div
+                      key={game.id}
+                      className={`settings-storage__disk-segment ${isHovered ? "settings-storage__disk-segment--hovered" : ""}`}
+                      style={{
+                        width: `${percent}%`,
+                        backgroundColor: getGameColor(index),
+                      }}
+                      title={`${game.title} — ${formatBytes(gameTotal)}`}
+                      onMouseEnter={() => setHoveredGameId(game.id)}
+                      onMouseLeave={() => setHoveredGameId(null)}
+                    />
+                  );
+                })}
+              </div>
+
+              <div className="settings-storage__disk-legend">
+                <span>
+                  {t("total_space", { space: formatBytes(diskUsage.total) })}
+                </span>
+                {totalGamesSize > 0 && (
+                  <div className="settings-storage__legend-items">
+                    {gamesWithStorage.slice(0, 5).map((game, index) => {
+                      const gameTotal =
+                        (game.installerSizeInBytes ?? 0) +
+                        (game.installedSizeInBytes ?? 0);
+                      return (
+                        <div
+                          key={game.id}
+                          className={`settings-storage__legend-item ${hoveredGameId === game.id ? "settings-storage__legend-item--hovered" : ""}`}
+                          onMouseEnter={() => setHoveredGameId(game.id)}
+                          onMouseLeave={() => setHoveredGameId(null)}
+                        >
+                          <span
+                            className="settings-storage__legend-dot"
+                            style={{ backgroundColor: getGameColor(index) }}
+                          />
+                          <span className="settings-storage__legend-label">
+                            {game.title}
+                          </span>
+                          <span className="settings-storage__legend-size">
+                            {formatBytes(gameTotal)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                    {otherUsedSpace > 0 && (
+                      <div className="settings-storage__legend-item">
+                        <span
+                          className="settings-storage__legend-dot"
+                          style={{
+                            backgroundColor: "rgba(255, 255, 255, 0.2)",
+                          }}
+                        />
+                        <span className="settings-storage__legend-label">
+                          {t("other_usage")}
+                        </span>
+                        <span className="settings-storage__legend-size">
+                          {formatBytes(otherUsedSpace)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
         )}
       </div>
 
@@ -268,7 +286,32 @@ export function SettingsStorage() {
           )}
         </div>
 
-        {gamesWithStorage.length === 0 ? (
+        {loading ? (
+          <div className="settings-storage__game-list">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="settings-storage__game-row">
+                <div className="settings-storage__game-info">
+                  <div className="settings-storage__game-icon-wrapper settings-storage__skeleton-block" />
+                  <div className="settings-storage__game-details">
+                    <span className="settings-storage__skeleton-text settings-storage__skeleton-text--lg" />
+                    <span className="settings-storage__skeleton-text settings-storage__skeleton-text--sm" />
+                  </div>
+                </div>
+                <div className="settings-storage__game-right">
+                  <div className="settings-storage__game-bar-wrapper">
+                    <div className="settings-storage__game-bar">
+                      <div
+                        className="settings-storage__game-bar-fill settings-storage__skeleton-block"
+                        style={{ width: `${70 - i * 20}%` }}
+                      />
+                    </div>
+                    <span className="settings-storage__skeleton-text settings-storage__skeleton-text--xs" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : gamesWithStorage.length === 0 ? (
           <p className="settings-storage__empty-message">
             {t("no_games_using_storage")}
           </p>
