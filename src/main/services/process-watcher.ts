@@ -21,6 +21,10 @@ const uploadBackup = async (game: Game) => {
 
   const label = CloudSync.getBackupLabel(true);
 
+  WindowManager.mainWindow?.webContents.send(
+    `on-upload-started-${game.objectId}-${game.shop}`
+  );
+
   if (userPreferences?.backupProvider === "local") {
     LocalBackupService.uploadSaveGame(
       game.objectId,

@@ -151,7 +151,10 @@ export class CloudSync {
         "Content-Type": "application/tar",
       },
       onUploadProgress: (progressEvent) => {
-        logger.log(progressEvent);
+        WindowManager.mainWindow?.webContents.send(
+          `on-upload-progress-${objectId}-${shop}`,
+          progressEvent
+        );
       },
     });
 

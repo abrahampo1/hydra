@@ -359,6 +359,31 @@ contextBridge.exposeInMainWorld("electron", {
         listener
       );
   },
+  onUploadStarted: (objectId: string, shop: GameShop, cb: () => void) => {
+    const listener = (_event: Electron.IpcRendererEvent) => cb();
+    ipcRenderer.on(`on-upload-started-${objectId}-${shop}`, listener);
+    return () =>
+      ipcRenderer.removeListener(
+        `on-upload-started-${objectId}-${shop}`,
+        listener
+      );
+  },
+  onUploadProgress: (
+    objectId: string,
+    shop: GameShop,
+    cb: (progress: AxiosProgressEvent) => void
+  ) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      progress: AxiosProgressEvent
+    ) => cb(progress);
+    ipcRenderer.on(`on-upload-progress-${objectId}-${shop}`, listener);
+    return () =>
+      ipcRenderer.removeListener(
+        `on-upload-progress-${objectId}-${shop}`,
+        listener
+      );
+  },
   onBackupDownloadProgress: (
     objectId: string,
     shop: GameShop,

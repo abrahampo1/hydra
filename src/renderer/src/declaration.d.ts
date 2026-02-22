@@ -300,6 +300,16 @@ declare global {
       shop: GameShop,
       cb: () => void
     ) => () => Electron.IpcRenderer;
+    onUploadStarted: (
+      objectId: string,
+      shop: GameShop,
+      cb: () => void
+    ) => () => Electron.IpcRenderer;
+    onUploadProgress: (
+      objectId: string,
+      shop: GameShop,
+      cb: (progress: AxiosProgressEvent) => void
+    ) => () => Electron.IpcRenderer;
     onBackupDownloadProgress: (
       objectId: string,
       shop: GameShop,
