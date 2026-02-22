@@ -44,6 +44,17 @@
       opacity: 1;
       transform: translateY(-20%);
     }
+
+    &--not-installed {
+      opacity: 0.4;
+      filter: saturate(0.5);
+      transition: all ease 0.2s;
+
+      &:hover {
+        opacity: 1;
+        filter: saturate(1);
+      }
+    }
   }
 
   &__overlay {

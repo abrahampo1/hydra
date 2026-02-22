@@ -1,4 +1,3 @@
-import { Button } from "@renderer/components";
 import { useTranslation } from "react-i18next";
 import { SettingsGeneral } from "./settings-general";
 import { SettingsBehavior } from "./settings-behavior";
@@ -10,9 +9,12 @@ import {
 import { SettingsAccount } from "./settings-account";
 import { useUserDetails } from "@renderer/hooks";
 import { useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import "./settings.scss";
 import { SettingsAppearance } from "./appearance/settings-appearance";
 import { SettingsDebrid } from "./settings-debrid";
+import { SettingsBackups } from "./settings-backups";
+import { SettingsStorage } from "./settings-storage";
 
 export default function Settings() {
   const { t } = useTranslation("settings");
@@ -29,6 +31,8 @@ export default function Settings() {
         contentTitle: t("appearance"),
       },
       { tabLabel: t("debrid"), contentTitle: t("debrid") },
+      { tabLabel: t("backups"), contentTitle: t("backups") },
+      { tabLabel: t("storage"), contentTitle: t("storage") },
     ];
 
     if (userDetails)
@@ -64,28 +68,60 @@ export default function Settings() {
               return <SettingsDebrid />;
             }
 
+            if (currentCategoryIndex === 5) {
+              return <SettingsBackups />;
+            }
+
+            if (currentCategoryIndex === 6) {
+              return <SettingsStorage />;
+            }
+
             return <SettingsAccount />;
           };
 
           return (
             <section className="settings__container">
               <div className="settings__content">
-                <section className="settings__categories">
+                <div className="settings__tabs">
                   {categories.map((category, index) => (
-                    <Button
+                    <div
                       key={category.contentTitle}
-                      theme={
-                        currentCategoryIndex === index ? "primary" : "outline"
-                      }
-                      onClick={() => setCurrentCategoryIndex(index)}
+                      className="settings__tab-wrapper"
                     >
-                      {category.tabLabel}
-                    </Button>
+                      <button
+                        type="button"
+                        className={`settings__tab ${currentCategoryIndex === index ? "settings__tab--active" : ""}`}
+                        onClick={() => setCurrentCategoryIndex(index)}
+                      >
+                        {category.tabLabel}
+                      </button>
+                      {currentCategoryIndex === index && (
+                        <motion.div
+                          className="settings__tab-underline"
+                          layoutId="settings-tab-underline"
+                          transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 30,
+                          }}
+                        />
+                      )}
+                    </div>
                   ))}
-                </section>
+                </div>
 
-                <h2>{categories[currentCategoryIndex].contentTitle}</h2>
-                {renderCategory()}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentCategoryIndex}
+                    className="settings__tab-content"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    {renderCategory()}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </section>
           );

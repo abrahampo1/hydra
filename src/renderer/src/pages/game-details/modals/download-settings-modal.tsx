@@ -13,9 +13,16 @@ import {
   SyncIcon,
   CheckCircleFillIcon,
   PlusIcon,
+  TrashIcon,
+  AlertIcon,
 } from "@primer/octicons-react";
-import { Downloader, formatBytes, getDownloadersForUri } from "@shared";
-import type { GameRepack } from "@types";
+import {
+  Downloader,
+  formatBytes,
+  getDownloadersForUri,
+  parseBytes,
+} from "@shared";
+import type { GameRepack, LibraryGame, DiskUsage } from "@types";
 import { DOWNLOADER_NAME } from "@renderer/constants";
 import {
   useAppSelector,
@@ -48,17 +55,19 @@ export function DownloadSettingsModal({
   repack,
 }: Readonly<DownloadSettingsModalProps>) {
   const { t } = useTranslation("game_details");
+  const { t: tSettings } = useTranslation("settings");
 
   const userPreferences = useAppSelector(
     (state) => state.userPreferences.value
   );
 
   const { lastPacket } = useDownload();
-  const { showErrorToast } = useToast();
+  const { showErrorToast, showSuccessToast } = useToast();
 
   const hasActiveDownload = lastPacket !== null;
 
   const [diskFreeSpace, setDiskFreeSpace] = useState<number | null>(null);
+  const [diskUsage, setDiskUsage] = useState<DiskUsage | null>(null);
   const [selectedPath, setSelectedPath] = useState("");
   const [downloadStarting, setDownloadStarting] = useState(false);
   const [automaticExtractionEnabled, setAutomaticExtractionEnabled] = useState(
@@ -70,12 +79,15 @@ export function DownloadSettingsModal({
     null
   );
   const [showRealDebridModal, setShowRealDebridModal] = useState(false);
+  const [library, setLibrary] = useState<LibraryGame[]>([]);
+  const [deletingGameId, setDeletingGameId] = useState<string | null>(null);
 
   const { isFeatureEnabled, Feature } = useFeature();
 
   const getDiskFreeSpace = async (path: string) => {
     const result = await window.electron.getDiskFreeSpace(path);
     setDiskFreeSpace(result.free);
+    setDiskUsage(result);
   };
 
   const checkFolderWritePermission = useCallback(
@@ -96,6 +108,55 @@ export function DownloadSettingsModal({
       checkFolderWritePermission(selectedPath);
     }
   }, [visible, checkFolderWritePermission, selectedPath]);
+
+  const estimatedSizeBytes = useMemo(() => {
+    if (!repack?.fileSize) return null;
+    return parseBytes(repack.fileSize);
+  }, [repack?.fileSize]);
+
+  const hasEnoughSpace = useMemo(() => {
+    if (diskFreeSpace === null || estimatedSizeBytes === null) return true;
+    return diskFreeSpace >= estimatedSizeBytes;
+  }, [diskFreeSpace, estimatedSizeBytes]);
+
+  useEffect(() => {
+    if (visible && !hasEnoughSpace) {
+      window.electron.getLibrary().then((games) => {
+        setLibrary(games);
+      });
+    }
+  }, [visible, hasEnoughSpace]);
+
+  const gamesWithStorage = useMemo(() => {
+    return library
+      .filter(
+        (game) =>
+          (game.installerSizeInBytes && game.installerSizeInBytes > 0) ||
+          (game.installedSizeInBytes && game.installedSizeInBytes > 0)
+      )
+      .sort((a, b) => {
+        const totalA =
+          (a.installerSizeInBytes ?? 0) + (a.installedSizeInBytes ?? 0);
+        const totalB =
+          (b.installerSizeInBytes ?? 0) + (b.installedSizeInBytes ?? 0);
+        return totalB - totalA;
+      });
+  }, [library]);
+
+  const handleDeleteGame = async (game: LibraryGame) => {
+    setDeletingGameId(game.id);
+    try {
+      await window.electron.deleteGameFolder(game.shop, game.objectId);
+      showSuccessToast(tSettings("game_files_deleted", { title: game.title }));
+      const games = await window.electron.getLibrary();
+      setLibrary(games);
+      await getDiskFreeSpace(selectedPath);
+    } catch {
+      showErrorToast(tSettings("delete_files_error"));
+    } finally {
+      setDeletingGameId(null);
+    }
+  };
 
   const downloadOptions = useMemo(() => {
     const unavailableUrisSet = new Set(repack?.unavailableUris ?? []);
@@ -141,7 +202,7 @@ export function DownloadSettingsModal({
     };
 
     return allDownloaders
-      .filter((downloader) => downloader !== Downloader.Hydra) // Temporarily comment out Nimbus
+      .filter((downloader) => downloader !== Downloader.Hydra)
       .map((downloader) => {
         const status = downloaderMap.get(downloader);
         const canHandle = status !== undefined;
@@ -153,9 +214,6 @@ export function DownloadSettingsModal({
         } else if (downloader === Downloader.TorBox) {
           isConfigured = !!userPreferences?.torBoxApiToken;
         }
-        // } else if (downloader === Downloader.Hydra) {
-        //   isConfigured = isFeatureEnabled(Feature.Nimbus);
-        // }
 
         const isAvailableButNotConfigured =
           isAvailable && !isConfigured && canHandle;
@@ -277,16 +335,118 @@ export function DownloadSettingsModal({
     }
   };
 
+  const storageBarSegments = useMemo(() => {
+    if (!diskUsage) return null;
+
+    const usedSpace = diskUsage.total - diskUsage.free;
+    const usedPercent = (usedSpace / diskUsage.total) * 100;
+    const downloadPercent = estimatedSizeBytes
+      ? (estimatedSizeBytes / diskUsage.total) * 100
+      : 0;
+
+    return { usedPercent, downloadPercent };
+  }, [diskUsage, estimatedSizeBytes]);
+
   return (
-    <Modal
-      visible={visible}
-      title={t("download_settings")}
-      description={t("space_left_on_disk", {
-        space: formatBytes(diskFreeSpace ?? 0),
-      })}
-      onClose={onClose}
-    >
+    <Modal visible={visible} title={t("download_settings")} onClose={onClose}>
       <div className="download-settings-modal__container">
+        {/* Storage bar */}
+        {diskUsage && (
+          <div className="download-settings-modal__storage-section">
+            <div className="download-settings-modal__storage-header">
+              <span className="download-settings-modal__storage-label">
+                {t("storage_usage")}
+              </span>
+              <span className="download-settings-modal__storage-free">
+                {t("space_left_on_disk", {
+                  space: formatBytes(diskFreeSpace ?? 0),
+                })}
+              </span>
+            </div>
+
+            <div className="download-settings-modal__storage-bar">
+              {storageBarSegments && (
+                <>
+                  <div
+                    className="download-settings-modal__storage-bar-used"
+                    style={{ width: `${storageBarSegments.usedPercent}%` }}
+                  />
+                  {estimatedSizeBytes && (
+                    <div
+                      className={`download-settings-modal__storage-bar-download ${!hasEnoughSpace ? "download-settings-modal__storage-bar-download--overflow" : ""}`}
+                      style={{
+                        width: `${Math.min(storageBarSegments.downloadPercent, 100 - storageBarSegments.usedPercent)}%`,
+                      }}
+                    />
+                  )}
+                </>
+              )}
+            </div>
+
+            {estimatedSizeBytes && (
+              <div className="download-settings-modal__storage-legend">
+                <span className="download-settings-modal__storage-legend-item">
+                  <span className="download-settings-modal__storage-dot download-settings-modal__storage-dot--download" />
+                  {t("estimated_size")}: {repack?.fileSize}
+                </span>
+                {!hasEnoughSpace && (
+                  <span className="download-settings-modal__storage-legend-item download-settings-modal__storage-legend-item--warning">
+                    <AlertIcon size={12} />
+                    {t("not_enough_space")}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Free space list when not enough space */}
+        {!hasEnoughSpace && gamesWithStorage.length > 0 && (
+          <div className="download-settings-modal__free-space-section">
+            <span className="download-settings-modal__free-space-hint">
+              {t("free_space_to_continue")}
+            </span>
+            <div className="download-settings-modal__free-space-list">
+              {gamesWithStorage.slice(0, 5).map((game) => {
+                const totalSize =
+                  (game.installerSizeInBytes ?? 0) +
+                  (game.installedSizeInBytes ?? 0);
+
+                return (
+                  <div
+                    key={game.id}
+                    className="download-settings-modal__free-space-item"
+                  >
+                    <div className="download-settings-modal__free-space-info">
+                      <span className="download-settings-modal__free-space-title">
+                        {game.title}
+                      </span>
+                      <span className="download-settings-modal__free-space-size">
+                        {formatBytes(totalSize)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="download-settings-modal__free-space-delete"
+                      onClick={() => handleDeleteGame(game)}
+                      disabled={deletingGameId === game.id}
+                    >
+                      {deletingGameId === game.id ? (
+                        <SyncIcon
+                          size={12}
+                          className="download-settings-modal__loading-spinner"
+                        />
+                      ) : (
+                        <TrashIcon size={12} />
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="download-settings-modal__downloads-path-field">
           <span>{t("downloader")}</span>
 

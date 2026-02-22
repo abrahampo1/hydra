@@ -4,27 +4,176 @@
   width: 100%;
   padding: calc(globals.$spacing-unit * 2);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: globals.$background-color;
-  height: 72px;
+  flex-direction: column;
+  background-color: rgba(255, 255, 255, 0.02);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  gap: calc(globals.$spacing-unit * 2);
 
   &__info {
     display: flex;
-    gap: calc(globals.$spacing-unit * 0.5);
+    gap: calc(globals.$spacing-unit * 1.5);
     flex-direction: column;
+  }
 
-    p {
-      font-size: globals.$small-font-size;
-      color: globals.$muted-color;
-      font-weight: 400;
+  &__meta-items {
+    display: flex;
+    gap: calc(globals.$spacing-unit * 2);
+    flex-wrap: wrap;
+    align-items: center;
+  }
 
-      &:first-child {
-        font-weight: 600;
-      }
+  &__meta-item {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 0.75);
+    font-size: globals.$small-font-size;
+    color: globals.$muted-color;
+
+    svg {
+      color: globals.$brand-teal;
+      flex-shrink: 0;
     }
+  }
+
+  &__genres {
+    display: flex;
+    gap: calc(globals.$spacing-unit * 0.75);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  &__genre-icon {
+    color: globals.$brand-teal;
+    flex-shrink: 0;
+  }
+
+  &__genre-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    background-color: rgba(22, 177, 149, 0.1);
+    color: globals.$brand-teal;
+    font-size: globals.$small-font-size;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  &__publisher-games {
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit * 1.5);
+  }
+
+  &__publisher-games-title {
+    font-size: globals.$small-font-size;
+    font-weight: 600;
+    color: globals.$muted-color;
+  }
+
+  &__carousel-wrapper {
+    position: relative;
+  }
+
+  &__carousel {
+    display: flex;
+    gap: calc(globals.$spacing-unit * 1.5);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding-bottom: globals.$spacing-unit;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &__scroll-button {
+    position: absolute;
+    top: 0;
+    bottom: globals.$spacing-unit;
+    width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    cursor: pointer;
+    color: #fff;
+    border: none;
+    transition: opacity 0.2s ease;
+
+    &--left {
+      left: 0;
+      background: linear-gradient(
+        90deg,
+        globals.$background-color 30%,
+        transparent
+      );
+      padding-right: globals.$spacing-unit;
+    }
+
+    &--right {
+      right: 0;
+      background: linear-gradient(
+        270deg,
+        globals.$background-color 30%,
+        transparent
+      );
+      padding-left: globals.$spacing-unit;
+    }
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  &__game-card {
+    display: flex;
+    flex-direction: column;
+    gap: globals.$spacing-unit;
+    flex-shrink: 0;
+    width: 120px;
+    scroll-snap-align: start;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: transform 0.2s ease;
+    color: globals.$body-color;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+
+  &__game-cover {
+    width: 120px;
+    height: 170px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid globals.$border-color;
+  }
+
+  &__game-cover-placeholder {
+    width: 120px;
+    height: 170px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    border: 1px solid globals.$border-color;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.03) 100%
+    );
+    color: globals.$muted-color;
+  }
+
+  &__game-title {
+    font-size: globals.$small-font-size;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
   }
 }

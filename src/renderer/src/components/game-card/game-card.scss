@@ -11,6 +11,14 @@
   cursor: pointer;
   z-index: 1;
 
+  &--unavailable {
+    opacity: 0.45;
+
+    &:hover {
+      opacity: 0.6;
+    }
+  }
+
   &:active {
     opacity: globals.$active-opacity;
   }
@@ -52,13 +60,17 @@
     text-align: left;
   }
 
-  &__download-options {
-    display: flex;
-    margin: 0;
-    padding: 0;
-    gap: globals.$spacing-unit;
-    flex-wrap: wrap;
-    list-style: none;
+  &__availability {
+    font-size: 12px;
+
+    &--available {
+      color: globals.$success-color;
+    }
+
+    &--unavailable {
+      color: globals.$body-color;
+      opacity: 0.6;
+    }
   }
 
   &__specifics {
@@ -90,11 +102,6 @@
     width: 20px;
     height: 20px;
     min-width: 20px;
-  }
-
-  &__no-download-label {
-    color: globals.$body-color;
-    font-weight: bold;
   }
 
   &:hover &__cover {

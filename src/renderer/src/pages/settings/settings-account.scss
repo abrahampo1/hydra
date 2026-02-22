@@ -4,13 +4,23 @@
   &__form {
     display: flex;
     flex-direction: column;
-    gap: calc(globals.$spacing-unit * 2);
+    gap: calc(globals.$spacing-unit * 3);
   }
 
   &__section {
     display: flex;
     flex-direction: column;
     gap: globals.$spacing-unit;
+
+    h3,
+    h4 {
+      margin: 0;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, 0.4);
+    }
   }
 
   &__actions {
@@ -43,6 +53,14 @@
     align-items: center;
     justify-content: space-between;
     gap: globals.$spacing-unit;
+    padding: calc(globals.$spacing-unit) calc(globals.$spacing-unit * 1.5);
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.04);
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
   }
 
   &__user-info {

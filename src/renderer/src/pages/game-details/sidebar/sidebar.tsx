@@ -197,7 +197,9 @@ export function Sidebar() {
                 <DownloadIcon size={18} />
                 {t("download_count")}
               </p>
-              <p>{numberFormatter.format(stats?.downloadCount)}</p>
+              <span className="stats__category-value">
+                {numberFormatter.format(stats?.downloadCount)}
+              </span>
             </div>
 
             <div className="stats__category">
@@ -205,7 +207,9 @@ export function Sidebar() {
                 <PeopleIcon size={18} />
                 {t("player_count")}
               </p>
-              <p>{numberFormatter.format(stats?.playerCount)}</p>
+              <span className="stats__category-value">
+                {numberFormatter.format(stats?.playerCount)}
+              </span>
             </div>
 
             <div className="stats__category">

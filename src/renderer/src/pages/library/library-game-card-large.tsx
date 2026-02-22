@@ -134,7 +134,7 @@ export const LibraryGameCardLarge = memo(function LibraryGameCardLarge({
   return (
     <button
       type="button"
-      className="library-game-card-large"
+      className={`library-game-card-large${!game.executablePath ? " library-game-card-large--not-installed" : ""}`}
       onClick={handleCardClick}
       onContextMenu={handleContextMenuClick}
     >

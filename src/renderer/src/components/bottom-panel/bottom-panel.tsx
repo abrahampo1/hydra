@@ -13,6 +13,21 @@ import "./bottom-panel.scss";
 
 import { useNavigate } from "react-router-dom";
 import { VERSION_CODENAME } from "@renderer/constants";
+import {
+  DownloadIcon,
+  FileZipIcon,
+  HorizontalRuleIcon,
+  SearchIcon,
+  ToolsIcon,
+} from "@primer/octicons-react";
+
+type ActivityType =
+  | "downloading"
+  | "extracting"
+  | "checking"
+  | "metadata"
+  | "redist"
+  | "idle";
 
 export function BottomPanel() {
   const { t } = useTranslation("bottom_panel");
@@ -66,9 +81,16 @@ export function BottomPanel() {
     window.electron.getSessionHash().then((result) => setSessionHash(result));
   }, [userDetails?.id]);
 
-  const status = useMemo(() => {
+  const activityInfo = useMemo(() => {
     if (commonRedistStatus) {
-      return t("installing_common_redist", { log: commonRedistStatus });
+      return {
+        type: "redist" as ActivityType,
+        label: t("installing_common_redist", { log: commonRedistStatus }),
+        progress: null,
+        percentage: null,
+        speed: null,
+        eta: null,
+      };
     }
 
     if (extraction) {
@@ -77,11 +99,15 @@ export function BottomPanel() {
       );
 
       if (extractingGame) {
-        const extractionPercentage = Math.round(extraction.progress * 100);
-        return t("extracting", {
-          title: extractingGame.title,
-          percentage: `${extractionPercentage}%`,
-        });
+        const pct = Math.round(extraction.progress * 100);
+        return {
+          type: "extracting" as ActivityType,
+          label: extractingGame.title,
+          progress: extraction.progress,
+          percentage: `${pct}%`,
+          speed: null,
+          eta: null,
+        };
       }
     }
 
@@ -90,34 +116,46 @@ export function BottomPanel() {
       : undefined;
 
     if (game) {
-      if (lastPacket?.isCheckingFiles)
-        return t("checking_files", {
-          title: game.title,
+      if (lastPacket?.isCheckingFiles) {
+        return {
+          type: "checking" as ActivityType,
+          label: game.title,
+          progress: lastPacket.progress,
           percentage: progress,
-        });
-
-      if (lastPacket?.isDownloadingMetadata)
-        return t("downloading_metadata", {
-          title: game.title,
-          percentage: progress,
-        });
-
-      if (!eta) {
-        return t("calculating_eta", {
-          title: game.title,
-          percentage: progress,
-        });
+          speed: null,
+          eta: null,
+        };
       }
 
-      return t("downloading", {
-        title: game.title,
+      if (lastPacket?.isDownloadingMetadata) {
+        return {
+          type: "metadata" as ActivityType,
+          label: game.title,
+          progress: lastPacket.progress,
+          percentage: progress,
+          speed: null,
+          eta: null,
+        };
+      }
+
+      return {
+        type: "downloading" as ActivityType,
+        label: game.title,
+        progress: lastPacket?.progress ?? 0,
         percentage: progress,
-        eta,
         speed: downloadSpeed,
-      });
+        eta,
+      };
     }
 
-    return t("no_downloads_in_progress");
+    return {
+      type: "idle" as ActivityType,
+      label: t("no_downloads_in_progress"),
+      progress: null,
+      percentage: null,
+      speed: null,
+      eta: null,
+    };
   }, [
     t,
     library,
@@ -129,25 +167,97 @@ export function BottomPanel() {
     extraction,
   ]);
 
+  const renderIcon = () => {
+    switch (activityInfo.type) {
+      case "downloading":
+      case "metadata":
+        return <DownloadIcon size={14} />;
+      case "extracting":
+        return <FileZipIcon size={14} />;
+      case "checking":
+        return <SearchIcon size={14} />;
+      case "redist":
+        return <ToolsIcon size={14} />;
+      default:
+        return <HorizontalRuleIcon size={14} />;
+    }
+  };
+
+  const isActive = activityInfo.type !== "idle";
+  const hasProgress = activityInfo.progress !== null;
+
+  const progressColorClass = (() => {
+    switch (activityInfo.type) {
+      case "extracting":
+        return "bottom-panel__progress-fill--extraction";
+      case "checking":
+      case "metadata":
+        return "bottom-panel__progress-fill--checking";
+      case "redist":
+        return "bottom-panel__progress-fill--redist";
+      default:
+        return "";
+    }
+  })();
+
+  const iconColorClass = (() => {
+    if (!isActive) return "";
+    switch (activityInfo.type) {
+      case "extracting":
+        return "bottom-panel__icon--extracting";
+      case "checking":
+      case "metadata":
+        return "bottom-panel__icon--checking";
+      case "redist":
+        return "bottom-panel__icon--redist";
+      default:
+        return "";
+    }
+  })();
+
   return (
     <footer className="bottom-panel">
+      {hasProgress && (
+        <div
+          className={`bottom-panel__progress-fill ${progressColorClass}`}
+          style={{ width: `${activityInfo.progress! * 100}%` }}
+        />
+      )}
+
       <button
         type="button"
         className="bottom-panel__downloads-button"
         onClick={() => navigate("/downloads")}
       >
-        <small>{status}</small>
+        <div
+          className={`bottom-panel__icon ${isActive ? "bottom-panel__icon--active" : ""} ${iconColorClass}`}
+        >
+          {renderIcon()}
+        </div>
+
+        <small className="bottom-panel__label">{activityInfo.label}</small>
+
+        {activityInfo.percentage && (
+          <small className="bottom-panel__percentage">
+            {activityInfo.percentage}
+          </small>
+        )}
+
+        {activityInfo.speed && (
+          <small className="bottom-panel__speed">{activityInfo.speed}</small>
+        )}
+
+        {activityInfo.eta && (
+          <small className="bottom-panel__eta">{activityInfo.eta}</small>
+        )}
       </button>
 
-      <button
-        data-open-workwonders-changelog-mini
-        className="bottom-panel__version-button"
-      >
+      <div className="bottom-panel__version-button">
         <small>
           {sessionHash ? `${sessionHash} -` : ""} v{version} &quot;
           {VERSION_CODENAME}&quot;
         </small>
-      </button>
+      </div>
     </footer>
   );
 }

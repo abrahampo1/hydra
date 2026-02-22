@@ -6,10 +6,10 @@ import SteamLogo from "@renderer/assets/steam-logo.svg?react";
 import "./game-card.scss";
 
 import { useTranslation } from "react-i18next";
-import { Badge } from "../badge/badge";
 import { StarRating } from "../star-rating/star-rating";
 import { useCallback, useState } from "react";
 import { useFormat } from "@renderer/hooks";
+import cn from "classnames";
 
 export interface GameCardProps
   extends React.DetailedHTMLProps<
@@ -24,7 +24,7 @@ const shopIcon = {
 };
 
 export function GameCard({ game, ...props }: GameCardProps) {
-  const { t } = useTranslation("game_card");
+  const { t } = useTranslation("catalogue");
 
   const [stats, setStats] = useState<GameStats | null>(null);
 
@@ -38,11 +38,15 @@ export function GameCard({ game, ...props }: GameCardProps) {
 
   const { numberFormatter } = useFormat();
 
+  const isAvailable = game.downloadSources.length > 0;
+
   return (
     <button
       {...props}
       type="button"
-      className="game-card"
+      className={cn("game-card", {
+        "game-card--unavailable": !isAvailable,
+      })}
       onMouseEnter={handleHover}
     >
       <div className="game-card__backdrop">
@@ -59,27 +63,14 @@ export function GameCard({ game, ...props }: GameCardProps) {
             <p className="game-card__title">{game.title}</p>
           </div>
 
-          {game.downloadSources.length > 0 ? (
-            <ul className="game-card__download-options">
-              {game.downloadSources.slice(0, 3).map((sourceName) => (
-                <li key={sourceName}>
-                  <Badge>{sourceName}</Badge>
-                </li>
-              ))}
-              {game.downloadSources.length > 3 && (
-                <li>
-                  <Badge>
-                    +{game.downloadSources.length - 3}{" "}
-                    {t("game_card:available", {
-                      count: game.downloadSources.length - 3,
-                    })}
-                  </Badge>
-                </li>
-              )}
-            </ul>
-          ) : (
-            <p className="game-card__no-download-label">{t("no_downloads")}</p>
-          )}
+          <span
+            className={cn("game-card__availability", {
+              "game-card__availability--available": isAvailable,
+              "game-card__availability--unavailable": !isAvailable,
+            })}
+          >
+            {isAvailable ? t("available") : t("not_available")}
+          </span>
 
           <div className="game-card__specifics">
             <div className="game-card__specifics-item">

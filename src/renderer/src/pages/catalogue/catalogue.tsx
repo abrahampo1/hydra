@@ -10,7 +10,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import "./catalogue.scss";
 
 import { FilterSection } from "./filter-section";
-import { setFilters, setPage } from "@renderer/features";
+import {
+  setFilters,
+  setPage,
+  setViewMode,
+  toggleFilterSidebar,
+  clearFilters,
+} from "@renderer/features";
 import { useTranslation } from "react-i18next";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { Pagination } from "./pagination";
@@ -18,6 +24,17 @@ import { useCatalogue } from "@renderer/hooks/use-catalogue";
 import { GameItem } from "./game-item";
 import { FilterItem } from "./filter-item";
 import { debounce } from "lodash-es";
+import {
+  ListUnorderedIcon,
+  TableIcon,
+  SidebarCollapseIcon,
+  SidebarExpandIcon,
+  SearchIcon,
+} from "@primer/octicons-react";
+import { GameCard, Button } from "@renderer/components";
+import { useNavigate } from "react-router-dom";
+import { buildGameDetailsPath } from "@renderer/helpers";
+import cn from "classnames";
 
 const filterCategoryColors = {
   genres: "hsl(262deg 50% 47%)",
@@ -29,15 +46,33 @@ const filterCategoryColors = {
 
 const PAGE_SIZE = 20;
 
+const POPULAR_GENRES = [
+  "Action",
+  "Adventure",
+  "RPG",
+  "Strategy",
+  "Simulation",
+  "Sports",
+  "Racing",
+  "Indie",
+];
+
 export default function Catalogue() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const cataloguePageRef = useRef<HTMLDivElement>(null);
 
+  const navigate = useNavigate();
+
   const { steamDevelopers, steamPublishers, downloadSources } = useCatalogue();
 
-  const { steamGenres, steamUserTags, filters, page } = useAppSelector(
-    (state) => state.catalogueSearch
-  );
+  const {
+    steamGenres,
+    steamUserTags,
+    filters,
+    page,
+    viewMode,
+    filterSidebarCollapsed,
+  } = useAppSelector((state) => state.catalogueSearch);
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -243,6 +278,29 @@ export default function Catalogue() {
     t,
   ]);
 
+  const toggleGenreChip = (genreEnglish: string) => {
+    if (filters.genres.includes(genreEnglish)) {
+      dispatch(
+        setFilters({
+          genres: filters.genres.filter((g) => g !== genreEnglish),
+        })
+      );
+    } else {
+      dispatch(
+        setFilters({
+          genres: [...filters.genres, genreEnglish],
+        })
+      );
+    }
+  };
+
+  const getGenreLocalizedName = (englishGenre: string) => {
+    const localizedName = Object.keys(steamGenresMapping).find(
+      (key) => steamGenresMapping[key] === englishGenre
+    );
+    return localizedName || englishGenre;
+  };
+
   return (
     <div className="catalogue" ref={cataloguePageRef}>
       <div className="catalogue__header">
@@ -266,76 +324,181 @@ export default function Catalogue() {
               </li>
             ))}
           </ul>
+
+          {groupedFilters.length > 0 && (
+            <Button
+              className="catalogue__clear-all-button"
+              onClick={() => dispatch(clearFilters())}
+            >
+              {t("clear_all_filters")}
+            </Button>
+          )}
         </div>
       </div>
 
+      <div className="catalogue__toolbar">
+        <div className="catalogue__view-toggle">
+          <button
+            type="button"
+            className={cn("catalogue__view-toggle-button", {
+              "catalogue__view-toggle-button--active": viewMode === "list",
+            })}
+            onClick={() => dispatch(setViewMode("list"))}
+            title={t("list_view")}
+          >
+            <ListUnorderedIcon size={16} />
+          </button>
+          <button
+            type="button"
+            className={cn("catalogue__view-toggle-button", {
+              "catalogue__view-toggle-button--active": viewMode === "grid",
+            })}
+            onClick={() => dispatch(setViewMode("grid"))}
+            title={t("grid_view")}
+          >
+            <TableIcon size={16} />
+          </button>
+        </div>
+
+        <button
+          type="button"
+          className="catalogue__filter-toggle"
+          onClick={() => dispatch(toggleFilterSidebar())}
+          title={filterSidebarCollapsed ? t("show_filters") : t("hide_filters")}
+        >
+          {filterSidebarCollapsed ? (
+            <SidebarExpandIcon size={16} />
+          ) : (
+            <SidebarCollapseIcon size={16} />
+          )}
+        </button>
+      </div>
+
+      <div className="catalogue__genre-chips">
+        {POPULAR_GENRES.map((genre) => (
+          <button
+            key={genre}
+            type="button"
+            className={cn("catalogue__genre-chip", {
+              "catalogue__genre-chip--active": filters.genres.includes(genre),
+            })}
+            onClick={() => toggleGenreChip(genre)}
+          >
+            {getGenreLocalizedName(genre)}
+          </button>
+        ))}
+      </div>
+
       <div className="catalogue__content">
-        <div className="catalogue__games-container">
+        <div
+          className={cn("catalogue__games-container", {
+            "catalogue__games-container--grid": viewMode === "grid",
+            "catalogue__games-container--with-sidebar":
+              viewMode === "grid" && !filterSidebarCollapsed,
+          })}
+        >
           {isLoading ? (
             <SkeletonTheme baseColor="#1c1c1c" highlightColor="#444">
               {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                <Skeleton key={i} className="catalogue__skeleton" />
+                <Skeleton
+                  key={i}
+                  className={cn("catalogue__skeleton", {
+                    "catalogue__skeleton--grid": viewMode === "grid",
+                  })}
+                />
               ))}
             </SkeletonTheme>
+          ) : results.length === 0 ? (
+            <div className="catalogue__empty-state">
+              <SearchIcon size={48} />
+              <h3>{t("no_results_title")}</h3>
+              <p>{t("no_results_description")}</p>
+              <Button onClick={() => dispatch(clearFilters())}>
+                {t("clear_all_filters")}
+              </Button>
+            </div>
+          ) : viewMode === "grid" ? (
+            results.map((game) => (
+              <GameCard
+                key={game.id}
+                game={{
+                  objectId: game.objectId,
+                  shop: game.shop,
+                  title: game.title,
+                  iconUrl: null,
+                  libraryHeroImageUrl: null,
+                  libraryImageUrl: game.libraryImageUrl,
+                  logoImageUrl: null,
+                  logoPosition: null,
+                  coverImageUrl: null,
+                  downloadSources: game.downloadSources,
+                }}
+                onClick={() => navigate(buildGameDetailsPath(game))}
+              />
+            ))
           ) : (
             results.map((game) => <GameItem key={game.id} game={game} />)
           )}
 
-          <div className="catalogue__pagination-container">
-            <span className="catalogue__result-count">
-              {t("result_count", {
-                resultCount: formatNumber(itemsCount),
-              })}
-            </span>
+          {results.length > 0 && (
+            <div className="catalogue__pagination-container">
+              <span className="catalogue__result-count">
+                {t("result_count", {
+                  resultCount: formatNumber(itemsCount),
+                })}
+              </span>
 
-            <Pagination
-              page={page}
-              totalPages={Math.ceil(itemsCount / PAGE_SIZE)}
-              onPageChange={(page) => {
-                dispatch(setPage(page));
-                if (cataloguePageRef.current) {
-                  cataloguePageRef.current.scrollTop = 0;
-                }
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="catalogue__filters-container">
-          <div className="catalogue__filters-sections">
-            {filterSections.map((section) => (
-              <FilterSection
-                key={section.key}
-                title={section.title}
-                onClear={() => dispatch(setFilters({ [section.key]: [] }))}
-                color={filterCategoryColors[section.key]}
-                onSelect={(value) => {
-                  if (filters[section.key].includes(value)) {
-                    dispatch(
-                      setFilters({
-                        [section.key]: filters[
-                          section.key as
-                            | "genres"
-                            | "tags"
-                            | "downloadSourceFingerprints"
-                            | "developers"
-                            | "publishers"
-                        ].filter((item) => item !== value),
-                      })
-                    );
-                  } else {
-                    dispatch(
-                      setFilters({
-                        [section.key]: [...filters[section.key], value],
-                      })
-                    );
+              <Pagination
+                page={page}
+                totalPages={Math.ceil(itemsCount / PAGE_SIZE)}
+                onPageChange={(page) => {
+                  dispatch(setPage(page));
+                  if (cataloguePageRef.current) {
+                    cataloguePageRef.current.scrollTop = 0;
                   }
                 }}
-                items={section.items}
               />
-            ))}
-          </div>
+            </div>
+          )}
         </div>
+
+        {!filterSidebarCollapsed && (
+          <div className="catalogue__filters-container">
+            <div className="catalogue__filters-sections">
+              {filterSections.map((section) => (
+                <FilterSection
+                  key={section.key}
+                  title={section.title}
+                  onClear={() => dispatch(setFilters({ [section.key]: [] }))}
+                  color={filterCategoryColors[section.key]}
+                  onSelect={(value) => {
+                    if (filters[section.key].includes(value)) {
+                      dispatch(
+                        setFilters({
+                          [section.key]: filters[
+                            section.key as
+                              | "genres"
+                              | "tags"
+                              | "downloadSourceFingerprints"
+                              | "developers"
+                              | "publishers"
+                          ].filter((item) => item !== value),
+                        })
+                      );
+                    } else {
+                      dispatch(
+                        setFilters({
+                          [section.key]: [...filters[section.key], value],
+                        })
+                      );
+                    }
+                  }}
+                  items={section.items}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

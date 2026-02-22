@@ -1,11 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 
-import {
-  TextField,
-  Button,
-  Badge,
-  ConfirmationModal,
-} from "@renderer/components";
+import { Button, ConfirmationModal } from "@renderer/components";
 import { useTranslation } from "react-i18next";
 
 import type { DownloadSource } from "@types";
@@ -14,6 +9,11 @@ import {
   PlusCircleIcon,
   SyncIcon,
   TrashIcon,
+  LinkIcon,
+  CheckCircleFillIcon,
+  ClockIcon,
+  XCircleFillIcon,
+  SearchIcon,
 } from "@primer/octicons-react";
 import { AddDownloadSourceModal } from "./add-download-source-modal";
 import { useAppDispatch, useToast } from "@renderer/hooks";
@@ -156,15 +156,6 @@ export function SettingsDownloadSources() {
     }
   };
 
-  const statusTitle = {
-    [DownloadSourceStatus.PendingMatching]: t(
-      "download_source_pending_matching"
-    ),
-    [DownloadSourceStatus.Matched]: t("download_source_matched"),
-    [DownloadSourceStatus.Matching]: t("download_source_matching"),
-    [DownloadSourceStatus.Failed]: t("download_source_failed"),
-  };
-
   const handleModalClose = () => {
     clearSourceUrl();
     setShowAddDownloadSourceModal(false);
@@ -182,8 +173,47 @@ export function SettingsDownloadSources() {
     navigate("/catalogue");
   };
 
+  const getStatusIcon = (status: DownloadSourceStatus) => {
+    switch (status) {
+      case DownloadSourceStatus.Matched:
+        return <CheckCircleFillIcon size={14} />;
+      case DownloadSourceStatus.PendingMatching:
+      case DownloadSourceStatus.Matching:
+        return (
+          <SyncIcon size={14} className="settings-download-sources__spinner" />
+        );
+      case DownloadSourceStatus.Failed:
+        return <XCircleFillIcon size={14} />;
+      default:
+        return <ClockIcon size={14} />;
+    }
+  };
+
+  const getStatusClass = (status: DownloadSourceStatus) => {
+    switch (status) {
+      case DownloadSourceStatus.Matched:
+        return "settings-download-sources__status--matched";
+      case DownloadSourceStatus.PendingMatching:
+      case DownloadSourceStatus.Matching:
+        return "settings-download-sources__status--matching";
+      case DownloadSourceStatus.Failed:
+        return "settings-download-sources__status--failed";
+      default:
+        return "";
+    }
+  };
+
+  const statusTitle = {
+    [DownloadSourceStatus.PendingMatching]: t(
+      "download_source_pending_matching"
+    ),
+    [DownloadSourceStatus.Matched]: t("download_source_matched"),
+    [DownloadSourceStatus.Matching]: t("download_source_matching"),
+    [DownloadSourceStatus.Failed]: t("download_source_failed"),
+  };
+
   return (
-    <>
+    <div className="settings-download-sources">
       <AddDownloadSourceModal
         visible={showAddDownloadSourceModal}
         onClose={handleModalClose}
@@ -201,24 +231,33 @@ export function SettingsDownloadSources() {
         buttonsIsDisabled={isRemovingDownloadSource}
       />
 
-      <p>{t("download_sources_description")}</p>
+      <p className="settings-download-sources__description">
+        {t("download_sources_description")}
+      </p>
 
       <div className="settings-download-sources__header">
-        <Button
-          type="button"
-          theme="outline"
-          disabled={
-            !downloadSources.length ||
-            isSyncingDownloadSources ||
-            isRemovingDownloadSource
-          }
-          onClick={syncDownloadSources}
-        >
-          <SyncIcon />
-          {t("sync_download_sources")}
-        </Button>
+        <div className="settings-download-sources__header-left">
+          <span className="settings-download-sources__count">
+            {downloadSources.length}{" "}
+            {downloadSources.length === 1 ? "source" : "sources"}
+          </span>
+        </div>
 
-        <div className="settings-download-sources__buttons-container">
+        <div className="settings-download-sources__header-actions">
+          <Button
+            type="button"
+            theme="outline"
+            disabled={
+              !downloadSources.length ||
+              isSyncingDownloadSources ||
+              isRemovingDownloadSource
+            }
+            onClick={syncDownloadSources}
+          >
+            <SyncIcon />
+            {t("sync_download_sources")}
+          </Button>
+
           <Button
             type="button"
             theme="danger"
@@ -230,7 +269,6 @@ export function SettingsDownloadSources() {
             }
           >
             <TrashIcon />
-            {t("button_delete_all_sources")}
           </Button>
 
           <Button
@@ -245,71 +283,72 @@ export function SettingsDownloadSources() {
         </div>
       </div>
 
-      <ul className="settings-download-sources__list">
-        {downloadSources.map((downloadSource) => {
-          const isPendingOrMatching =
-            downloadSource.status === DownloadSourceStatus.PendingMatching ||
-            downloadSource.status === DownloadSourceStatus.Matching;
+      {downloadSources.length === 0 ? (
+        <div className="settings-download-sources__empty">
+          <LinkIcon size={24} />
+          <p>{t("download_sources_description")}</p>
+        </div>
+      ) : (
+        <ul className="settings-download-sources__list">
+          {downloadSources.map((downloadSource) => {
+            const isPendingOrMatching =
+              downloadSource.status === DownloadSourceStatus.PendingMatching ||
+              downloadSource.status === DownloadSourceStatus.Matching;
 
-          return (
-            <li
-              key={downloadSource.id}
-              className={`settings-download-sources__item ${isSyncingDownloadSources ? "settings-download-sources__item--syncing" : ""} ${isPendingOrMatching ? "settings-download-sources__item--pending" : ""}`}
-            >
-              <div className="settings-download-sources__item-header">
-                <h2>{downloadSource.name}</h2>
+            return (
+              <li
+                key={downloadSource.id}
+                className={`settings-download-sources__item ${isSyncingDownloadSources ? "settings-download-sources__item--syncing" : ""}`}
+              >
+                <div className="settings-download-sources__item-info">
+                  <div className="settings-download-sources__item-name-row">
+                    <span className="settings-download-sources__item-name">
+                      {downloadSource.name}
+                    </span>
+                    <span
+                      className={`settings-download-sources__status ${getStatusClass(downloadSource.status)}`}
+                    >
+                      {getStatusIcon(downloadSource.status)}
+                      {statusTitle[downloadSource.status]}
+                    </span>
+                  </div>
 
-                <div style={{ display: "flex" }}>
-                  <Badge>
-                    {isPendingOrMatching && (
-                      <SyncIcon className="settings-download-sources__spinner" />
+                  <div className="settings-download-sources__item-meta">
+                    <span className="settings-download-sources__item-url">
+                      <LinkIcon size={12} />
+                      {downloadSource.url}
+                    </span>
+                    {!isPendingOrMatching && (
+                      <button
+                        type="button"
+                        className="settings-download-sources__catalogue-link"
+                        disabled={!downloadSource.fingerprint}
+                        onClick={() =>
+                          navigateToCatalogue(downloadSource.fingerprint)
+                        }
+                      >
+                        <SearchIcon size={12} />
+                        {downloadSource.downloadCount.toLocaleString()}{" "}
+                        {t("download_count").toLowerCase()}
+                      </button>
                     )}
-                    {statusTitle[downloadSource.status]}
-                  </Badge>
+                  </div>
                 </div>
 
                 <button
                   type="button"
-                  className="settings-download-sources__navigate-button"
-                  disabled={!downloadSource.fingerprint}
-                  onClick={() =>
-                    navigateToCatalogue(downloadSource.fingerprint)
-                  }
+                  className="settings-download-sources__remove-btn"
+                  onClick={() => handleRemoveSource(downloadSource)}
+                  disabled={isRemovingDownloadSource}
+                  title={t("remove_download_source")}
                 >
-                  <small>
-                    {isPendingOrMatching
-                      ? t("download_source_no_information")
-                      : t("download_count", {
-                          count: downloadSource.downloadCount,
-                          countFormatted:
-                            downloadSource.downloadCount.toLocaleString(),
-                        })}
-                  </small>
+                  <NoEntryIcon size={14} />
                 </button>
-              </div>
-
-              <TextField
-                label={t("download_source_url")}
-                value={downloadSource.url}
-                readOnly
-                theme="dark"
-                disabled
-                rightContent={
-                  <Button
-                    type="button"
-                    theme="outline"
-                    onClick={() => handleRemoveSource(downloadSource)}
-                    disabled={isRemovingDownloadSource}
-                  >
-                    <NoEntryIcon />
-                    {t("remove_download_source")}
-                  </Button>
-                }
-              />
-            </li>
-          );
-        })}
-      </ul>
-    </>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }

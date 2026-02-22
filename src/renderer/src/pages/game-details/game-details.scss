@@ -27,13 +27,9 @@
     width: 100%;
     flex: 1;
     min-width: 0;
-    background: linear-gradient(
-      0deg,
-      globals.$background-color 50%,
-      globals.$dark-background-color 100%
-    );
-    padding: calc(globals.$spacing-unit * 1.5);
-    gap: calc(globals.$spacing-unit * 1.5);
+    background-color: globals.$background-color;
+    padding: calc(globals.$spacing-unit * 3) calc(globals.$spacing-unit * 2);
+    gap: calc(globals.$spacing-unit * 3);
   }
 
   &__description-content {
@@ -44,6 +40,16 @@
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
+    gap: calc(globals.$spacing-unit * 3);
+  }
+
+  &__section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: globals.$muted-color;
+    padding-bottom: calc(globals.$spacing-unit * 1.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    margin: 0;
   }
 
   &__description {
@@ -51,19 +57,9 @@
     line-height: 22px;
     font-size: globals.$body-font-size;
     width: 100%;
-    margin-left: auto;
-    margin-right: auto;
     overflow-x: auto;
     min-height: auto;
     transition: max-height 0.3s ease-in-out;
-
-    @media (min-width: 1280px) {
-      width: 60%;
-    }
-
-    @media (min-width: 1536px) {
-      width: 50%;
-    }
 
     &--collapsed {
       max-height: 300px;
@@ -117,16 +113,15 @@
     color: globals.$body-color;
     padding: calc(globals.$spacing-unit * 0.75)
       calc(globals.$spacing-unit * 1.5);
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: globals.$body-font-size;
-    margin-top: calc(globals.$spacing-unit * 1.5);
     transition: all 0.2s ease;
     align-self: center;
 
     &:hover {
       background-color: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.1);
+      border-color: globals.$brand-teal;
     }
   }
 

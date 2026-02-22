@@ -44,6 +44,17 @@
     border-color: rgba(255, 255, 255, 0.1);
   }
 
+  &--not-installed {
+    opacity: 0.4;
+    filter: saturate(0.5);
+    transition: all ease 0.2s;
+
+    &:hover {
+      opacity: 1;
+      filter: saturate(1);
+    }
+  }
+
   &__background {
     position: absolute;
     top: 0;

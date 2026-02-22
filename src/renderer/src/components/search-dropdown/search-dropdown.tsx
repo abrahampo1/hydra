@@ -59,8 +59,8 @@ export function SearchDropdown({
       let adjustedX = position.x;
       let adjustedY = position.y;
 
-      if (adjustedX + 250 > viewportWidth - 10) {
-        adjustedX = Math.max(10, viewportWidth - 250 - 10);
+      if (adjustedX + 380 > viewportWidth - 10) {
+        adjustedX = Math.max(10, viewportWidth - 380 - 10);
       }
 
       if (adjustedY + rect.height > viewportHeight - 10) {
@@ -187,7 +187,13 @@ export function SearchDropdown({
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => onSelectSuggestion(item)}
                 >
-                  {item.iconUrl ? (
+                  {item.coverImageUrl ? (
+                    <img
+                      src={item.coverImageUrl}
+                      alt=""
+                      className="search-dropdown__item-cover"
+                    />
+                  ) : item.iconUrl ? (
                     <img
                       src={item.iconUrl}
                       alt=""
@@ -199,9 +205,16 @@ export function SearchDropdown({
                       className="search-dropdown__item-icon"
                     />
                   )}
-                  <span className="search-dropdown__item-text">
-                    <HighlightText text={item.title} query={currentQuery} />
-                  </span>
+                  <div className="search-dropdown__item-info">
+                    <span className="search-dropdown__item-text">
+                      <HighlightText text={item.title} query={currentQuery} />
+                    </span>
+                    {item.genres && item.genres.length > 0 && (
+                      <span className="search-dropdown__item-genres">
+                        {item.genres.slice(0, 3).join(", ")}
+                      </span>
+                    )}
+                  </div>
                 </button>
               </li>
             ))}

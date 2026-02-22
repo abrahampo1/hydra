@@ -11,9 +11,37 @@
   justify-content: space-between;
   position: relative;
   z-index: globals.$bottom-panel-z-index;
+  overflow: hidden;
+
+  &__progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: rgba(34, 197, 94, 0.12);
+    transition: width 0.4s ease;
+    pointer-events: none;
+
+    &--extraction {
+      background-color: rgba(147, 130, 255, 0.12);
+    }
+
+    &--checking {
+      background-color: rgba(59, 130, 246, 0.12);
+    }
+
+    &--redist {
+      background-color: rgba(251, 191, 36, 0.12);
+    }
+  }
 
   &__downloads-button {
     color: globals.$body-color;
+    display: flex;
+    align-items: center;
+    gap: globals.$spacing-unit;
+    position: relative;
+    z-index: 1;
     border-bottom: solid 1px transparent;
 
     &:hover {
@@ -22,13 +50,87 @@
     }
   }
 
+  &__icon {
+    display: flex;
+    align-items: center;
+    color: globals.$body-color;
+    opacity: 0.6;
+    flex-shrink: 0;
+
+    &--active {
+      opacity: 1;
+      color: rgb(134, 239, 172);
+      animation: icon-pulse 2s ease-in-out infinite;
+    }
+
+    &--extracting {
+      color: rgb(178, 168, 255);
+    }
+
+    &--checking {
+      color: rgb(147, 197, 253);
+    }
+
+    &--redist {
+      color: rgb(251, 191, 36);
+    }
+  }
+
+  &__label {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 200px;
+  }
+
+  &__percentage {
+    font-weight: 700;
+    color: globals.$muted-color;
+    flex-shrink: 0;
+  }
+
+  &__speed {
+    color: globals.$body-color;
+    opacity: 0.7;
+    flex-shrink: 0;
+
+    &::before {
+      content: "·";
+      margin-right: globals.$spacing-unit;
+    }
+  }
+
+  &__eta {
+    color: globals.$body-color;
+    opacity: 0.5;
+    flex-shrink: 0;
+
+    &::before {
+      content: "·";
+      margin-right: globals.$spacing-unit;
+    }
+  }
+
   &__version-button {
     color: globals.$body-color;
     border-bottom: solid 1px transparent;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
 
     &:hover {
       border-bottom: solid 1px globals.$body-color;
       cursor: pointer;
     }
+  }
+}
+
+@keyframes icon-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }

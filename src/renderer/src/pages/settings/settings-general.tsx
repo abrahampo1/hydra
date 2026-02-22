@@ -19,7 +19,11 @@ import languageResources from "@locales";
 import { orderBy } from "lodash-es";
 import { settingsContext } from "@renderer/context";
 import "./settings-general.scss";
-import { DesktopDownloadIcon, UnmuteIcon } from "@primer/octicons-react";
+import {
+  DesktopDownloadIcon,
+  ToolsIcon,
+  UnmuteIcon,
+} from "@primer/octicons-react";
 import { logger } from "@renderer/logger";
 import { AchievementCustomNotificationPosition } from "@types";
 
@@ -257,100 +261,110 @@ export function SettingsGeneral() {
         }))}
       />
 
-      <h2 className="settings-general__section-title">{t("downloads")}</h2>
+      <h3 className="settings-general__section-title">{t("downloads")}</h3>
+      <p className="settings-general__section-description">
+        {t("downloads_section_description")}
+      </p>
 
-      <CheckboxField
-        label={t("use_native_http_downloader")}
-        checked={form.useNativeHttpDownloader}
-        disabled={hasActiveDownload}
-        onChange={() =>
-          handleChange({
-            useNativeHttpDownloader: !form.useNativeHttpDownloader,
-          })
-        }
-      />
+      <div className="settings-general__section-content">
+        <CheckboxField
+          label={t("use_native_http_downloader")}
+          checked={form.useNativeHttpDownloader}
+          disabled={hasActiveDownload}
+          onChange={() =>
+            handleChange({
+              useNativeHttpDownloader: !form.useNativeHttpDownloader,
+            })
+          }
+        />
 
-      {hasActiveDownload && (
-        <p className="settings-general__disabled-hint">
-          {t("cannot_change_downloader_while_downloading")}
-        </p>
-      )}
+        {hasActiveDownload && (
+          <p className="settings-general__disabled-hint">
+            {t("cannot_change_downloader_while_downloading")}
+          </p>
+        )}
+      </div>
 
-      <h2 className="settings-general__section-title">{t("notifications")}</h2>
+      <h3 className="settings-general__section-title">{t("notifications")}</h3>
+      <p className="settings-general__section-description">
+        {t("notifications_description")}
+      </p>
 
-      <CheckboxField
-        label={t("enable_download_notifications")}
-        checked={form.downloadNotificationsEnabled}
-        onChange={() =>
-          handleChange({
-            downloadNotificationsEnabled: !form.downloadNotificationsEnabled,
-          })
-        }
-      />
+      <div className="settings-general__section-grid">
+        <CheckboxField
+          label={t("enable_download_notifications")}
+          checked={form.downloadNotificationsEnabled}
+          onChange={() =>
+            handleChange({
+              downloadNotificationsEnabled: !form.downloadNotificationsEnabled,
+            })
+          }
+        />
 
-      <CheckboxField
-        label={t("enable_repack_list_notifications")}
-        checked={form.repackUpdatesNotificationsEnabled}
-        onChange={() =>
-          handleChange({
-            repackUpdatesNotificationsEnabled:
-              !form.repackUpdatesNotificationsEnabled,
-          })
-        }
-      />
+        <CheckboxField
+          label={t("enable_repack_list_notifications")}
+          checked={form.repackUpdatesNotificationsEnabled}
+          onChange={() =>
+            handleChange({
+              repackUpdatesNotificationsEnabled:
+                !form.repackUpdatesNotificationsEnabled,
+            })
+          }
+        />
 
-      <CheckboxField
-        label={t("enable_friend_request_notifications")}
-        checked={form.friendRequestNotificationsEnabled}
-        onChange={() =>
-          handleChange({
-            friendRequestNotificationsEnabled:
-              !form.friendRequestNotificationsEnabled,
-          })
-        }
-      />
+        <CheckboxField
+          label={t("enable_friend_request_notifications")}
+          checked={form.friendRequestNotificationsEnabled}
+          onChange={() =>
+            handleChange({
+              friendRequestNotificationsEnabled:
+                !form.friendRequestNotificationsEnabled,
+            })
+          }
+        />
 
-      <CheckboxField
-        label={t("enable_friend_start_game_notifications")}
-        checked={form.friendStartGameNotificationsEnabled}
-        onChange={() =>
-          handleChange({
-            friendStartGameNotificationsEnabled:
-              !form.friendStartGameNotificationsEnabled,
-          })
-        }
-      />
+        <CheckboxField
+          label={t("enable_friend_start_game_notifications")}
+          checked={form.friendStartGameNotificationsEnabled}
+          onChange={() =>
+            handleChange({
+              friendStartGameNotificationsEnabled:
+                !form.friendStartGameNotificationsEnabled,
+            })
+          }
+        />
 
-      <CheckboxField
-        label={t("enable_achievement_notifications")}
-        checked={form.achievementNotificationsEnabled}
-        onChange={async () => {
-          await handleChange({
-            achievementNotificationsEnabled:
-              !form.achievementNotificationsEnabled,
-          });
+        <CheckboxField
+          label={t("enable_achievement_notifications")}
+          checked={form.achievementNotificationsEnabled}
+          onChange={async () => {
+            await handleChange({
+              achievementNotificationsEnabled:
+                !form.achievementNotificationsEnabled,
+            });
 
-          window.electron.updateAchievementCustomNotificationWindow();
-        }}
-      />
+            window.electron.updateAchievementCustomNotificationWindow();
+          }}
+        />
 
-      <CheckboxField
-        label={t("enable_achievement_custom_notifications")}
-        checked={form.achievementCustomNotificationsEnabled}
-        disabled={!form.achievementNotificationsEnabled}
-        onChange={async () => {
-          await handleChange({
-            achievementCustomNotificationsEnabled:
-              !form.achievementCustomNotificationsEnabled,
-          });
+        <CheckboxField
+          label={t("enable_achievement_custom_notifications")}
+          checked={form.achievementCustomNotificationsEnabled}
+          disabled={!form.achievementNotificationsEnabled}
+          onChange={async () => {
+            await handleChange({
+              achievementCustomNotificationsEnabled:
+                !form.achievementCustomNotificationsEnabled,
+            });
 
-          window.electron.updateAchievementCustomNotificationWindow();
-        }}
-      />
+            window.electron.updateAchievementCustomNotificationWindow();
+          }}
+        />
+      </div>
 
       {form.achievementNotificationsEnabled &&
         form.achievementCustomNotificationsEnabled && (
-          <>
+          <div className="settings-general__achievement-customization">
             <SelectField
               className="settings-general__achievement-custom-notification-position__select-variation"
               label={t("achievement_custom_notification_position")}
@@ -365,7 +379,7 @@ export function SettingsGeneral() {
             >
               {t("test_notification")}
             </Button>
-          </>
+          </div>
         )}
 
       {form.achievementNotificationsEnabled && (
@@ -401,9 +415,8 @@ export function SettingsGeneral() {
         </div>
       )}
 
-      <h2 className="settings-general__section-title">{t("common_redist")}</h2>
-
-      <p className="settings-general__common-redist-description">
+      <h3 className="settings-general__section-title">{t("common_redist")}</h3>
+      <p className="settings-general__section-description">
         {t("common_redist_description")}
       </p>
 
@@ -416,6 +429,19 @@ export function SettingsGeneral() {
         {installingCommonRedist
           ? t("installing_common_redist")
           : t("install_common_redist")}
+      </Button>
+
+      <h3 className="settings-general__section-title">{t("developer")}</h3>
+      <p className="settings-general__section-description">
+        {t("developer_description")}
+      </p>
+
+      <Button
+        onClick={() => window.electron.openDevTools()}
+        className="settings-general__common-redist-button"
+      >
+        <ToolsIcon />
+        {t("open_dev_tools")}
       </Button>
     </div>
   );

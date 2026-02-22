@@ -14,12 +14,24 @@
   gap: calc(globals.$spacing-unit * 2);
   transition: all ease 0.2s;
 
+  &--unavailable {
+    opacity: 0.5;
+
+    &:hover {
+      opacity: 0.65;
+    }
+  }
+
   &:hover {
     background-color: rgba(255, 255, 255, 0.05);
 
     .game-item__plus-wrapper {
       opacity: 1;
       pointer-events: auto;
+    }
+
+    .game-item__stats {
+      opacity: 1;
     }
   }
 
@@ -74,9 +86,38 @@
     margin-bottom: 4px;
   }
 
-  &__repackers {
+  &__availability {
+    font-size: 12px;
+
+    &--available {
+      color: globals.$success-color;
+    }
+
+    &--unavailable {
+      color: globals.$body-color;
+      opacity: 0.6;
+    }
+  }
+
+  &__stats {
+    display: flex;
+    gap: calc(globals.$spacing-unit * 2);
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    margin-left: auto;
+    margin-right: 40px;
+  }
+
+  &__stats-item {
     display: flex;
     gap: globals.$spacing-unit;
-    flex-wrap: wrap;
+    color: globals.$muted-color;
+    font-size: 12px;
+    align-items: center;
+
+    .star-rating {
+      align-items: center;
+    }
   }
 }

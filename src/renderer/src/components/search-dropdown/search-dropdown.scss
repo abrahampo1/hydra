@@ -5,12 +5,12 @@
   background-color: globals.$dark-background-color;
   border: 1px solid globals.$border-color;
   border-radius: 8px;
-  max-height: 350px;
+  max-height: 450px;
   overflow-y: auto;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 1000;
   margin-top: 4px;
-  width: 250px;
+  width: 380px;
 
   &__section {
     padding: 4px 0;
@@ -123,12 +123,37 @@
     }
   }
 
+  &__item-cover {
+    width: 60px;
+    height: 30px;
+    object-fit: cover;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  &__item-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    gap: 2px;
+  }
+
   &__item-text {
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 14px;
+  }
+
+  &__item-genres {
+    font-size: 11px;
+    color: globals.$muted-color;
+    opacity: 0.6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &__loading,

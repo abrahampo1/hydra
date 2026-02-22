@@ -3,11 +3,41 @@
 .settings-general {
   display: flex;
   flex-direction: column;
-  gap: globals.$spacing-unit * 2;
+  gap: calc(globals.$spacing-unit * 2);
 
   &__section-title {
-    margin-top: calc(globals.$spacing-unit * 2);
-    margin-bottom: globals.$spacing-unit;
+    margin: 0;
+    margin-top: calc(globals.$spacing-unit);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  &__section-description {
+    font-size: 13px;
+    color: globals.$muted-color;
+    margin: 0;
+    margin-top: calc(globals.$spacing-unit * -1);
+  }
+
+  &__section-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: globals.$spacing-unit * 2;
+  }
+
+  &__section-content {
+    display: flex;
+    flex-direction: column;
+    gap: globals.$spacing-unit * 2;
+  }
+
+  &__achievement-customization {
+    display: flex;
+    flex-direction: column;
+    gap: globals.$spacing-unit * 2;
   }
 
   &__common-redist-button {

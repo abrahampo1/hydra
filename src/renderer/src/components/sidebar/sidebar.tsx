@@ -7,6 +7,7 @@ import type { LibraryGame } from "@types";
 
 import { TextField, ConfirmationModal } from "@renderer/components";
 import {
+  useAppSelector,
   useDownload,
   useLibrary,
   useToast,
@@ -73,6 +74,7 @@ export function Sidebar() {
   const { hasActiveSubscription } = useUserDetails();
 
   const { lastPacket, progress } = useDownload();
+  const extraction = useAppSelector((state) => state.download.extraction);
 
   const { showWarningToast, showSuccessToast, showErrorToast } = useToast();
 
@@ -224,18 +226,34 @@ export function Sidebar() {
 
   const getGameTitle = (game: LibraryGame) => {
     if (lastPacket?.gameId === game.id) {
-      return t("downloading", {
-        title: game.title,
-        percentage: progress,
-      });
+      return game.title;
     }
 
-    if (game.download?.queued) return t("queued", { title: game.title });
+    if (game.download?.queued) return game.title;
 
-    if (game.download?.status === "paused")
-      return t("paused", { title: game.title });
+    if (game.download?.status === "paused") return game.title;
 
     return game.title;
+  };
+
+  const getGameDownloadProgress = (game: LibraryGame) => {
+    if (lastPacket?.gameId === game.id) {
+      return {
+        raw: lastPacket.progress,
+        formatted: progress,
+      };
+    }
+    return null;
+  };
+
+  const getGameExtractionProgress = (game: LibraryGame) => {
+    if (extraction?.visibleId === game.id) {
+      return {
+        raw: extraction.progress,
+        formatted: `${Math.round(extraction.progress * 100)}%`,
+      };
+    }
+    return null;
   };
 
   const handleSidebarItemClick = (path: string) => {
@@ -348,6 +366,8 @@ export function Sidebar() {
                     game={game}
                     handleSidebarGameClick={handleSidebarGameClick}
                     getGameTitle={getGameTitle}
+                    downloadProgress={getGameDownloadProgress(game)}
+                    extractionProgress={getGameExtractionProgress(game)}
                   />
                 ))}
               </ul>
@@ -404,6 +424,8 @@ export function Sidebar() {
                     game={game}
                     handleSidebarGameClick={handleSidebarGameClick}
                     getGameTitle={getGameTitle}
+                    downloadProgress={getGameDownloadProgress(game)}
+                    extractionProgress={getGameExtractionProgress(game)}
                   />
                 ))}
             </ul>

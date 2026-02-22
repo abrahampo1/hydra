@@ -8,7 +8,18 @@ import { useDownload, useToast, useUserDetails } from "@renderer/hooks";
 import { RemoveGameFromLibraryModal } from "./remove-from-library-modal";
 import { ResetAchievementsModal } from "./reset-achievements-modal";
 import { ChangeGamePlaytimeModal } from "./change-game-playtime-modal";
-import { FileDirectoryIcon, FileIcon } from "@primer/octicons-react";
+import {
+  FileIcon,
+  FileDirectoryIcon,
+  LinkExternalIcon,
+  DesktopDownloadIcon,
+  TrashIcon,
+  HistoryIcon,
+  TrophyIcon,
+  DownloadIcon,
+  SyncIcon,
+  PinIcon,
+} from "@primer/octicons-react";
 import SteamLogo from "@renderer/assets/steam-logo.svg?react";
 import { debounce } from "lodash-es";
 import { levelDBService } from "@renderer/services/leveldb.service";
@@ -22,6 +33,14 @@ export interface GameOptionsModalProps {
   onClose: () => void;
   onNavigateHome?: () => void;
 }
+
+const handleKeyDown =
+  (onClick?: () => void) => (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (onClick && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      onClick();
+    }
+  };
 
 export function GameOptionsModal({
   visible,
@@ -121,7 +140,6 @@ export function GameOptionsModal({
     updateGame();
     onClose();
 
-    // Redirect to home page if it's a custom game
     if (game.shop === "custom" && onNavigateHome) {
       onNavigateHome();
     }
@@ -314,6 +332,12 @@ export function GameOptionsModal({
     updateGame();
   };
 
+  const isDownloadsDisabled = deleting || isGameDownloading || !repacks.length;
+  const isDeleteFilesDisabled =
+    isGameDownloading || deleting || !game.download?.downloadPath;
+  const isResetAchievementsDisabled =
+    deleting || isDeletingAchievements || !hasAchievements || !userDetails;
+
   return (
     <>
       <DeleteGameModal
@@ -350,269 +374,383 @@ export function GameOptionsModal({
         large={true}
       >
         <div className="game-options-modal__container">
-          <div className="game-options-modal__section">
-            <div className="game-options-modal__header">
-              <h2>{t("executable_section_title")}</h2>
-              <h4 className="game-options-modal__header-description">
-                {t("executable_section_description")}
-              </h4>
-            </div>
-
-            <div className="game-options-modal__executable-field">
-              <TextField
-                value={game.executablePath || ""}
-                readOnly
-                theme="dark"
-                disabled
-                placeholder={t("no_executable_selected")}
-                rightContent={
-                  <>
-                    <Button
-                      type="button"
-                      theme="outline"
-                      onClick={handleChangeExecutableLocation}
-                    >
-                      <FileIcon />
-                      {t("select_executable")}
-                    </Button>
-                    {game.executablePath && (
-                      <Button
-                        onClick={handleClearExecutablePath}
-                        theme="outline"
-                      >
-                        {t("clear")}
-                      </Button>
-                    )}
-                  </>
-                }
-              />
-
-              <div className="game-options-modal__executable-field-buttons">
-                {game.executablePath && (
+          {/* Executable Section */}
+          <div>
+            <h3 className="game-options-modal__section-title">
+              {t("executable_section_title")}
+            </h3>
+            <div className="game-options-modal__section-rows">
+              <div className="game-options-modal__action-row">
+                <span className="game-options-modal__action-icon">
+                  <FileIcon size={16} />
+                </span>
+                <div className="game-options-modal__executable-path">
+                  <span className="game-options-modal__executable-path-label">
+                    {t("executable_section_description")}
+                  </span>
+                  {game.executablePath && (
+                    <span className="game-options-modal__executable-path-value">
+                      {game.executablePath}
+                    </span>
+                  )}
+                </div>
+                <div className="game-options-modal__action-right">
                   <Button
                     type="button"
                     theme="outline"
-                    onClick={handleOpenGameExecutablePath}
+                    onClick={handleChangeExecutableLocation}
                   >
-                    {t("open_folder")}
+                    {t("select_executable")}
                   </Button>
-                )}
-                {game.shop !== "custom" &&
-                  window.electron.platform === "win32" && (
-                    <Button
-                      type="button"
-                      theme="outline"
-                      onClick={handleOpenSaveFolder}
-                      disabled={loadingSaveFolder || !saveFolderPath}
-                    >
-                      {loadingSaveFolder
-                        ? t("searching_save_folder")
-                        : saveFolderPath
-                          ? t("open_save_folder")
-                          : t("no_save_folder_found")}
+                  {game.executablePath && (
+                    <Button onClick={handleClearExecutablePath} theme="outline">
+                      {t("clear")}
                     </Button>
                   )}
+                </div>
               </div>
-            </div>
-          </div>
 
-          {game.shop !== "custom" && (
-            <CheckboxField
-              label={
-                <div className="game-options-modal__cloud-sync-label">
-                  {t("enable_automatic_cloud_sync")}
-                  <span className="game-options-modal__cloud-sync-hydra-cloud">
-                    Hydra Cloud
+              {game.executablePath && (
+                <div
+                  className="game-options-modal__action-row game-options-modal__action-row--clickable"
+                  onClick={handleOpenGameExecutablePath}
+                  onKeyDown={handleKeyDown(handleOpenGameExecutablePath)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <span className="game-options-modal__action-icon">
+                    <FileDirectoryIcon size={16} />
+                  </span>
+                  <span className="game-options-modal__action-label">
+                    {t("open_folder")}
                   </span>
                 </div>
-              }
-              checked={automaticCloudSync}
-              disabled={!hasActiveSubscription || !game.executablePath}
-              onChange={handleToggleAutomaticCloudSync}
-            />
-          )}
-
-          {game.executablePath && (
-            <div className="game-options-modal__section">
-              <div className="game-options-modal__header">
-                <h2>{t("shortcuts_section_title")}</h2>
-                <h4 className="game-options-modal__header-description">
-                  {t("shortcuts_section_description")}
-                </h4>
-              </div>
-
-              <div className="game-options-modal__row">
-                <Button
-                  onClick={() => handleCreateShortcut("desktop")}
-                  theme="outline"
-                >
-                  {t("create_shortcut")}
-                </Button>
-                {game.shop !== "custom" && (
-                  <Button
-                    onClick={handleCreateSteamShortcut}
-                    theme="outline"
-                    disabled={creatingSteamShortcut}
-                  >
-                    <SteamLogo />
-                    {t("create_steam_shortcut")}
-                  </Button>
-                )}
-                {shouldShowCreateStartMenuShortcut && (
-                  <Button
-                    onClick={() => handleCreateShortcut("start_menu")}
-                    theme="outline"
-                  >
-                    {t("create_start_menu_shortcut")}
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {shouldShowWinePrefixConfiguration && (
-            <div className="game-options-modal__wine-prefix">
-              <div className="game-options-modal__header">
-                <h2>{t("wine_prefix")}</h2>
-                <h4 className="game-options-modal__header-description">
-                  {t("wine_prefix_description")}
-                </h4>
-              </div>
-              <TextField
-                value={game.winePrefixPath || ""}
-                readOnly
-                theme="dark"
-                disabled
-                placeholder={t("no_directory_selected")}
-                rightContent={
-                  <>
-                    <Button
-                      type="button"
-                      theme="outline"
-                      onClick={handleChangeWinePrefixPath}
-                    >
-                      <FileDirectoryIcon />
-                      {t("select_executable")}
-                    </Button>
-                    {game.winePrefixPath && (
-                      <Button
-                        onClick={handleClearWinePrefixPath}
-                        theme="outline"
-                      >
-                        {t("clear")}
-                      </Button>
-                    )}
-                  </>
-                }
-              />
-            </div>
-          )}
-
-          <div className="game-options-modal__launch-options">
-            <div className="game-options-modal__header">
-              <h2>{t("launch_options")}</h2>
-              <h4 className="game-options-modal__header-description">
-                {t("launch_options_description")}
-              </h4>
-            </div>
-            <TextField
-              value={launchOptions}
-              theme="dark"
-              placeholder={t("launch_options_placeholder")}
-              onChange={handleChangeLaunchOptions}
-              rightContent={
-                game.launchOptions && (
-                  <Button onClick={handleClearLaunchOptions} theme="outline">
-                    {t("clear")}
-                  </Button>
-                )
-              }
-            />
-          </div>
-
-          {game.shop !== "custom" && (
-            <div className="game-options-modal__downloads">
-              <div className="game-options-modal__header">
-                <h2>{t("downloads_section_title")}</h2>
-                <h4 className="game-options-modal__header-description">
-                  {t("downloads_section_description")}
-                </h4>
-              </div>
-
-              <div className="game-options-modal__row">
-                <Button
-                  onClick={() => setShowRepacksModal(true)}
-                  theme="outline"
-                  disabled={deleting || isGameDownloading || !repacks.length}
-                >
-                  {t("open_download_options")}
-                </Button>
-                {game.download?.downloadPath && (
-                  <Button
-                    onClick={handleOpenDownloadFolder}
-                    theme="outline"
-                    disabled={deleting}
-                  >
-                    {t("open_download_location")}
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div className="game-options-modal__danger-zone">
-            <div className="game-options-modal__header">
-              <h2>{t("danger_zone_section_title")}</h2>
-              <h4 className="game-options-modal__danger-zone-description">
-                {t("danger_zone_section_description")}
-              </h4>
-            </div>
-
-            <div className="game-options-modal__danger-zone-buttons">
-              <Button
-                onClick={() => setShowRemoveGameModal(true)}
-                theme="danger"
-                disabled={deleting}
-              >
-                {t("remove_from_library")}
-              </Button>
-
-              {game.shop !== "custom" && (
-                <Button
-                  onClick={() => setShowResetAchievementsModal(true)}
-                  theme="danger"
-                  disabled={
-                    deleting ||
-                    isDeletingAchievements ||
-                    !hasAchievements ||
-                    !userDetails
-                  }
-                >
-                  {t("reset_achievements")}
-                </Button>
               )}
 
-              <Button
-                onClick={() => setShowChangePlaytimeModal(true)}
-                theme="danger"
-              >
-                {t("update_game_playtime")}
-              </Button>
+              {game.shop !== "custom" &&
+                window.electron.platform === "win32" &&
+                saveFolderPath &&
+                !loadingSaveFolder && (
+                  <div
+                    className="game-options-modal__action-row game-options-modal__action-row--clickable"
+                    onClick={handleOpenSaveFolder}
+                    onKeyDown={handleKeyDown(handleOpenSaveFolder)}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <span className="game-options-modal__action-icon">
+                      <FileDirectoryIcon size={16} />
+                    </span>
+                    <span className="game-options-modal__action-label">
+                      {t("open_save_folder")}
+                    </span>
+                  </div>
+                )}
+            </div>
+          </div>
+
+          {/* Configuration Section */}
+          <div>
+            <h3 className="game-options-modal__section-title">
+              {t("launch_options")}
+            </h3>
+            <div className="game-options-modal__section-rows">
+              <div className="game-options-modal__action-row">
+                <span className="game-options-modal__action-icon">
+                  <LinkExternalIcon size={16} />
+                </span>
+                <div className="game-options-modal__inline-field">
+                  <TextField
+                    value={launchOptions}
+                    theme="dark"
+                    placeholder={t("launch_options_placeholder")}
+                    onChange={handleChangeLaunchOptions}
+                    rightContent={
+                      game.launchOptions && (
+                        <Button
+                          onClick={handleClearLaunchOptions}
+                          theme="outline"
+                        >
+                          {t("clear")}
+                        </Button>
+                      )
+                    }
+                  />
+                </div>
+              </div>
+
+              {shouldShowWinePrefixConfiguration && (
+                <div className="game-options-modal__action-row">
+                  <span className="game-options-modal__action-icon">
+                    <FileDirectoryIcon size={16} />
+                  </span>
+                  <div className="game-options-modal__inline-field">
+                    <TextField
+                      value={game.winePrefixPath || ""}
+                      readOnly
+                      theme="dark"
+                      disabled
+                      placeholder={t("no_directory_selected")}
+                      rightContent={
+                        <>
+                          <Button
+                            type="button"
+                            theme="outline"
+                            onClick={handleChangeWinePrefixPath}
+                          >
+                            {t("wine_prefix")}
+                          </Button>
+                          {game.winePrefixPath && (
+                            <Button
+                              onClick={handleClearWinePrefixPath}
+                              theme="outline"
+                            >
+                              {t("clear")}
+                            </Button>
+                          )}
+                        </>
+                      }
+                    />
+                  </div>
+                </div>
+              )}
 
               {game.shop !== "custom" && (
-                <Button
-                  onClick={() => {
-                    setShowDeleteModal(true);
-                  }}
-                  theme="danger"
-                  disabled={
-                    isGameDownloading ||
-                    deleting ||
-                    !game.download?.downloadPath
-                  }
+                <div className="game-options-modal__action-row">
+                  <span className="game-options-modal__action-icon">
+                    <SyncIcon size={16} />
+                  </span>
+                  <CheckboxField
+                    label={
+                      <div className="game-options-modal__cloud-sync-label">
+                        {t("enable_automatic_cloud_sync")}
+                        <span className="game-options-modal__cloud-sync-hydra-cloud">
+                          Hydra Cloud
+                        </span>
+                      </div>
+                    }
+                    checked={automaticCloudSync}
+                    disabled={!hasActiveSubscription || !game.executablePath}
+                    onChange={handleToggleAutomaticCloudSync}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Shortcuts Section */}
+          {game.executablePath && (
+            <div>
+              <h3 className="game-options-modal__section-title">
+                {t("shortcuts_section_title")}
+              </h3>
+              <div className="game-options-modal__section-rows">
+                <div
+                  className="game-options-modal__action-row game-options-modal__action-row--clickable"
+                  onClick={() => handleCreateShortcut("desktop")}
+                  onKeyDown={handleKeyDown(() =>
+                    handleCreateShortcut("desktop")
+                  )}
+                  role="button"
+                  tabIndex={0}
                 >
-                  {t("remove_files")}
-                </Button>
+                  <span className="game-options-modal__action-icon">
+                    <DesktopDownloadIcon size={16} />
+                  </span>
+                  <span className="game-options-modal__action-label">
+                    {t("create_shortcut")}
+                  </span>
+                </div>
+
+                {game.shop !== "custom" && (
+                  <div
+                    className={`game-options-modal__action-row game-options-modal__action-row--clickable ${creatingSteamShortcut ? "game-options-modal__action-row--disabled" : ""}`}
+                    onClick={
+                      creatingSteamShortcut
+                        ? undefined
+                        : handleCreateSteamShortcut
+                    }
+                    onKeyDown={handleKeyDown(
+                      creatingSteamShortcut
+                        ? undefined
+                        : handleCreateSteamShortcut
+                    )}
+                    role="button"
+                    tabIndex={creatingSteamShortcut ? -1 : 0}
+                  >
+                    <span className="game-options-modal__steam-logo">
+                      <SteamLogo />
+                    </span>
+                    <span className="game-options-modal__action-label">
+                      {t("create_steam_shortcut")}
+                    </span>
+                  </div>
+                )}
+
+                {shouldShowCreateStartMenuShortcut && (
+                  <div
+                    className="game-options-modal__action-row game-options-modal__action-row--clickable"
+                    onClick={() => handleCreateShortcut("start_menu")}
+                    onKeyDown={handleKeyDown(() =>
+                      handleCreateShortcut("start_menu")
+                    )}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <span className="game-options-modal__action-icon">
+                      <PinIcon size={16} />
+                    </span>
+                    <span className="game-options-modal__action-label">
+                      {t("create_start_menu_shortcut")}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Downloads Section */}
+          {game.shop !== "custom" && (
+            <div>
+              <h3 className="game-options-modal__section-title">
+                {t("downloads_section_title")}
+              </h3>
+              <div className="game-options-modal__section-rows">
+                <div
+                  className={`game-options-modal__action-row game-options-modal__action-row--clickable ${isDownloadsDisabled ? "game-options-modal__action-row--disabled" : ""}`}
+                  onClick={
+                    isDownloadsDisabled
+                      ? undefined
+                      : () => setShowRepacksModal(true)
+                  }
+                  onKeyDown={handleKeyDown(
+                    isDownloadsDisabled
+                      ? undefined
+                      : () => setShowRepacksModal(true)
+                  )}
+                  role="button"
+                  tabIndex={isDownloadsDisabled ? -1 : 0}
+                >
+                  <span className="game-options-modal__action-icon">
+                    <DownloadIcon size={16} />
+                  </span>
+                  <span className="game-options-modal__action-label">
+                    {t("open_download_options")}
+                  </span>
+                </div>
+
+                {game.download?.downloadPath && (
+                  <div
+                    className={`game-options-modal__action-row game-options-modal__action-row--clickable ${deleting ? "game-options-modal__action-row--disabled" : ""}`}
+                    onClick={deleting ? undefined : handleOpenDownloadFolder}
+                    onKeyDown={handleKeyDown(
+                      deleting ? undefined : handleOpenDownloadFolder
+                    )}
+                    role="button"
+                    tabIndex={deleting ? -1 : 0}
+                  >
+                    <span className="game-options-modal__action-icon">
+                      <FileDirectoryIcon size={16} />
+                    </span>
+                    <span className="game-options-modal__action-label">
+                      {t("open_download_location")}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Danger Zone */}
+          <div>
+            <h3 className="game-options-modal__section-title">
+              {t("danger_zone_section_title")}
+            </h3>
+            <div className="game-options-modal__section-rows">
+              <div
+                className={`game-options-modal__action-row game-options-modal__action-row--danger game-options-modal__action-row--clickable ${deleting ? "game-options-modal__action-row--disabled" : ""}`}
+                onClick={
+                  deleting ? undefined : () => setShowRemoveGameModal(true)
+                }
+                onKeyDown={handleKeyDown(
+                  deleting ? undefined : () => setShowRemoveGameModal(true)
+                )}
+                role="button"
+                tabIndex={deleting ? -1 : 0}
+              >
+                <span className="game-options-modal__action-icon">
+                  <TrashIcon size={16} />
+                </span>
+                <span className="game-options-modal__action-label">
+                  {t("remove_from_library")}
+                </span>
+              </div>
+
+              {game.shop !== "custom" && (
+                <div
+                  className={`game-options-modal__action-row game-options-modal__action-row--danger game-options-modal__action-row--clickable ${isResetAchievementsDisabled ? "game-options-modal__action-row--disabled" : ""}`}
+                  onClick={
+                    isResetAchievementsDisabled
+                      ? undefined
+                      : () => setShowResetAchievementsModal(true)
+                  }
+                  onKeyDown={handleKeyDown(
+                    isResetAchievementsDisabled
+                      ? undefined
+                      : () => setShowResetAchievementsModal(true)
+                  )}
+                  role="button"
+                  tabIndex={isResetAchievementsDisabled ? -1 : 0}
+                >
+                  <span className="game-options-modal__action-icon">
+                    <TrophyIcon size={16} />
+                  </span>
+                  <span className="game-options-modal__action-label">
+                    {t("reset_achievements")}
+                  </span>
+                </div>
+              )}
+
+              <div
+                className="game-options-modal__action-row game-options-modal__action-row--danger game-options-modal__action-row--clickable"
+                onClick={() => setShowChangePlaytimeModal(true)}
+                onKeyDown={handleKeyDown(() =>
+                  setShowChangePlaytimeModal(true)
+                )}
+                role="button"
+                tabIndex={0}
+              >
+                <span className="game-options-modal__action-icon">
+                  <HistoryIcon size={16} />
+                </span>
+                <span className="game-options-modal__action-label">
+                  {t("update_game_playtime")}
+                </span>
+              </div>
+
+              {game.shop !== "custom" && (
+                <div
+                  className={`game-options-modal__action-row game-options-modal__action-row--danger game-options-modal__action-row--clickable ${isDeleteFilesDisabled ? "game-options-modal__action-row--disabled" : ""}`}
+                  onClick={
+                    isDeleteFilesDisabled
+                      ? undefined
+                      : () => setShowDeleteModal(true)
+                  }
+                  onKeyDown={handleKeyDown(
+                    isDeleteFilesDisabled
+                      ? undefined
+                      : () => setShowDeleteModal(true)
+                  )}
+                  role="button"
+                  tabIndex={isDeleteFilesDisabled ? -1 : 0}
+                >
+                  <span className="game-options-modal__action-icon">
+                    <TrashIcon size={16} />
+                  </span>
+                  <span className="game-options-modal__action-label">
+                    {t("remove_files")}
+                  </span>
+                </div>
               )}
             </div>
           </div>

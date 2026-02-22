@@ -55,6 +55,8 @@
     display: flex;
     color: globals.$muted-color;
     border-radius: 4px;
+    position: relative;
+    overflow: hidden;
 
     &:hover {
       background-color: rgba(255, 255, 255, 0.15);
@@ -70,6 +72,31 @@
       &:hover {
         opacity: 1;
       }
+    }
+
+    &--not-installed {
+      opacity: 0.5;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+
+    &--downloading {
+      background-color: rgba(34, 197, 94, 0.05);
+    }
+
+    &--extracting {
+      background-color: rgba(147, 130, 255, 0.05);
+    }
+
+    &--queued {
+      border-left: 2px solid rgba(251, 191, 36, 0.6);
+      animation: queued-pulse 2s ease-in-out infinite;
+    }
+
+    &--paused {
+      border-left: 2px solid rgba(156, 163, 175, 0.5);
     }
 
     &--decky {
@@ -90,6 +117,54 @@
     }
   }
 
+  &__menu-item-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: rgba(34, 197, 94, 0.2);
+    transition: width 0.3s ease;
+    pointer-events: none;
+    border-radius: 4px;
+
+    &--extraction {
+      background-color: rgba(147, 130, 255, 0.2);
+    }
+  }
+
+  &__menu-item-percentage {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgb(134, 239, 172);
+    flex-shrink: 0;
+  }
+
+  &__menu-item-queued-label {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgb(251, 191, 36);
+    flex-shrink: 0;
+    opacity: 0.8;
+  }
+
+  &__menu-item-paused-label {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgb(156, 163, 175);
+    flex-shrink: 0;
+  }
+
+  &__menu-item-extraction-label {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgb(178, 168, 255);
+    flex-shrink: 0;
+  }
+
   &__menu-item-button {
     color: inherit;
     display: flex;
@@ -99,6 +174,8 @@
     overflow: hidden;
     width: 100%;
     padding: 9px globals.$spacing-unit;
+    position: relative;
+    z-index: 1;
   }
 
   &__menu-item-button-label {
@@ -226,5 +303,15 @@
     svg {
       display: block;
     }
+  }
+}
+
+@keyframes queued-pulse {
+  0%,
+  100% {
+    background-color: rgba(251, 191, 36, 0.03);
+  }
+  50% {
+    background-color: rgba(251, 191, 36, 0.08);
   }
 }

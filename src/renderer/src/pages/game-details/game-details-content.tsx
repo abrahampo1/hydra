@@ -15,7 +15,7 @@ import { AuthPage } from "@shared";
 import { cloudSyncContext, gameDetailsContext } from "@renderer/context";
 
 import cloudIconAnimated from "@renderer/assets/icons/cloud-animated.gif";
-import { useUserDetails, useLibrary } from "@renderer/hooks";
+import { useUserDetails, useLibrary, useAppSelector } from "@renderer/hooks";
 import { useSubscription } from "@renderer/hooks/use-subscription";
 import "./game-details.scss";
 import "./hero.scss";
@@ -73,6 +73,11 @@ export function GameDetailsContent() {
   const { userDetails, hasActiveSubscription } = useUserDetails();
   const { updateLibrary, library } = useLibrary();
 
+  const userPreferences = useAppSelector(
+    (state) => state.userPreferences.value
+  );
+  const backupProvider = userPreferences?.backupProvider ?? "hydra-cloud";
+
   const { setShowCloudSyncModal, getGameArtifacts } =
     useContext(cloudSyncContext);
 
@@ -114,14 +119,16 @@ export function GameDetailsContent() {
   }, [objectId]);
 
   const handleCloudSaveButtonClick = () => {
-    if (!userDetails) {
-      window.electron.openAuthWindow(AuthPage.SignIn);
-      return;
-    }
+    if (backupProvider === "hydra-cloud") {
+      if (!userDetails) {
+        window.electron.openAuthWindow(AuthPage.SignIn);
+        return;
+      }
 
-    if (!hasActiveSubscription) {
-      showHydraCloudModal("backup");
-      return;
+      if (!hasActiveSubscription) {
+        showHydraCloudModal("backup");
+        return;
+      }
     }
 
     setShowCloudSyncModal(true);
@@ -219,6 +226,10 @@ export function GameDetailsContent() {
           <div className="game-details__description-content">
             <DescriptionHeader />
             <GallerySlider />
+
+            <h2 className="game-details__section-title">
+              {t("about_this_game")}
+            </h2>
 
             <div
               dangerouslySetInnerHTML={{

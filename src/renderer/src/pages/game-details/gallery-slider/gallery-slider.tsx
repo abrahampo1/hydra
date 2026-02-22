@@ -182,81 +182,85 @@ export function GallerySlider() {
   }
 
   return (
-    <div className="gallery-slider__container">
-      <div className="gallery-slider__viewport" ref={emblaRef}>
-        <div className="gallery-slider__container-inner">
-          {mediaItems.map((item) => (
-            <div key={item.id} className="gallery-slider__slide">
-              {item.type === "video" ? (
-                <VideoPlayer
-                  videoSrc={item.videoSrc}
-                  videoType={item.videoType}
-                  poster={item.poster}
-                  autoplay={autoplayEnabled}
-                  loop
-                  muted
-                  controls
-                  className="gallery-slider__media"
-                  tabIndex={-1}
-                />
-              ) : (
-                <img
-                  className="gallery-slider__media"
-                  src={item.src}
-                  alt={item.alt}
-                  loading="lazy"
-                />
-              )}
-            </div>
-          ))}
+    <div className="gallery-slider__section">
+      <h3 className="gallery-slider__section-title">{t("media")}</h3>
+
+      <div className="gallery-slider__container">
+        <div className="gallery-slider__viewport" ref={emblaRef}>
+          <div className="gallery-slider__container-inner">
+            {mediaItems.map((item) => (
+              <div key={item.id} className="gallery-slider__slide">
+                {item.type === "video" ? (
+                  <VideoPlayer
+                    videoSrc={item.videoSrc}
+                    videoType={item.videoType}
+                    poster={item.poster}
+                    autoplay={autoplayEnabled}
+                    loop
+                    muted
+                    controls
+                    className="gallery-slider__media"
+                    tabIndex={-1}
+                  />
+                ) : (
+                  <img
+                    className="gallery-slider__media"
+                    src={item.src}
+                    alt={item.alt}
+                    loading="lazy"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={scrollPrev}
+            type="button"
+            className="gallery-slider__button gallery-slider__button--left"
+            aria-label={t("previous_screenshot")}
+            tabIndex={0}
+          >
+            <ChevronLeftIcon size={36} />
+          </button>
+
+          <button
+            onClick={scrollNext}
+            type="button"
+            className="gallery-slider__button gallery-slider__button--right"
+            aria-label={t("next_screenshot")}
+            tabIndex={0}
+          >
+            <ChevronRightIcon size={36} />
+          </button>
         </div>
 
-        <button
-          onClick={scrollPrev}
-          type="button"
-          className="gallery-slider__button gallery-slider__button--left"
-          aria-label={t("previous_screenshot")}
-          tabIndex={0}
-        >
-          <ChevronLeftIcon size={36} />
-        </button>
-
-        <button
-          onClick={scrollNext}
-          type="button"
-          className="gallery-slider__button gallery-slider__button--right"
-          aria-label={t("next_screenshot")}
-          tabIndex={0}
-        >
-          <ChevronRightIcon size={36} />
-        </button>
-      </div>
-
-      <div className="gallery-slider__preview">
-        {previews.map((media, i) => (
-          <button
-            key={media.id}
-            type="button"
-            className={`gallery-slider__preview-button ${
-              selectedIndex === i
-                ? "gallery-slider__preview-button--active"
-                : ""
-            }`}
-            onClick={(e) => scrollToPreview(i, e)}
-            aria-label={t("open_screenshot", { number: String(i + 1) })}
-          >
-            <img
-              src={media.thumbnail}
-              className="gallery-slider__preview-image"
-              alt={t("screenshot", { number: String(i + 1) })}
-            />
-            {media.type === "video" && (
-              <div className="gallery-slider__play-overlay">
-                <PlayIcon size={20} />
-              </div>
-            )}
-          </button>
-        ))}
+        <div className="gallery-slider__preview">
+          {previews.map((media, i) => (
+            <button
+              key={media.id}
+              type="button"
+              className={`gallery-slider__preview-button ${
+                selectedIndex === i
+                  ? "gallery-slider__preview-button--active"
+                  : ""
+              }`}
+              onClick={(e) => scrollToPreview(i, e)}
+              aria-label={t("open_screenshot", { number: String(i + 1) })}
+            >
+              <img
+                src={media.thumbnail}
+                className="gallery-slider__preview-image"
+                alt={t("screenshot", { number: String(i + 1) })}
+              />
+              {media.type === "video" && (
+                <div className="gallery-slider__play-overlay">
+                  <PlayIcon size={20} />
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

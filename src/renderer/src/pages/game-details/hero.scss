@@ -91,6 +91,13 @@ $hero-height: 350px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    background: linear-gradient(
+      0deg,
+      globals.$background-color 0%,
+      rgba(18, 18, 18, 0.85) 15%,
+      rgba(18, 18, 18, 0.4) 40%,
+      transparent 70%
+    );
   }
 
   &__hero-image-wrapper {

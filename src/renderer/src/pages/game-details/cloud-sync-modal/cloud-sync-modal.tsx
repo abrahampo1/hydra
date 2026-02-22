@@ -5,6 +5,7 @@ import "./cloud-sync-modal.scss";
 import { formatBytes } from "@shared";
 import {
   ClockIcon,
+  CloudIcon,
   DeviceDesktopIcon,
   HistoryIcon,
   InfoIcon,
@@ -45,6 +46,7 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
     restoringBackup,
     loadingPreview,
     freezingArtifact,
+    backupProvider,
     uploadSaveGame,
     downloadGameArtifact,
     deleteGameArtifact,
@@ -63,7 +65,7 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
     try {
       await deleteGameArtifact(gameArtifactId);
       showSuccessToast(t("backup_deleted"));
-    } catch (err) {
+    } catch (_err) {
       showErrorToast("backup_deletion_failed");
     } finally {
       setDeletingArtifact(false);
@@ -96,7 +98,7 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
     try {
       await toggleArtifactFreeze(artifactId, isFrozen);
       showSuccessToast(isFrozen ? t("backup_frozen") : t("backup_unfrozen"));
-    } catch (err) {
+    } catch (_err) {
       showErrorToast(
         t("backup_freeze_failed"),
         t("backup_freeze_failed_description")
@@ -111,62 +113,25 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
   }, [getGameBackupPreview, visible]);
 
   const userDetails = useAppSelector((state) => state.userDetails.userDetails);
-  const backupsPerGameLimit = userDetails?.quirks?.backupsPerGameLimit ?? 0;
+  const backupsPerGameLimit =
+    backupProvider === "hydra-cloud"
+      ? (userDetails?.quirks?.backupsPerGameLimit ?? 0)
+      : Infinity;
 
-  const backupStateLabel = useMemo(() => {
-    if (uploadingBackup) {
-      return (
-        <span className="cloud-sync-modal__backup-state-label">
-          <SyncIcon className="cloud-sync-modal__sync-icon" />
-          {t("uploading_backup")}
-        </span>
-      );
-    }
-    if (restoringBackup) {
-      return (
-        <span className="cloud-sync-modal__backup-state-label">
-          <SyncIcon className="cloud-sync-modal__sync-icon" />
-          {t("restoring_backup", {
-            progress: formatDownloadProgress(
-              backupDownloadProgress?.progress ?? 0
-            ),
-          })}
-        </span>
-      );
-    }
-    if (loadingPreview) {
-      return (
-        <span className="cloud-sync-modal__backup-state-label">
-          <SyncIcon className="cloud-sync-modal__sync-icon" />
-          {t("loading_save_preview")}
-        </span>
-      );
-    }
-    if (artifacts.length >= backupsPerGameLimit) {
-      return t("max_number_of_artifacts_reached");
-    }
-    if (!backupPreview) {
-      return t("no_backup_preview");
-    }
-    if (artifacts.length === 0) {
-      return t("no_backups");
-    }
-    return "";
-  }, [
-    uploadingBackup,
-    backupDownloadProgress?.progress,
-    backupPreview,
-    restoringBackup,
-    loadingPreview,
-    artifacts,
-    backupsPerGameLimit,
-    t,
-  ]);
+  const isHydraCloud = backupProvider === "hydra-cloud";
 
   const disableActions =
     uploadingBackup || restoringBackup || deletingArtifact || freezingArtifact;
   const isMissingWinePrefix =
     window.electron.platform === "linux" && !game?.winePrefixPath;
+
+  const isWorking = uploadingBackup || restoringBackup;
+  const progressValue = backupDownloadProgress?.progress ?? 0;
+
+  const sortedArtifacts = useMemo(
+    () => orderBy(artifacts, [(a) => !a.isFrozen], ["asc"]),
+    [artifacts]
+  );
 
   return (
     <>
@@ -183,10 +148,10 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
         onClose={onClose}
         large
       >
+        {/* Header */}
         <div className="cloud-sync-modal__header">
           <div className="cloud-sync-modal__title-container">
             <h2>{gameTitle}</h2>
-            <p>{backupStateLabel}</p>
             <button
               type="button"
               className="cloud-sync-modal__manage-files-button"
@@ -197,50 +162,133 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
             </button>
           </div>
 
-          <Button
-            type="button"
-            onClick={() => uploadSaveGame(lastDownloadedOption?.title ?? null)}
-            tooltip={isMissingWinePrefix ? t("missing_wine_prefix") : undefined}
-            tooltipPlace="left"
-            disabled={
-              disableActions ||
-              !backupPreview?.overall.totalGames ||
-              artifacts.length >= backupsPerGameLimit ||
-              isMissingWinePrefix
-            }
-          >
-            {uploadingBackup ? (
-              <SyncIcon className="cloud-sync-modal__sync-icon" />
-            ) : (
-              <UploadIcon />
+          <div className="cloud-sync-modal__header-actions">
+            <Button
+              type="button"
+              onClick={() =>
+                uploadSaveGame(lastDownloadedOption?.title ?? null)
+              }
+              tooltip={
+                isMissingWinePrefix ? t("missing_wine_prefix") : undefined
+              }
+              tooltipPlace="left"
+              disabled={
+                disableActions ||
+                !backupPreview?.overall.totalGames ||
+                artifacts.length >= backupsPerGameLimit ||
+                isMissingWinePrefix
+              }
+            >
+              {uploadingBackup ? (
+                <SyncIcon className="cloud-sync-modal__sync-icon" />
+              ) : (
+                <UploadIcon />
+              )}
+              {t("create_backup")}
+            </Button>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <AnimatePresence>
+          {isWorking && (
+            <motion.div
+              className="cloud-sync-modal__progress-wrapper"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+            >
+              <div className="cloud-sync-modal__progress-info">
+                <span className="cloud-sync-modal__progress-label">
+                  <SyncIcon size={14} className="cloud-sync-modal__sync-icon" />
+                  {uploadingBackup
+                    ? t("uploading_backup")
+                    : t("restoring_backup", {
+                        progress: formatDownloadProgress(progressValue),
+                      })}
+                </span>
+                {restoringBackup && progressValue > 0 && (
+                  <span className="cloud-sync-modal__progress-percentage">
+                    {formatDownloadProgress(progressValue)}
+                  </span>
+                )}
+              </div>
+              <div className="cloud-sync-modal__progress-track">
+                <motion.div
+                  className={`cloud-sync-modal__progress-fill ${
+                    uploadingBackup
+                      ? "cloud-sync-modal__progress-fill--uploading"
+                      : "cloud-sync-modal__progress-fill--restoring"
+                  } ${
+                    uploadingBackup || progressValue === 0
+                      ? "cloud-sync-modal__progress-fill--indeterminate"
+                      : ""
+                  }`}
+                  style={
+                    !uploadingBackup && progressValue > 0
+                      ? { width: `${progressValue * 100}%` }
+                      : undefined
+                  }
+                  layout
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Loading preview skeleton */}
+        <AnimatePresence>
+          {loadingPreview && artifacts.length === 0 && (
+            <motion.div
+              className="cloud-sync-modal__skeleton"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="cloud-sync-modal__skeleton-item" />
+              <div className="cloud-sync-modal__skeleton-item" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Backups list header */}
+        {!loadingPreview && (
+          <div className="cloud-sync-modal__backups-header">
+            <h2>{t("backups")}</h2>
+            {isHydraCloud && (
+              <span className="cloud-sync-modal__backups-count">
+                {artifacts.length} / {backupsPerGameLimit}
+              </span>
             )}
-            {t("create_backup")}
-          </Button>
-        </div>
+          </div>
+        )}
 
-        <div className="cloud-sync-modal__backups-header">
-          <h2>{t("backups")}</h2>
-          <small>
-            {artifacts.length} / {backupsPerGameLimit}
-          </small>
-        </div>
-
-        {artifacts.length > 0 ? (
+        {/* Artifacts list */}
+        {!loadingPreview && artifacts.length > 0 ? (
           <ul className="cloud-sync-modal__artifacts">
-            <AnimatePresence>
-              {orderBy(artifacts, [(a) => !a.isFrozen], ["asc"]).map(
-                (artifact) => (
-                  <motion.li
-                    key={artifact.id}
-                    className="cloud-sync-modal__artifact"
-                    layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="cloud-sync-modal__artifact-info">
-                      <div className="cloud-sync-modal__artifact-header">
+            <AnimatePresence mode="popLayout">
+              {sortedArtifacts.map((artifact) => (
+                <motion.li
+                  key={artifact.id}
+                  className={`cloud-sync-modal__artifact ${
+                    artifact.isFrozen
+                      ? "cloud-sync-modal__artifact--frozen"
+                      : ""
+                  }`}
+                  layout
+                  initial={{ opacity: 0, y: 12, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                  transition={{
+                    duration: 0.25,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                >
+                  <div className="cloud-sync-modal__artifact-info">
+                    <div className="cloud-sync-modal__artifact-header">
+                      {isHydraCloud ? (
                         <button
                           type="button"
                           className="cloud-sync-modal__artifact-label"
@@ -250,31 +298,52 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
                             t("backup_from", {
                               date: formatDate(artifact.createdAt),
                             })}
-                          <PencilIcon />
+                          <PencilIcon size={12} />
                         </button>
-                        <small>
-                          {formatBytes(artifact.artifactLengthInBytes)}
-                        </small>
-                      </div>
-
-                      <span className="cloud-sync-modal__artifact-meta">
-                        <DeviceDesktopIcon size={14} />
-                        {artifact.hostname}
+                      ) : (
+                        <span className="cloud-sync-modal__artifact-label">
+                          {artifact.label ??
+                            t("backup_from", {
+                              date: formatDate(artifact.createdAt),
+                            })}
+                        </span>
+                      )}
+                      <span className="cloud-sync-modal__artifact-size">
+                        {formatBytes(artifact.artifactLengthInBytes)}
                       </span>
-
-                      <span className="cloud-sync-modal__artifact-meta">
-                        <InfoIcon size={14} />
-                        {artifact.downloadOptionTitle ??
-                          t("no_download_option_info")}
-                      </span>
-
-                      <span className="cloud-sync-modal__artifact-meta">
-                        <ClockIcon size={14} />
-                        {formatDateTime(artifact.createdAt)}
-                      </span>
+                      {artifact.isFrozen && isHydraCloud && (
+                        <span className="cloud-sync-modal__artifact-frozen-badge">
+                          <PinIcon size={10} />
+                          {t("frozen")}
+                        </span>
+                      )}
                     </div>
 
-                    <div className="cloud-sync-modal__artifact-actions">
+                    <div className="cloud-sync-modal__artifact-meta-row">
+                      <span className="cloud-sync-modal__artifact-meta">
+                        <ClockIcon size={12} />
+                        {formatDateTime(artifact.createdAt)}
+                      </span>
+
+                      {isHydraCloud && artifact.hostname && (
+                        <span className="cloud-sync-modal__artifact-meta">
+                          <DeviceDesktopIcon size={12} />
+                          {artifact.hostname}
+                        </span>
+                      )}
+
+                      {isHydraCloud && (
+                        <span className="cloud-sync-modal__artifact-meta">
+                          <InfoIcon size={12} />
+                          {artifact.downloadOptionTitle ??
+                            t("no_download_option_info")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="cloud-sync-modal__artifact-actions">
+                    {isHydraCloud && (
                       <Button
                         type="button"
                         tooltip={
@@ -293,36 +362,47 @@ export function CloudSyncModal({ visible, onClose }: CloudSyncModalProps) {
                       >
                         {artifact.isFrozen ? <PinSlashIcon /> : <PinIcon />}
                       </Button>
-                      <Button
-                        type="button"
-                        onClick={() => handleBackupInstallClick(artifact.id)}
-                        disabled={disableActions}
-                        theme="outline"
-                      >
-                        {restoringBackup ? (
-                          <SyncIcon className="cloud-sync-modal__sync-icon" />
-                        ) : (
-                          <HistoryIcon />
-                        )}
-                        {t("install_backup")}
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={() => handleDeleteArtifactClick(artifact.id)}
-                        disabled={disableActions || artifact.isFrozen}
-                        theme="outline"
-                        tooltip={t("delete_backup")}
-                      >
-                        <TrashIcon />
-                      </Button>
-                    </div>
-                  </motion.li>
-                )
-              )}
+                    )}
+                    <Button
+                      type="button"
+                      onClick={() => handleBackupInstallClick(artifact.id)}
+                      disabled={disableActions}
+                      theme="outline"
+                    >
+                      <HistoryIcon />
+                      {t("install_backup")}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => handleDeleteArtifactClick(artifact.id)}
+                      disabled={disableActions || artifact.isFrozen}
+                      theme="outline"
+                      tooltip={t("delete_backup")}
+                    >
+                      <TrashIcon />
+                    </Button>
+                  </div>
+                </motion.li>
+              ))}
             </AnimatePresence>
           </ul>
         ) : (
-          <p>{t("no_backups_created")}</p>
+          !loadingPreview && (
+            <motion.div
+              className="cloud-sync-modal__empty-state"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <CloudIcon size={40} className="cloud-sync-modal__empty-icon" />
+              <h3 className="cloud-sync-modal__empty-title">
+                {t("no_backups_created")}
+              </h3>
+              <p className="cloud-sync-modal__empty-description">
+                {t("cloud_save_description")}
+              </p>
+            </motion.div>
+          )
         )}
       </Modal>
     </>

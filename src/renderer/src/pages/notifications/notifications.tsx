@@ -431,90 +431,83 @@ export default function Notifications() {
     return apiUnread + localUnread;
   }, [apiNotifications, localNotifications]);
 
-  const renderFilterTabs = () => (
-    <div className="notifications__filter-tabs">
-      <div className="notifications__tab-wrapper">
-        <button
-          type="button"
-          className={`notifications__tab ${filter === "all" ? "notifications__tab--active" : ""}`}
-          onClick={() => handleFilterChange("all")}
-        >
-          {t("filter_all")}
-        </button>
-        {filter === "all" && (
-          <motion.div
-            className="notifications__tab-underline"
-            layoutId="notifications-tab-underline"
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          />
-        )}
-      </div>
-      <div className="notifications__tab-wrapper">
-        <button
-          type="button"
-          className={`notifications__tab ${filter === "unread" ? "notifications__tab--active" : ""}`}
-          onClick={() => handleFilterChange("unread")}
-        >
-          {t("filter_unread")}
-          {unreadCount > 0 && (
-            <span className="notifications__tab-badge">{unreadCount}</span>
-          )}
-        </button>
-        {filter === "unread" && (
-          <motion.div
-            className="notifications__tab-underline"
-            layoutId="notifications-tab-underline"
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          />
-        )}
-      </div>
-    </div>
-  );
+  const filters: { key: NotificationFilter; label: string }[] = [
+    { key: "all", label: t("filter_all") },
+    { key: "unread", label: t("filter_unread") },
+  ];
 
   const hasNoNotifications = mergedNotifications.length === 0;
   const shouldDisableActions = isClearing || hasNoNotifications;
 
-  const renderContent = () => {
-    if (isInitialLoad && isLoading) {
-      return (
+  if (isInitialLoad && isLoading) {
+    return (
+      <section className="notifications__container">
         <div className="notifications__loading">
           <span>{t("loading")}</span>
         </div>
-      );
-    }
+      </section>
+    );
+  }
 
-    return (
-      <div className="notifications">
-        <div className="notifications__header">
-          {renderFilterTabs()}
-          <div className="notifications__actions">
-            <Button
-              theme="outline"
-              onClick={handleMarkAllAsRead}
-              disabled={shouldDisableActions}
-            >
-              {t("mark_all_as_read")}
-            </Button>
-            <Button
-              theme="danger"
-              onClick={handleClearAll}
-              disabled={shouldDisableActions}
-            >
-              {t("clear_all")}
-            </Button>
-          </div>
+  return (
+    <section className="notifications__container">
+      <div className="notifications__content">
+        <div className="notifications__tabs">
+          {filters.map((f) => (
+            <div key={f.key} className="notifications__tab-wrapper">
+              <button
+                type="button"
+                className={`notifications__tab ${filter === f.key ? "notifications__tab--active" : ""}`}
+                onClick={() => handleFilterChange(f.key)}
+              >
+                {f.label}
+                {f.key === "unread" && unreadCount > 0 && (
+                  <span className="notifications__tab-badge">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              {filter === f.key && (
+                <motion.div
+                  className="notifications__tab-underline"
+                  layoutId="notifications-tab-underline"
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                  }}
+                />
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* Keep AnimatePresence mounted during clearing to preserve exit animations */}
         <AnimatePresence mode="wait">
           <motion.div
             key={filter}
-            className="notifications__content-wrapper"
+            className="notifications__tab-content"
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 10 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.15 }}
           >
+            <div className="notifications__actions">
+              <Button
+                theme="outline"
+                onClick={handleMarkAllAsRead}
+                disabled={shouldDisableActions}
+              >
+                {t("mark_all_as_read")}
+              </Button>
+              <Button
+                theme="danger"
+                onClick={handleClearAll}
+                disabled={shouldDisableActions}
+              >
+                {t("clear_all")}
+              </Button>
+            </div>
+
             {hasNoNotifications && !isClearing ? (
               <div className="notifications__empty">
                 <div className="notifications__icon-container">
@@ -549,8 +542,6 @@ export default function Notifications() {
           </div>
         )}
       </div>
-    );
-  };
-
-  return <>{renderContent()}</>;
+    </section>
+  );
 }

@@ -5,11 +5,11 @@ import {
   PlusCircleIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  DownloadIcon,
 } from "@primer/octicons-react";
 import { Tooltip } from "react-tooltip";
 
 import {
-  Badge,
   Button,
   DebridBadge,
   Modal,
@@ -67,6 +67,9 @@ export function RepacksModal({
   );
   const [isLoadingTimestamp, setIsLoadingTimestamp] = useState(true);
   const [viewedRepackIds, setViewedRepackIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [collapsedSources, setCollapsedSources] = useState<Set<string>>(
     new Set()
   );
 
@@ -279,8 +282,47 @@ export function RepacksModal({
       setFilterTerm("");
       setSelectedFingerprints([]);
       setIsFilterDrawerOpen(false);
+      setCollapsedSources(new Set());
     }
   }, [visible]);
+
+  const toggleSourceCollapse = (sourceName: string) => {
+    setCollapsedSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(sourceName)) {
+        next.delete(sourceName);
+      } else {
+        next.add(sourceName);
+      }
+      return next;
+    });
+  };
+
+  const groupedRepacks = useMemo(() => {
+    const groups: Record<string, GameRepack[]> = {};
+
+    for (const repack of filteredRepacks) {
+      const source = repack.downloadSourceName;
+      if (!groups[source]) {
+        groups[source] = [];
+      }
+      groups[source].push(repack);
+    }
+
+    const lastDownloadedSource = Object.entries(groups).find(([, repacks]) =>
+      repacks.some((r) => checkIfLastDownloadedOption(r))
+    );
+
+    return orderBy(
+      Object.entries(groups).map(([source, repacks]) => ({
+        source,
+        repacks,
+        hasLastDownloaded: source === lastDownloadedSource?.[0],
+      })),
+      [(g) => g.hasLastDownloaded, (g) => g.repacks.length],
+      ["desc", "desc"]
+    );
+  }, [filteredRepacks, game?.download]);
 
   return (
     <>
@@ -376,50 +418,107 @@ export function RepacksModal({
               </div>
             </div>
           ) : (
-            filteredRepacks.map((repack) => {
-              const isLastDownloadedOption =
-                checkIfLastDownloadedOption(repack);
-              const availabilityStatus = getRepackAvailabilityStatus(repack);
-              const tooltipId = `availability-orb-${repack.id}`;
+            groupedRepacks.map(({ source, repacks: groupRepacks }) => {
+              const isCollapsed = collapsedSources.has(source);
+              const newCount = groupRepacks.filter(
+                (r) =>
+                  userPreferences?.enableNewDownloadOptionsBadges !== false &&
+                  isNewRepack(r)
+              ).length;
 
               return (
-                <Button
-                  key={repack.id}
-                  theme="dark"
-                  onClick={() => handleRepackClick(repack)}
-                  className="repacks-modal__repack-button"
-                >
-                  <span
-                    className={`repacks-modal__availability-orb repacks-modal__availability-orb--${availabilityStatus}`}
-                    data-tooltip-id={tooltipId}
-                    data-tooltip-content={t(`source_${availabilityStatus}`)}
-                  />
-                  <Tooltip id={tooltipId} />
-
-                  <p className="repacks-modal__repack-title">
-                    {repack.title}
-                    {userPreferences?.enableNewDownloadOptionsBadges !==
-                      false &&
-                      isNewRepack(repack) && (
-                        <span className="repacks-modal__new-badge">
-                          {t("new_download_option")}
+                <div key={source} className="repacks-modal__source-group">
+                  <button
+                    type="button"
+                    className="repacks-modal__source-header"
+                    onClick={() => toggleSourceCollapse(source)}
+                  >
+                    <span className="repacks-modal__source-name">{source}</span>
+                    <span className="repacks-modal__source-meta">
+                      {newCount > 0 && (
+                        <span className="repacks-modal__new-count">
+                          {newCount} {t("new_download_option")}
                         </span>
                       )}
-                  </p>
+                      <span className="repacks-modal__source-count">
+                        {groupRepacks.length}
+                      </span>
+                      {isCollapsed ? (
+                        <ChevronDownIcon size={14} />
+                      ) : (
+                        <ChevronUpIcon size={14} />
+                      )}
+                    </span>
+                  </button>
 
-                  {isLastDownloadedOption && (
-                    <Badge>{t("last_downloaded_option")}</Badge>
+                  {!isCollapsed && (
+                    <div className="repacks-modal__source-items">
+                      {groupRepacks.map((repack) => {
+                        const isLastDownloaded =
+                          checkIfLastDownloadedOption(repack);
+                        const availabilityStatus =
+                          getRepackAvailabilityStatus(repack);
+                        const tooltipId = `availability-orb-${repack.id}`;
+                        const isNew =
+                          userPreferences?.enableNewDownloadOptionsBadges !==
+                            false && isNewRepack(repack);
+
+                        return (
+                          <button
+                            key={repack.id}
+                            type="button"
+                            onClick={() => handleRepackClick(repack)}
+                            className={`repacks-modal__repack-row ${isLastDownloaded ? "repacks-modal__repack-row--last-downloaded" : ""}`}
+                          >
+                            <span
+                              className={`repacks-modal__availability-dot repacks-modal__availability-dot--${availabilityStatus}`}
+                              data-tooltip-id={tooltipId}
+                              data-tooltip-content={t(
+                                `source_${availabilityStatus}`
+                              )}
+                            />
+                            <Tooltip id={tooltipId} />
+
+                            <span className="repacks-modal__repack-main">
+                              <span className="repacks-modal__repack-title">
+                                {repack.title}
+                              </span>
+                              <span className="repacks-modal__repack-details">
+                                {repack.fileSize && (
+                                  <span className="repacks-modal__repack-size">
+                                    {repack.fileSize}
+                                  </span>
+                                )}
+                                {repack.uploadDate && (
+                                  <span className="repacks-modal__repack-date">
+                                    {formatDate(repack.uploadDate)}
+                                  </span>
+                                )}
+                              </span>
+                            </span>
+
+                            <span className="repacks-modal__repack-badges">
+                              {isNew && (
+                                <span className="repacks-modal__new-badge">
+                                  {t("new_download_option")}
+                                </span>
+                              )}
+                              {hashesInDebrid[
+                                getHashFromMagnet(repack.uris[0]) ?? ""
+                              ] && <DebridBadge collapsed />}
+                              {isLastDownloaded && (
+                                <span className="repacks-modal__last-used-badge">
+                                  <DownloadIcon size={12} />
+                                  {t("last_downloaded_option")}
+                                </span>
+                              )}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
-
-                  <p className="repacks-modal__repack-info">
-                    {repack.fileSize} - {repack.downloadSourceName} -{" "}
-                    {repack.uploadDate ? formatDate(repack.uploadDate) : ""}
-                  </p>
-
-                  {hashesInDebrid[getHashFromMagnet(repack.uris[0]) ?? ""] && (
-                    <DebridBadge />
-                  )}
-                </Button>
+                </div>
               );
             })
           )}
