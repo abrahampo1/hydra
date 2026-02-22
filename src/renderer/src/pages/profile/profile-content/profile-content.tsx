@@ -14,17 +14,19 @@ import { useTranslation } from "react-i18next";
 import type { GameShop } from "@types";
 import { LockedProfile } from "./locked-profile";
 import { ReportProfile } from "../report-profile/report-profile";
+import { FriendActions } from "./friend-actions";
 import { BadgesBox } from "./badges-box";
 import { FriendsBox, FriendsBoxAddButton } from "./friends-box";
 import { RecentGamesBox } from "./recent-games-box";
-import { UserStatsBox } from "./user-stats-box";
 import { ProfileSection } from "../profile-section/profile-section";
 import { DeleteReviewModal } from "@renderer/pages/game-details/modals/delete-review-modal";
 import { GAME_STATS_ANIMATION_DURATION_IN_MS } from "./profile-animations";
 import { MAX_MINUTES_TO_SHOW_IN_PLAYTIME } from "@renderer/constants";
 import { ProfileTabs, type ProfileTabType } from "./profile-tabs";
 import { LibraryTab } from "./library-tab";
+import { LibraryControls } from "./library-controls";
 import { ReviewsTab } from "./reviews-tab";
+import { StatsTab } from "./stats-tab";
 import { AnimatePresence } from "framer-motion";
 import "./profile-content.scss";
 
@@ -97,6 +99,8 @@ export function ProfileContent() {
   const statsAnimation = useRef(-1);
 
   const [activeTab, setActiveTab] = useState<ProfileTabType>("library");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // User reviews state
   const [reviews, setReviews] = useState<UserReview[]>([]);
@@ -387,12 +391,22 @@ export function ProfileContent() {
             onTabChange={setActiveTab}
           />
 
+          {activeTab === "library" && hasAnyGames && (
+            <LibraryControls
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+            />
+          )}
+
           <div className="profile-content__tab-panels">
             <AnimatePresence mode="wait">
               {activeTab === "library" && (
                 <LibraryTab
                   sortBy={sortBy}
-                  onSortChange={setSortBy}
                   pinnedGames={pinnedGames}
                   libraryGames={libraryGames}
                   hasMoreLibraryGames={hasMoreLibraryGames}
@@ -404,8 +418,12 @@ export function ProfileContent() {
                   onMouseEnter={handleOnMouseEnterGameCard}
                   onMouseLeave={handleOnMouseLeaveGameCard}
                   isMe={isMe}
+                  searchQuery={searchQuery}
+                  viewMode={viewMode}
                 />
               )}
+
+              {activeTab === "stats" && <StatsTab />}
 
               {activeTab === "reviews" && (
                 <ReviewsTab
@@ -425,11 +443,6 @@ export function ProfileContent() {
 
         {shouldShowRightContent && (
           <div className="profile-content__right-content">
-            {userStats && (
-              <ProfileSection title={t("stats")} defaultOpen={true}>
-                <UserStatsBox />
-              </ProfileSection>
-            )}
             {userProfile?.badges.length > 0 && (
               <ProfileSection
                 title={t("badges")}
@@ -454,7 +467,10 @@ export function ProfileContent() {
                 <FriendsBox />
               </ProfileSection>
             )}
-            <ReportProfile />
+            <div className="profile-content__sidebar-actions">
+              <FriendActions />
+              <ReportProfile />
+            </div>
           </div>
         )}
 
@@ -478,6 +494,8 @@ export function ProfileContent() {
 
     sortBy,
     activeTab,
+    searchQuery,
+    viewMode,
     // ensure reviews UI updates correctly
     reviews,
     reviewsTotalCount,

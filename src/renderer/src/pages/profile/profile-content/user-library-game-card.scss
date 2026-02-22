@@ -155,6 +155,36 @@
       }
     }
   }
+  &__downloaded {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: rgba(255, 255, 255, 0.7);
+    border: solid 1px rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    font-size: 11px;
+    align-self: flex-end;
+  }
+
+  &__not-played {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: rgba(255, 255, 255, 0.45);
+    border: solid 1px rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    font-size: 11px;
+    font-style: italic;
+    opacity: 0.8;
+  }
+
   &__manual-playtime {
     color: globals.$warning-color;
   }

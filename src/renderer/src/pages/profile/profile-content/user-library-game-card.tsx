@@ -16,6 +16,7 @@ import {
   PinIcon,
   PinSlashIcon,
   ImageIcon,
+  DownloadIcon,
 } from "@primer/octicons-react";
 import { MAX_MINUTES_TO_SHOW_IN_PLAYTIME } from "@renderer/constants";
 import { Tooltip } from "react-tooltip";
@@ -28,6 +29,7 @@ interface UserLibraryGameCardProps {
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   sortBy?: string;
+  isDownloaded?: boolean;
 }
 
 export function UserLibraryGameCard({
@@ -36,6 +38,7 @@ export function UserLibraryGameCard({
   onMouseEnter,
   onMouseLeave,
   sortBy,
+  isDownloaded,
 }: UserLibraryGameCardProps) {
   const { userProfile, isMe, getUserLibraryGames } =
     useContext(userProfileContext);
@@ -161,31 +164,43 @@ export function UserLibraryGameCard({
                 </button>
               </div>
             )}
-            <div
-              className="user-library-game__playtime"
-              data-tooltip-place="top"
-              data-tooltip-content={
-                game.hasManuallyUpdatedPlaytime
-                  ? t("manual_playtime_tooltip")
-                  : undefined
-              }
-              data-tooltip-id={game.objectId}
-            >
-              {game.hasManuallyUpdatedPlaytime ? (
-                <AlertFillIcon
-                  size={11}
-                  className="user-library-game__manual-playtime"
-                />
-              ) : (
-                <ClockIcon size={11} />
-              )}
-              <span className="user-library-game__playtime-long">
-                {formatPlayTime(game.playTimeInSeconds)}
-              </span>
-              <span className="user-library-game__playtime-short">
-                {formatPlayTime(game.playTimeInSeconds, true)}
-              </span>
-            </div>
+            {isDownloaded && (
+              <div className="user-library-game__downloaded">
+                <DownloadIcon size={11} />
+                <span>{t("downloaded")}</span>
+              </div>
+            )}
+            {!game.playTimeInSeconds || game.playTimeInSeconds === 0 ? (
+              <div className="user-library-game__not-played">
+                {t("not_played_yet")}
+              </div>
+            ) : (
+              <div
+                className="user-library-game__playtime"
+                data-tooltip-place="top"
+                data-tooltip-content={
+                  game.hasManuallyUpdatedPlaytime
+                    ? t("manual_playtime_tooltip")
+                    : undefined
+                }
+                data-tooltip-id={game.objectId}
+              >
+                {game.hasManuallyUpdatedPlaytime ? (
+                  <AlertFillIcon
+                    size={11}
+                    className="user-library-game__manual-playtime"
+                  />
+                ) : (
+                  <ClockIcon size={11} />
+                )}
+                <span className="user-library-game__playtime-long">
+                  {formatPlayTime(game.playTimeInSeconds)}
+                </span>
+                <span className="user-library-game__playtime-short">
+                  {formatPlayTime(game.playTimeInSeconds, true)}
+                </span>
+              </div>
+            )}
 
             {userProfile?.hasActiveSubscription &&
               game.achievementCount > 0 && (

@@ -11,38 +11,39 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: calc(globals.$spacing-unit * 2);
+    gap: globals.$spacing-unit;
   }
 
   &__list-item {
     display: flex;
     cursor: pointer;
-    transition: all ease 0.1s;
+    transition: all ease 0.15s;
     color: globals.$muted-color;
     width: 100%;
     overflow: hidden;
-    border-radius: 4px;
-    padding: globals.$spacing-unit;
-    gap: calc(globals.$spacing-unit * 2);
+    border-radius: 8px;
+    padding: calc(globals.$spacing-unit * 0.75) globals.$spacing-unit;
+    gap: calc(globals.$spacing-unit * 1.5);
     align-items: center;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.15);
+      background-color: rgba(255, 255, 255, 0.06);
       text-decoration: none;
     }
   }
 
   &__game-image {
-    width: 32px;
-    height: 32px;
-    border-radius: 4px;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
     object-fit: cover;
+    flex-shrink: 0;
   }
 
   &__game-details {
     display: flex;
     flex-direction: column;
-    gap: calc(globals.$spacing-unit / 2);
+    gap: 3px;
     overflow: hidden;
   }
 
@@ -58,6 +59,7 @@
     font-size: 0.75rem;
     display: flex;
     align-items: center;
-    gap: globals.$spacing-unit;
+    gap: calc(globals.$spacing-unit * 0.75);
+    color: rgba(255, 255, 255, 0.5);
   }
 }

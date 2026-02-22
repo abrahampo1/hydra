@@ -19,6 +19,7 @@ import {
 import "./header.scss";
 import { AutoUpdateSubHeader } from "./auto-update-sub-header";
 import { ScanGamesModal } from "./scan-games-modal";
+import { OnlineFriendsAvatars } from "./online-friends-avatars";
 import { setFilters, setLibrarySearchQuery } from "@renderer/features";
 import cn from "classnames";
 import { SearchDropdown } from "@renderer/components";
@@ -90,7 +91,7 @@ export function Header() {
 
   const historyItems = getRecentHistory(
     isOnLibraryPage ? "library" : "catalogue",
-    3
+    5
   );
 
   const title = useMemo(() => {
@@ -307,6 +308,8 @@ export function Header() {
         </section>
 
         <section className="header__section">
+          <OnlineFriendsAvatars />
+
           {isOnLibraryPage && window.electron.platform === "win32" && (
             <button
               type="button"

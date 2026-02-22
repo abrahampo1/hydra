@@ -1,0 +1,26 @@
+@use "../../../scss/globals.scss";
+
+.friend-actions {
+  display: flex;
+  align-items: center;
+  gap: calc(globals.$spacing-unit * 2);
+  justify-content: flex-end;
+
+  &__button {
+    color: globals.$muted-color;
+    gap: globals.$spacing-unit;
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    font-size: globals.$small-font-size;
+    transition: color ease 0.15s;
+
+    &:hover {
+      color: globals.$body-color;
+    }
+
+    &--danger:hover {
+      color: globals.$danger-color;
+    }
+  }
+}

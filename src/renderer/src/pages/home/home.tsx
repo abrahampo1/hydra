@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { levelDBService } from "@renderer/services/leveldb.service";
 import { orderBy } from "lodash-es";
@@ -7,7 +7,15 @@ import { useNavigate } from "react-router-dom";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 
 import { Button, GameCard, Hero } from "@renderer/components";
-import type { DownloadSource, ShopAssets, Steam250Game } from "@types";
+import type {
+  DownloadSource,
+  LibraryGame,
+  ShopAssets,
+  Steam250Game,
+  UserStats,
+} from "@types";
+
+import { ActivityFeed } from "./activity-feed";
 
 import flameIconStatic from "@renderer/assets/icons/flame-static.png";
 import flameIconAnimated from "@renderer/assets/icons/flame-animated.gif";
@@ -15,15 +23,20 @@ import starsIconAnimated from "@renderer/assets/icons/stars-animated.gif";
 
 import { buildGameDetailsPath } from "@renderer/helpers";
 import { CatalogueCategory } from "@shared";
+import { useUserDetails } from "@renderer/hooks";
+import { useLibrary } from "@renderer/hooks";
 import "./home.scss";
 
 export default function Home() {
   const { t } = useTranslation("home");
   const navigate = useNavigate();
+  const { userDetails } = useUserDetails();
+  const { library } = useLibrary();
 
   const [animateFlame, setAnimateFlame] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [randomGame, setRandomGame] = useState<Steam250Game | null>(null);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
 
   const [currentCatalogueCategory, setCurrentCatalogueCategory] = useState(
     CatalogueCategory.Hot
@@ -36,6 +49,24 @@ export default function Home() {
     [CatalogueCategory.Weekly]: [],
     [CatalogueCategory.Achievements]: [],
   });
+
+  const recentGames = useMemo(() => {
+    if (!library || library.length === 0) return [];
+    return orderBy(
+      library.filter((game) => game.lastTimePlayed),
+      ["lastTimePlayed"],
+      ["desc"]
+    ).slice(0, 10);
+  }, [library]);
+
+  const formatPlayTime = (ms: number) => {
+    const hours = Math.floor(ms / 3600000);
+    if (hours < 1) {
+      const minutes = Math.floor(ms / 60000);
+      return `${minutes}m`;
+    }
+    return t("hours_played", { hours });
+  };
 
   const getCatalogue = useCallback(async (category: CatalogueCategory) => {
     try {
@@ -95,9 +126,19 @@ export default function Home() {
   useEffect(() => {
     setIsLoading(true);
     getCatalogue(CatalogueCategory.Hot);
-
     getRandomGame();
   }, [getCatalogue, getRandomGame]);
+
+  useEffect(() => {
+    if (userDetails) {
+      window.electron.hydraApi
+        .get<UserStats>(`/users/${userDetails.id}/stats`)
+        .then((data) => {
+          setUserStats(data);
+        })
+        .catch(() => {});
+    }
+  }, [userDetails]);
 
   const categories = Object.values(CatalogueCategory);
 
@@ -113,11 +154,104 @@ export default function Home() {
     }
   };
 
+  const formatTotalPlayTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    return `${hours}h`;
+  };
+
+  const handleRecentGameClick = (game: LibraryGame) => {
+    navigate(
+      buildGameDetailsPath({
+        objectId: game.objectId,
+        shop: game.shop,
+        title: game.title,
+      })
+    );
+  };
+
   return (
     <SkeletonTheme baseColor="#1c1c1c" highlightColor="#444">
       <section className="home__content">
         <Hero />
 
+        {/* Continue Playing */}
+        {recentGames.length > 0 && (
+          <section className="home__section">
+            <h2 className="home__section-title">{t("continue_playing")}</h2>
+            <div className="home__horizontal-scroll">
+              {recentGames.map((game) => (
+                <button
+                  key={game.id}
+                  className="home__recent-game-card"
+                  onClick={() => handleRecentGameClick(game)}
+                >
+                  <div className="home__recent-game-image">
+                    {game.iconUrl ? (
+                      <img
+                        src={game.iconUrl}
+                        alt={game.title}
+                        className="home__recent-game-icon"
+                      />
+                    ) : (
+                      <div className="home__recent-game-placeholder" />
+                    )}
+                  </div>
+                  <div className="home__recent-game-info">
+                    <span className="home__recent-game-title">
+                      {game.title}
+                    </span>
+                    <span className="home__recent-game-playtime">
+                      {formatPlayTime(game.playTimeInMilliseconds)}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Activity Feed + Stats row */}
+        {userDetails && (
+          <section className="home__social-row">
+            <ActivityFeed userDetails={userDetails} />
+
+            <div className="home__stats-panel">
+              <h3 className="home__panel-title">{t("your_stats")}</h3>
+              <div className="home__stats-grid">
+                <div className="home__stat-item">
+                  <span className="home__stat-value">
+                    {userStats?.libraryCount ?? library.length}
+                  </span>
+                  <span className="home__stat-label">{t("total_games")}</span>
+                </div>
+                <div className="home__stat-item">
+                  <span className="home__stat-value">
+                    {userStats
+                      ? formatTotalPlayTime(
+                          userStats.totalPlayTimeInSeconds.value
+                        )
+                      : "0h"}
+                  </span>
+                  <span className="home__stat-label">
+                    {t("total_playtime")}
+                  </span>
+                </div>
+                {userStats?.unlockedAchievementSum != null && (
+                  <div className="home__stat-item">
+                    <span className="home__stat-value">
+                      {userStats.unlockedAchievementSum}
+                    </span>
+                    <span className="home__stat-label">
+                      {t("achievements_unlocked")}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Catalogue Categories */}
         <section className="home__header">
           <ul className="home__buttons-list">
             {categories.map((category) => (

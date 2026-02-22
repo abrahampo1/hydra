@@ -1,0 +1,108 @@
+@use "../../scss/globals.scss";
+
+.friend-hover-card {
+  position: fixed;
+  z-index: 1000;
+  background-color: rgba(18, 18, 18, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid globals.$border-color;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  padding: calc(globals.$spacing-unit * 1.5);
+  min-width: 220px;
+  max-width: 280px;
+  animation: hoverCardFadeIn 0.15s ease-out;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 1.5);
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    border-radius: 4px;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  &__name {
+    font-size: globals.$body-font-size;
+    font-weight: 600;
+    color: globals.$muted-color;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__game {
+    display: flex;
+    align-items: center;
+    gap: globals.$spacing-unit;
+    width: 100%;
+    margin-top: calc(globals.$spacing-unit * 1.5);
+    padding: calc(globals.$spacing-unit) calc(globals.$spacing-unit);
+    border-top: 1px solid globals.$border-color;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 0 0 4px 4px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  &__game-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background-color: globals.$background-color;
+  }
+
+  &__game-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+  }
+
+  &__game-title {
+    font-size: globals.$small-font-size;
+    color: globals.$muted-color;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__game-duration {
+    font-size: 11px;
+    color: globals.$body-color;
+    opacity: 0.7;
+  }
+}
+
+@keyframes hoverCardFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

@@ -1,0 +1,167 @@
+@use "../../scss/globals.scss";
+
+.activity-feed {
+  flex: 1.2;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid globals.$border-color;
+  border-radius: 8px;
+  padding: calc(globals.$spacing-unit * 2);
+  display: flex;
+  flex-direction: column;
+  gap: calc(globals.$spacing-unit * 1.5);
+  min-width: 0;
+
+  &__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: globals.$muted-color;
+    margin: 0;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: globals.$spacing-unit;
+    overflow-y: auto;
+    max-height: 320px;
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+    }
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 1.5);
+    padding: calc(globals.$spacing-unit) calc(globals.$spacing-unit * 1.25);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    background: transparent;
+    border: none;
+    color: inherit;
+    text-align: left;
+    width: 100%;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    &:active {
+      opacity: globals.$active-opacity;
+    }
+  }
+
+  &__avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: inherit;
+  }
+
+  &__online-indicator {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    background: globals.$success-color;
+    border-radius: 50%;
+    border: 2px solid #1c1c1c;
+  }
+
+  &__item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__friend-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: globals.$muted-color;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 0;
+    text-align: left;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__item-text {
+    font-size: globals.$small-font-size;
+    color: globals.$body-color;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__action {
+    color: globals.$body-color;
+
+    &--playing {
+      color: globals.$success-color;
+    }
+  }
+
+  &__game-title {
+    font-weight: 500;
+    color: globals.$muted-color;
+  }
+
+  &__duration {
+    color: globals.$body-color;
+    opacity: 0.7;
+  }
+
+  &__score {
+    color: globals.$warning-color;
+  }
+
+  &__game-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  &__empty {
+    font-size: 14px;
+    color: globals.$body-color;
+    opacity: 0.6;
+    margin: 0;
+  }
+
+  &__item-skeleton {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 1.5);
+    padding: calc(globals.$spacing-unit) calc(globals.$spacing-unit * 1.25);
+  }
+
+  &__skeleton-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
+}

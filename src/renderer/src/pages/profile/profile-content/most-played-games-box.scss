@@ -1,0 +1,99 @@
+@use "../../../scss/globals.scss";
+
+.most-played {
+  &__box {
+    padding: calc(globals.$spacing-unit * 2);
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit * 0.75);
+    counter-reset: rank;
+  }
+
+  &__item {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 1.5);
+    padding: calc(globals.$spacing-unit * 0.75) globals.$spacing-unit;
+    border-radius: 8px;
+    transition: all ease 0.15s;
+    color: globals.$muted-color;
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.06);
+      text-decoration: none;
+    }
+  }
+
+  &__rank {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.35);
+    min-width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  &__icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__details {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  &__bar-container {
+    width: 100%;
+    height: 3px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  &__bar {
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      globals.$brand-teal,
+      globals.$brand-blue
+    );
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  &__time {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    flex-shrink: 0;
+    min-width: 32px;
+    text-align: right;
+  }
+}

@@ -1,0 +1,81 @@
+@use "../../../scss/globals.scss";
+
+.library-controls {
+  &__container {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 1.5);
+    margin-bottom: calc(globals.$spacing-unit * 2);
+    flex-wrap: wrap;
+  }
+
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 6px 10px;
+    flex: 1;
+    min-width: 140px;
+    max-width: 260px;
+    transition: all ease 0.2s;
+
+    &:focus-within {
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  &__search-icon {
+    color: rgba(255, 255, 255, 0.4);
+    flex-shrink: 0;
+  }
+
+  &__search-input {
+    background: none;
+    border: none;
+    outline: none;
+    color: globals.$body-color;
+    font-size: 13px;
+    width: 100%;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  &__spacer {
+    flex: 1;
+  }
+
+  &__view-toggle {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 0.5);
+  }
+
+  &__view-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all ease 0.2s;
+
+    &:hover {
+      color: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    &--active {
+      color: rgba(0, 0, 0, 0.9);
+      background: #fff;
+    }
+  }
+}

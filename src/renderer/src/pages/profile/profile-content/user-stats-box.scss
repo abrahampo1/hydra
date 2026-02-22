@@ -3,6 +3,42 @@
 .user-stats {
   &__box {
     padding: calc(globals.$spacing-unit * 2);
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit * 2);
+  }
+
+  &__overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: globals.$spacing-unit;
+  }
+
+  &__overview-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: calc(globals.$spacing-unit * 1.25) globals.$spacing-unit;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+  }
+
+  &__overview-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: globals.$body-color;
+    line-height: 1;
+  }
+
+  &__overview-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 500;
   }
 
   &__list {
@@ -11,42 +47,59 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: calc(globals.$spacing-unit * 2);
+    gap: globals.$spacing-unit;
   }
 
   &__list-item {
     display: flex;
     flex-direction: column;
-    transition: all ease 0.1s;
+    transition: background-color ease 0.15s;
     color: globals.$muted-color;
     width: 100%;
     overflow: hidden;
-    border-radius: 4px;
-    padding: globals.$spacing-unit;
-    gap: globals.$spacing-unit;
+    border-radius: 8px;
+    padding: calc(globals.$spacing-unit * 1.25)
+      calc(globals.$spacing-unit * 1.5);
+    gap: calc(globals.$spacing-unit * 0.75);
+    background-color: rgba(255, 255, 255, 0.02);
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.15);
+      background-color: rgba(255, 255, 255, 0.06);
       text-decoration: none;
     }
 
     &--wrapped {
+      background: linear-gradient(
+        135deg,
+        rgba(globals.$brand-teal, 0.1),
+        rgba(globals.$brand-blue, 0.1)
+      );
+      border: 1px solid rgba(globals.$brand-teal, 0.15);
+
       &:hover {
-        background-color: transparent;
+        background: linear-gradient(
+          135deg,
+          rgba(globals.$brand-teal, 0.15),
+          rgba(globals.$brand-blue, 0.15)
+        );
       }
     }
   }
 
   &__list-title {
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.75rem;
+    font-weight: 500;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   &__list-description {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: globals.$spacing-unit;
@@ -55,6 +108,7 @@
   &__stats-row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
   }
 
   &__link {
@@ -84,6 +138,7 @@
     text-align: start;
     color: globals.$body-color;
     font-size: 0.875rem;
+    font-weight: 600;
     cursor: pointer;
     text-decoration: underline;
   }

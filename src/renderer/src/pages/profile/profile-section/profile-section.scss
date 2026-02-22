@@ -1,26 +1,30 @@
 @use "../../../scss/globals.scss";
 
 .profile-section {
-  background-color: globals.$background-color;
+  background-color: rgba(255, 255, 255, 0.02);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   overflow: hidden;
+  transition: border-color ease 0.2s;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
 
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: globals.$background-color;
     padding-right: calc(globals.$spacing-unit * 2);
+    transition: background-color ease 0.15s;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: rgba(255, 255, 255, 0.04);
     }
   }
 
   &__button {
-    padding: calc(globals.$spacing-unit * 2.5) calc(globals.$spacing-unit * 2);
+    padding: calc(globals.$spacing-unit * 2) calc(globals.$spacing-unit * 2);
     display: flex;
     align-items: center;
     background-color: transparent;
@@ -30,8 +34,9 @@
     transition: all ease 0.2s;
     gap: globals.$spacing-unit;
     font-size: globals.$body-font-size;
-    font-weight: bold;
+    font-weight: 600;
     border: none;
+    letter-spacing: 0.01em;
 
     &:active {
       opacity: globals.$active-opacity;
@@ -39,13 +44,13 @@
   }
 
   &__count {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.7);
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 11px;
     font-weight: 600;
-    min-width: 24px;
+    min-width: 22px;
     text-align: center;
   }
 
@@ -56,6 +61,7 @@
 
   &__chevron {
     transition: transform ease 0.2s;
+    color: rgba(255, 255, 255, 0.4);
 
     &--open {
       transform: rotate(180deg);
@@ -65,7 +71,7 @@
   &__content {
     overflow: hidden;
     transition: max-height 0.4s cubic-bezier(0, 1, 0, 1);
-    background-color: globals.$dark-background-color;
+    background-color: rgba(0, 0, 0, 0.15);
     position: relative;
   }
 }

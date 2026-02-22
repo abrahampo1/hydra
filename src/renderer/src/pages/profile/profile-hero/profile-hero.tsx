@@ -1,7 +1,6 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { userProfileContext } from "@renderer/context";
 import {
-  BlockedIcon,
   CheckCircleFillIcon,
   CopyIcon,
   PencilIcon,
@@ -33,9 +32,7 @@ import Skeleton from "react-loading-skeleton";
 import { UploadBackgroundImageButton } from "../upload-background-image-button/upload-background-image-button";
 import "./profile-hero.scss";
 
-type FriendAction =
-  | FriendRequestAction
-  | ("BLOCK" | "UNDO_FRIENDSHIP" | "SEND");
+type FriendAction = FriendRequestAction | "SEND";
 
 export function ProfileHero() {
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
@@ -46,13 +43,8 @@ export function ProfileHero() {
 
   const { isMe, getUserProfile, userProfile, heroBackground, backgroundImage } =
     useContext(userProfileContext);
-  const {
-    signOut,
-    updateFriendRequestState,
-    sendFriendRequest,
-    undoFriendship,
-    blockUser,
-  } = useUserDetails();
+  const { signOut, updateFriendRequestState, sendFriendRequest } =
+    useUserDetails();
 
   const { gameRunning } = useAppSelector((state) => state.gameRunning);
 
@@ -82,42 +74,24 @@ export function ProfileHero() {
       setIsPerformingAction(true);
 
       try {
-        if (action === "UNDO_FRIENDSHIP") {
-          await undoFriendship(userId).then(getUserProfile);
-          return;
-        }
-
-        if (action === "BLOCK") {
-          await blockUser(userId).then(() => {
-            showSuccessToast(t("user_blocked_successfully"));
-            navigate(-1);
-          });
-
-          return;
-        }
-
         if (action === "SEND") {
           await sendFriendRequest(userProfile.id).then(getUserProfile);
           return;
         }
 
         await updateFriendRequestState(userId, action).then(getUserProfile);
-      } catch (err) {
+      } catch (_err) {
         showErrorToast(t("try_again"));
       } finally {
         setIsPerformingAction(false);
       }
     },
     [
-      undoFriendship,
-      blockUser,
       sendFriendRequest,
       updateFriendRequestState,
       t,
       showErrorToast,
       getUserProfile,
-      navigate,
-      showSuccessToast,
       userProfile,
     ]
   );
@@ -152,53 +126,20 @@ export function ProfileHero() {
 
     if (userProfile.relation == null) {
       return (
-        <>
-          <Button
-            theme="outline"
-            onClick={() => handleFriendAction(userProfile.id, "SEND")}
-            disabled={isPerformingAction}
-            className="profile-hero__button--outline"
-          >
-            <PersonAddIcon />
-            {t("add_friend")}
-          </Button>
-
-          <Button
-            theme="danger"
-            onClick={() => handleFriendAction(userProfile.id, "BLOCK")}
-            disabled={isPerformingAction}
-          >
-            <BlockedIcon />
-            {t("block_user")}
-          </Button>
-        </>
+        <Button
+          theme="outline"
+          onClick={() => handleFriendAction(userProfile.id, "SEND")}
+          disabled={isPerformingAction}
+          className="profile-hero__button--outline"
+        >
+          <PersonAddIcon />
+          {t("add_friend")}
+        </Button>
       );
     }
 
     if (userProfile.relation.status === "ACCEPTED") {
-      return (
-        <>
-          <Button
-            theme="danger"
-            onClick={() => handleFriendAction(userProfile.id, "BLOCK")}
-            disabled={isPerformingAction}
-          >
-            <BlockedIcon />
-            {t("block_user")}
-          </Button>
-          <Button
-            theme="outline"
-            onClick={() =>
-              handleFriendAction(userProfile.id, "UNDO_FRIENDSHIP")
-            }
-            disabled={isPerformingAction}
-            className="profile-hero__button--outline"
-          >
-            <XCircleFillIcon />
-            {t("undo_friendship")}
-          </Button>
-        </>
-      );
+      return null;
     }
 
     if (userProfile.relation.BId === userProfile.id) {
@@ -256,9 +197,11 @@ export function ProfileHero() {
     }
   }, [isMe, userProfile?.profileImageUrl]);
 
-  const copyFriendCode = useCallback(() => {
+  const copyProfileLink = useCallback(() => {
     if (userProfile?.id) {
-      navigator.clipboard.writeText(userProfile.id);
+      navigator.clipboard.writeText(
+        `hydralauncher://profile?userId=${userProfile.id}`
+      );
       setIsCopied(true);
 
       const startTime = performance.now();
@@ -347,8 +290,8 @@ export function ProfileHero() {
                   <motion.button
                     type="button"
                     className="profile-hero__copy-button"
-                    onClick={copyFriendCode}
-                    title={t("copy_friend_code")}
+                    onClick={copyProfileLink}
+                    title={t("copy_profile_link")}
                     onMouseEnter={() => setIsCopyButtonHovered(true)}
                     onMouseLeave={() => setIsCopyButtonHovered(false)}
                     initial={{ width: 28 }}
@@ -376,30 +319,40 @@ export function ProfileHero() {
               )}
 
               {currentGame && (
-                <div className="profile-hero__current-game-wrapper">
-                  <div className="profile-hero__current-game-details">
-                    <Link
-                      to={buildGameDetailsPath({
-                        ...currentGame,
-                        objectId: currentGame.objectId,
-                      })}
-                    >
-                      {currentGame.title}
-                    </Link>
-                  </div>
+                <Link
+                  to={buildGameDetailsPath({
+                    ...currentGame,
+                    objectId: currentGame.objectId,
+                  })}
+                  className="profile-hero__current-game-card"
+                >
+                  <span className="profile-hero__playing-indicator" />
 
-                  <small>
-                    {t("playing_for", {
-                      amount: formatDistance(
-                        addSeconds(
-                          new Date(),
-                          -currentGame.sessionDurationInSeconds
+                  {"iconUrl" in currentGame && currentGame.iconUrl && (
+                    <img
+                      className="profile-hero__current-game-icon"
+                      src={currentGame.iconUrl}
+                      alt={currentGame.title}
+                    />
+                  )}
+
+                  <div className="profile-hero__current-game-info">
+                    <span className="profile-hero__current-game-title">
+                      {currentGame.title}
+                    </span>
+                    <span className="profile-hero__current-game-time">
+                      {t("playing_for", {
+                        amount: formatDistance(
+                          addSeconds(
+                            new Date(),
+                            -currentGame.sessionDurationInSeconds
+                          ),
+                          new Date()
                         ),
-                        new Date()
-                      ),
-                    })}
-                  </small>
-                </div>
+                      })}
+                    </span>
+                  </div>
+                </Link>
               )}
             </div>
 
