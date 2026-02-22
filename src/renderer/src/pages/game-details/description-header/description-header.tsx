@@ -149,12 +149,17 @@ export function DescriptionHeader() {
                   className="description-header__game-card"
                   onClick={() => navigate(buildGameDetailsPath(game))}
                 >
-                  {game.libraryImageUrl ? (
+                  {game.objectId ? (
                     <img
                       className="description-header__game-cover"
-                      src={game.libraryImageUrl}
+                      src={`https://shared.steamstatic.com/store_item_assets/steam/apps/${game.objectId}/hero_capsule.jpg`}
                       alt={game.title}
                       loading="lazy"
+                      onError={(e) => {
+                        if (game.libraryImageUrl) {
+                          (e.target as HTMLImageElement).src = game.libraryImageUrl;
+                        }
+                      }}
                     />
                   ) : (
                     <div className="description-header__game-cover-placeholder">
