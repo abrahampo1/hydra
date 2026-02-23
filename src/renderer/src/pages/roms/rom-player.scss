@@ -41,6 +41,48 @@
     margin-left: auto;
   }
 
+  &__controls {
+    display: flex;
+    align-items: center;
+    gap: globals.$spacing-unit;
+  }
+
+  &__slot-selector {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+    padding: 0 2px;
+  }
+
+  &__slot-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.15s;
+
+    &:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  &__slot-label {
+    font-size: globals.$small-font-size;
+    color: rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+    min-width: 44px;
+    text-align: center;
+    user-select: none;
+  }
+
   &__iframe-container {
     flex: 1;
     overflow: hidden;

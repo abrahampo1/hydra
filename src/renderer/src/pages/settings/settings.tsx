@@ -15,6 +15,7 @@ import { SettingsAppearance } from "./appearance/settings-appearance";
 import { SettingsDebrid } from "./settings-debrid";
 import { SettingsBackups } from "./settings-backups";
 import { SettingsStorage } from "./settings-storage";
+import { SettingsBeta } from "./settings-beta";
 
 export default function Settings() {
   const { t } = useTranslation("settings");
@@ -33,6 +34,7 @@ export default function Settings() {
       { tabLabel: t("debrid"), contentTitle: t("debrid") },
       { tabLabel: t("backups"), contentTitle: t("backups") },
       { tabLabel: t("storage"), contentTitle: t("storage") },
+      { tabLabel: t("beta"), contentTitle: t("beta") },
     ];
 
     if (userDetails)
@@ -74,6 +76,10 @@ export default function Settings() {
 
             if (currentCategoryIndex === 6) {
               return <SettingsStorage />;
+            }
+
+            if (currentCategoryIndex === 7) {
+              return <SettingsBeta />;
             }
 
             return <SettingsAccount />;

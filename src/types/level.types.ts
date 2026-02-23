@@ -137,6 +137,7 @@ export interface UserPreferences {
   localBackupPath?: string | null;
   romsPath?: string | null;
   romsBiosPath?: string | null;
+  showROMsInSidebar?: boolean;
 }
 
 export interface ScreenState {

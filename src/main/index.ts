@@ -148,94 +148,11 @@ app.whenReady().then(async () => {
       pointer-events: none;
     }
     #save-toast.visible { opacity: 1; }
-    /* Floating toolbar */
-    #toolbar {
-      position: fixed;
-      bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 4px 8px;
-      z-index: 99999;
-      opacity: 0;
-      transition: opacity 0.25s;
-      pointer-events: none;
-    }
-    #toolbar.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    #toolbar button {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #fff;
-      font-family: system-ui, sans-serif;
-      font-size: 12px;
-      padding: 6px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
-    }
-    #toolbar button:hover {
-      background: rgba(255, 255, 255, 0.18);
-    }
-    #toolbar button:active {
-      background: rgba(22, 177, 149, 0.4);
-    }
-    #toolbar .slot-group {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 5px;
-      padding: 0 2px;
-    }
-    #toolbar .slot-group button {
-      padding: 6px 6px;
-      border: none;
-      background: none;
-    }
-    #toolbar .slot-group button:hover {
-      background: rgba(255, 255, 255, 0.12);
-    }
-    #toolbar .slot-label {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.6);
-      min-width: 42px;
-      text-align: center;
-      user-select: none;
-    }
-    #toolbar .sep {
-      width: 1px;
-      height: 20px;
-      background: rgba(255, 255, 255, 0.12);
-      margin: 0 4px;
-    }
   </style>
 </head>
 <body>
   <div id="game"></div>
   <div id="save-toast"></div>
-  <div id="toolbar">
-    <div class="slot-group">
-      <button id="slot-prev" title="Previous slot">&lt;</button>
-      <span class="slot-label" id="slot-label">Slot 1</span>
-      <button id="slot-next" title="Next slot">&gt;</button>
-    </div>
-    <div class="sep"></div>
-    <button id="btn-save" title="Save state (F2)">Save</button>
-    <button id="btn-load" title="Load state (F4)">Load</button>
-  </div>
   <script>
     EJS_player = "#game";
     EJS_core = "${core}";
@@ -267,7 +184,6 @@ app.whenReady().then(async () => {
     const ROM_ID = "${romId}";
     let currentSlot = 1;
     let toastTimer = null;
-    let toolbarTimer = null;
 
     function showToast(msg) {
       const el = document.getElementById("save-toast");
@@ -275,10 +191,6 @@ app.whenReady().then(async () => {
       el.classList.add("visible");
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => el.classList.remove("visible"), 2000);
-    }
-
-    function updateSlotLabel() {
-      document.getElementById("slot-label").textContent = "Slot " + currentSlot;
     }
 
     function postToParent(type, payload) {
@@ -310,48 +222,32 @@ app.whenReady().then(async () => {
       postToParent("load-state", { romId: ROM_ID, slot: slot });
     }
 
-    /* Show/hide toolbar on mouse movement */
-    function showToolbar() {
-      const tb = document.getElementById("toolbar");
-      tb.classList.add("visible");
-      clearTimeout(toolbarTimer);
-      toolbarTimer = setTimeout(function() {
-        tb.classList.remove("visible");
-      }, 3000);
-    }
-
-    document.addEventListener("mousemove", showToolbar);
-
-    /* Toolbar buttons */
-    document.getElementById("btn-save").addEventListener("click", function(e) {
-      e.stopPropagation();
-      doSaveState(currentSlot);
-    });
-
-    document.getElementById("btn-load").addEventListener("click", function(e) {
-      e.stopPropagation();
-      doLoadState(currentSlot);
-    });
-
-    document.getElementById("slot-prev").addEventListener("click", function(e) {
-      e.stopPropagation();
-      currentSlot = currentSlot <= 1 ? 9 : currentSlot - 1;
-      updateSlotLabel();
-      showToast("Slot " + currentSlot);
-    });
-
-    document.getElementById("slot-next").addEventListener("click", function(e) {
-      e.stopPropagation();
-      currentSlot = currentSlot >= 9 ? 1 : currentSlot + 1;
-      updateSlotLabel();
-      showToast("Slot " + currentSlot);
-    });
-
-    /* Listen for messages from parent (SRAM/state data responses) */
+    /* Listen for messages from parent (SRAM/state data + button triggers) */
     window.addEventListener("message", function(e) {
       if (!e.data || e.data.source !== "hydra-host") return;
       const emu = window.EJS_emulator;
       if (!emu || !emu.gameManager) return;
+
+      /* Button-triggered save state from parent */
+      if (e.data.type === "request-save-state" && typeof e.data.slot === "number") {
+        currentSlot = e.data.slot;
+        doSaveState(currentSlot);
+        return;
+      }
+
+      /* Button-triggered load state from parent */
+      if (e.data.type === "request-load-state" && typeof e.data.slot === "number") {
+        currentSlot = e.data.slot;
+        doLoadState(currentSlot);
+        return;
+      }
+
+      /* Slot change from parent */
+      if (e.data.type === "set-slot" && typeof e.data.slot === "number") {
+        currentSlot = e.data.slot;
+        showToast("Slot " + currentSlot);
+        return;
+      }
 
       if (e.data.type === "load-sram-response" && e.data.data) {
         try {
@@ -400,9 +296,8 @@ app.whenReady().then(async () => {
         /* Shift + 1-9: Change slot */
         if (e.shiftKey && e.key >= "1" && e.key <= "9") {
           currentSlot = parseInt(e.key);
-          updateSlotLabel();
           showToast("Slot " + currentSlot);
-          showToolbar();
+          postToParent("slot-changed", { slot: currentSlot });
           e.preventDefault();
           return;
         }

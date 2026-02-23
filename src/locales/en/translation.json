@@ -730,7 +730,11 @@
     "space_to_free": "Space to free",
     "space_remaining_after": "Remaining disk space",
     "confirm_delete": "Delete",
-    "other_usage": "Other"
+    "other_usage": "Other",
+    "beta": "Beta",
+    "beta_features": "Beta Features",
+    "beta_features_description": "Experimental features that are still in development. Use at your own risk.",
+    "show_roms_in_sidebar": "Show ROMs in sidebar"
   },
   "notifications": {
     "download_complete": "Download complete",

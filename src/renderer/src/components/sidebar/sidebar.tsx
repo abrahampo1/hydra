@@ -75,6 +75,9 @@ export function Sidebar() {
 
   const { lastPacket, progress } = useDownload();
   const extraction = useAppSelector((state) => state.download.extraction);
+  const userPreferences = useAppSelector(
+    (state) => state.userPreferences.value
+  );
 
   const { showWarningToast, showSuccessToast, showErrorToast } = useToast();
 
@@ -311,23 +314,29 @@ export function Sidebar() {
         <div className="sidebar__content">
           <section className="sidebar__section">
             <ul className="sidebar__menu">
-              {routes.map(({ nameKey, path, render }) => (
-                <li
-                  key={nameKey}
-                  className={cn("sidebar__menu-item", {
-                    "sidebar__menu-item--active": location.pathname === path,
-                  })}
-                >
-                  <button
-                    type="button"
-                    className="sidebar__menu-item-button"
-                    onClick={() => handleSidebarItemClick(path)}
+              {routes
+                .filter(
+                  (route) =>
+                    route.nameKey !== "roms" ||
+                    userPreferences?.showROMsInSidebar
+                )
+                .map(({ nameKey, path, render }) => (
+                  <li
+                    key={nameKey}
+                    className={cn("sidebar__menu-item", {
+                      "sidebar__menu-item--active": location.pathname === path,
+                    })}
                   >
-                    {render()}
-                    <span>{t(nameKey)}</span>
-                  </button>
-                </li>
-              ))}
+                    <button
+                      type="button"
+                      className="sidebar__menu-item-button"
+                      onClick={() => handleSidebarItemClick(path)}
+                    >
+                      {render()}
+                      <span>{t(nameKey)}</span>
+                    </button>
+                  </li>
+                ))}
               {window.electron.platform === "linux" && homebrewFolderExists && (
                 <li className="sidebar__menu-item sidebar__menu-item--decky">
                   <button

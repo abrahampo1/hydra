@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeftIcon } from "@primer/octicons-react";
+import {
+  ArrowLeftIcon,
+  DownloadIcon,
+  UploadIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "@primer/octicons-react";
 
 import type { RomEntry } from "@types";
 import { ROM_CONSOLES } from "@shared";
@@ -25,7 +31,18 @@ export default function RomPlayer() {
   const rom = (location.state as { rom: RomEntry } | null)?.rom;
   const sessionStartRef = useRef(Date.now());
   const [sessionTime, setSessionTime] = useState(0);
+  const [currentSlot, setCurrentSlot] = useState(1);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const sendToIframe = useCallback(
+    (type: string, payload: Record<string, unknown> = {}) => {
+      iframeRef.current?.contentWindow?.postMessage(
+        { source: "hydra-host", type, ...payload },
+        "*"
+      );
+    },
+    []
+  );
 
   useEffect(() => {
     if (!rom) {
@@ -50,10 +67,7 @@ export default function RomPlayer() {
 
       if (type === "load-sram" && romId) {
         const sramData = await window.electron.roms.loadGameSRAM(romId);
-        iframeRef.current?.contentWindow?.postMessage(
-          { source: "hydra-host", type: "load-sram-response", data: sramData },
-          "*"
-        );
+        sendToIframe("load-sram-response", { data: sramData });
       }
 
       if (type === "save-state" && romId && slot && data) {
@@ -62,15 +76,11 @@ export default function RomPlayer() {
 
       if (type === "load-state" && romId && slot) {
         const stateData = await window.electron.roms.loadGameState(romId, slot);
-        iframeRef.current?.contentWindow?.postMessage(
-          {
-            source: "hydra-host",
-            type: "load-state-response",
-            data: stateData,
-            slot,
-          },
-          "*"
-        );
+        sendToIframe("load-state-response", { data: stateData, slot });
+      }
+
+      if (type === "slot-changed" && typeof slot === "number") {
+        setCurrentSlot(slot);
       }
     };
 
@@ -85,7 +95,7 @@ export default function RomPlayer() {
         window.electron.roms.updatePlaytime(rom.id, elapsed);
       }
     };
-  }, [rom, navigate]);
+  }, [rom, navigate, sendToIframe]);
 
   const handleBack = useCallback(() => {
     if (!rom) return;
@@ -97,6 +107,30 @@ export default function RomPlayer() {
 
     navigate("/roms");
   }, [rom, navigate]);
+
+  const handleSaveState = useCallback(() => {
+    sendToIframe("request-save-state", { slot: currentSlot });
+  }, [sendToIframe, currentSlot]);
+
+  const handleLoadState = useCallback(() => {
+    sendToIframe("request-load-state", { slot: currentSlot });
+  }, [sendToIframe, currentSlot]);
+
+  const handleSlotPrev = useCallback(() => {
+    setCurrentSlot((s) => {
+      const next = s <= 1 ? 9 : s - 1;
+      sendToIframe("set-slot", { slot: next });
+      return next;
+    });
+  }, [sendToIframe]);
+
+  const handleSlotNext = useCallback(() => {
+    setCurrentSlot((s) => {
+      const next = s >= 9 ? 1 : s + 1;
+      sendToIframe("set-slot", { slot: next });
+      return next;
+    });
+  }, [sendToIframe]);
 
   const consoleInfo = rom ? ROM_CONSOLES[rom.console] : null;
 
@@ -146,6 +180,38 @@ export default function RomPlayer() {
         <span className="rom-player__playtime">
           {t("playtime")}: {formatPlaytime(totalPlaytime)}
         </span>
+
+        <div className="rom-player__controls">
+          <div className="rom-player__slot-selector">
+            <button
+              className="rom-player__slot-btn"
+              onClick={handleSlotPrev}
+              title={t("slot_previous")}
+            >
+              <ChevronLeftIcon size={14} />
+            </button>
+            <span className="rom-player__slot-label">
+              {t("slot")} {currentSlot}
+            </span>
+            <button
+              className="rom-player__slot-btn"
+              onClick={handleSlotNext}
+              title={t("slot_next")}
+            >
+              <ChevronRightIcon size={14} />
+            </button>
+          </div>
+
+          <Button theme="outline" onClick={handleSaveState} title="F2">
+            <UploadIcon size={14} />
+            {t("save")}
+          </Button>
+
+          <Button theme="outline" onClick={handleLoadState} title="F4">
+            <DownloadIcon size={14} />
+            {t("load")}
+          </Button>
+        </div>
       </div>
 
       <div className="rom-player__iframe-container">
