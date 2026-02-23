@@ -56,19 +56,21 @@ export const loadState = async () => {
     DeckyPlugin.checkAndUpdateIfOutdated();
   }
 
-  await HydraApi.setupApi().then(async () => {
+  try {
+    await HydraApi.setupApi();
     uploadGamesBatch();
     void migrateDownloadSources();
 
     const { syncDownloadSourcesFromApi } = await import("./services/user");
     void syncDownloadSourcesFromApi();
 
-    // Check for new download options on startup (if enabled)
     (async () => {
       await DownloadSourcesChecker.checkForChanges();
     })();
     WSClient.connect();
-  });
+  } catch (err) {
+    logger.error("Failed to initialize API services, continuing offline:", err);
+  }
 
   const downloads = await downloadsSublevel
     .values()

@@ -56,6 +56,27 @@ if (process.defaultApp) {
   app.setAsDefaultProtocolClient(PROTOCOL);
 }
 
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "emulator-data",
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+    },
+  },
+  {
+    scheme: "emulator-rom",
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+    },
+  },
+]);
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -65,6 +86,412 @@ app.whenReady().then(async () => {
   protocol.handle("local", (request) => {
     const filePath = request.url.slice("local:".length);
     return net.fetch(url.pathToFileURL(decodeURI(filePath)).toString());
+  });
+
+  protocol.handle("emulator-data", async (request) => {
+    const parsed = new URL(request.url);
+
+    if (parsed.pathname === "/__player__") {
+      const core = parsed.searchParams.get("core") || "";
+      const romUrl = parsed.searchParams.get("romUrl") || "";
+      const gameName = parsed.searchParams.get("gameName") || "";
+      const romId = parsed.searchParams.get("romId") || "";
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; }
+    #game { width: 100vw; height: 100vh; }
+    /* Hide all EmulatorJS UI */
+    .ejs_menu_bar,
+    .ejs_menu_bar *,
+    .ejs--bar,
+    .ejs--bar *,
+    .ejs_context_menu,
+    .ejs_start_button,
+    .ejs_loading_text,
+    .ejs_cheat_menu,
+    .ejs_settings_menu,
+    [class*="ejs_menu"],
+    [class*="ejs_button"],
+    [class*="ejs--controls"] {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      height: 0 !important;
+      width: 0 !important;
+      overflow: hidden !important;
+    }
+    #game > div > div:last-child {
+      display: none !important;
+    }
+    #game canvas {
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: contain;
+    }
+    /* Toast notification */
+    #save-toast {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: rgba(22, 177, 149, 0.9);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-family: system-ui, sans-serif;
+      font-size: 13px;
+      z-index: 99999;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    #save-toast.visible { opacity: 1; }
+    /* Floating toolbar */
+    #toolbar {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 4px 8px;
+      z-index: 99999;
+      opacity: 0;
+      transition: opacity 0.25s;
+      pointer-events: none;
+    }
+    #toolbar.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #toolbar button {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+    #toolbar button:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+    #toolbar button:active {
+      background: rgba(22, 177, 149, 0.4);
+    }
+    #toolbar .slot-group {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 5px;
+      padding: 0 2px;
+    }
+    #toolbar .slot-group button {
+      padding: 6px 6px;
+      border: none;
+      background: none;
+    }
+    #toolbar .slot-group button:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+    #toolbar .slot-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      min-width: 42px;
+      text-align: center;
+      user-select: none;
+    }
+    #toolbar .sep {
+      width: 1px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.12);
+      margin: 0 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  <div id="save-toast"></div>
+  <div id="toolbar">
+    <div class="slot-group">
+      <button id="slot-prev" title="Previous slot">&lt;</button>
+      <span class="slot-label" id="slot-label">Slot 1</span>
+      <button id="slot-next" title="Next slot">&gt;</button>
+    </div>
+    <div class="sep"></div>
+    <button id="btn-save" title="Save state (F2)">Save</button>
+    <button id="btn-load" title="Load state (F4)">Load</button>
+  </div>
+  <script>
+    EJS_player = "#game";
+    EJS_core = "${core}";
+    EJS_gameUrl = "${romUrl}";
+    EJS_gameName = "${gameName}";
+    EJS_pathtodata = "emulator-data://data/";
+    EJS_color = "#16b195";
+    EJS_startOnLoaded = true;
+    EJS_Buttons = {
+      playPause: false,
+      restart: false,
+      mute: false,
+      settings: false,
+      fullscreen: false,
+      saveState: false,
+      loadState: false,
+      screenRecord: false,
+      gamepad: false,
+      cheat: false,
+      volume: false,
+      saveSavFiles: false,
+      loadSavFiles: false,
+      quickSave: false,
+      quickLoad: false,
+      screenshot: false,
+      cacheManager: false
+    };
+
+    const ROM_ID = "${romId}";
+    let currentSlot = 1;
+    let toastTimer = null;
+    let toolbarTimer = null;
+
+    function showToast(msg) {
+      const el = document.getElementById("save-toast");
+      el.textContent = msg;
+      el.classList.add("visible");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove("visible"), 2000);
+    }
+
+    function updateSlotLabel() {
+      document.getElementById("slot-label").textContent = "Slot " + currentSlot;
+    }
+
+    function postToParent(type, payload) {
+      window.parent.postMessage({ source: "emulator", type, ...payload }, "*");
+    }
+
+    /* Save state action (used by both button and keyboard) */
+    function doSaveState(slot) {
+      const emu = window.EJS_emulator;
+      if (!emu || !emu.gameManager) return;
+      try {
+        const state = emu.gameManager.getState();
+        if (state) {
+          postToParent("save-state", {
+            romId: ROM_ID,
+            slot: slot,
+            data: Array.from(state)
+          });
+          showToast("Saved (slot " + slot + ")");
+        }
+      } catch(err) {
+        showToast("Save failed");
+        console.error(err);
+      }
+    }
+
+    /* Load state action (used by both button and keyboard) */
+    function doLoadState(slot) {
+      postToParent("load-state", { romId: ROM_ID, slot: slot });
+    }
+
+    /* Show/hide toolbar on mouse movement */
+    function showToolbar() {
+      const tb = document.getElementById("toolbar");
+      tb.classList.add("visible");
+      clearTimeout(toolbarTimer);
+      toolbarTimer = setTimeout(function() {
+        tb.classList.remove("visible");
+      }, 3000);
+    }
+
+    document.addEventListener("mousemove", showToolbar);
+
+    /* Toolbar buttons */
+    document.getElementById("btn-save").addEventListener("click", function(e) {
+      e.stopPropagation();
+      doSaveState(currentSlot);
+    });
+
+    document.getElementById("btn-load").addEventListener("click", function(e) {
+      e.stopPropagation();
+      doLoadState(currentSlot);
+    });
+
+    document.getElementById("slot-prev").addEventListener("click", function(e) {
+      e.stopPropagation();
+      currentSlot = currentSlot <= 1 ? 9 : currentSlot - 1;
+      updateSlotLabel();
+      showToast("Slot " + currentSlot);
+    });
+
+    document.getElementById("slot-next").addEventListener("click", function(e) {
+      e.stopPropagation();
+      currentSlot = currentSlot >= 9 ? 1 : currentSlot + 1;
+      updateSlotLabel();
+      showToast("Slot " + currentSlot);
+    });
+
+    /* Listen for messages from parent (SRAM/state data responses) */
+    window.addEventListener("message", function(e) {
+      if (!e.data || e.data.source !== "hydra-host") return;
+      const emu = window.EJS_emulator;
+      if (!emu || !emu.gameManager) return;
+
+      if (e.data.type === "load-sram-response" && e.data.data) {
+        try {
+          const arr = new Uint8Array(e.data.data);
+          const savePath = emu.gameManager.getSaveFilePath();
+          if (savePath) {
+            emu.gameManager.FS.writeFile(savePath, arr);
+            emu.gameManager.loadSaveFiles();
+          }
+        } catch(err) { console.error("Failed to load SRAM", err); }
+      }
+
+      if (e.data.type === "load-state-response" && e.data.data) {
+        try {
+          emu.gameManager.loadState(new Uint8Array(e.data.data));
+          showToast("Loaded (slot " + e.data.slot + ")");
+        } catch(err) { console.error("Failed to load state", err); }
+      }
+    });
+
+    /* Called when game starts */
+    EJS_onGameStart = function() {
+      /* Request SRAM from parent on start */
+      postToParent("load-sram", { romId: ROM_ID });
+
+      const emu = window.EJS_emulator;
+
+      /* Auto-save SRAM every 30 seconds */
+      setInterval(function() {
+        if (!emu || !emu.gameManager) return;
+        try {
+          const saveData = emu.gameManager.getSaveFile(true);
+          if (saveData && saveData.length > 0) {
+            postToParent("save-sram", {
+              romId: ROM_ID,
+              data: Array.from(saveData)
+            });
+          }
+        } catch(err) {}
+      }, 30000);
+
+      /* Keyboard shortcuts */
+      document.addEventListener("keydown", function(e) {
+        if (!emu || !emu.gameManager) return;
+
+        /* Shift + 1-9: Change slot */
+        if (e.shiftKey && e.key >= "1" && e.key <= "9") {
+          currentSlot = parseInt(e.key);
+          updateSlotLabel();
+          showToast("Slot " + currentSlot);
+          showToolbar();
+          e.preventDefault();
+          return;
+        }
+
+        /* F2: Save state */
+        if (e.key === "F2") {
+          e.preventDefault();
+          doSaveState(currentSlot);
+          return;
+        }
+
+        /* F4: Load state */
+        if (e.key === "F4") {
+          e.preventDefault();
+          doLoadState(currentSlot);
+          return;
+        }
+
+        /* F5: Quick save (slot 1) */
+        if (e.key === "F5" && !e.ctrlKey) {
+          e.preventDefault();
+          doSaveState(1);
+          return;
+        }
+
+        /* F9: Quick load (slot 1) */
+        if (e.key === "F9") {
+          e.preventDefault();
+          doLoadState(1);
+          return;
+        }
+      });
+    };
+
+    /* Save SRAM before page unloads */
+    window.addEventListener("beforeunload", function() {
+      const emu = window.EJS_emulator;
+      if (!emu || !emu.gameManager) return;
+      try {
+        emu.gameManager.saveSaveFiles();
+        const saveData = emu.gameManager.getSaveFile(false);
+        if (saveData && saveData.length > 0) {
+          postToParent("save-sram", {
+            romId: ROM_ID,
+            data: Array.from(saveData)
+          });
+        }
+      } catch(err) {}
+    });
+  </script>
+  <script src="emulator-data://data/loader.js"></script>
+</body>
+</html>`;
+      return new Response(html, {
+        headers: { "Content-Type": "text/html" },
+      });
+    }
+
+    const filePath = decodeURIComponent(parsed.pathname.slice(1));
+    const basePath = app.isPackaged
+      ? path.join(process.resourcesPath, "emulatorjs-data")
+      : path.join(
+          __dirname,
+          "..",
+          "..",
+          "node_modules",
+          "@emulatorjs",
+          "emulatorjs",
+          "data"
+        );
+
+    return net.fetch(
+      url.pathToFileURL(path.join(basePath, filePath)).toString()
+    );
+  });
+
+  protocol.handle("emulator-rom", async (request) => {
+    const parsed = new URL(request.url);
+    const filePath = decodeURIComponent(parsed.pathname.slice(1));
+
+    const response = await net.fetch(url.pathToFileURL(filePath).toString());
+    return new Response(response.body, {
+      status: response.status,
+      headers: {
+        "Content-Type":
+          response.headers.get("Content-Type") || "application/octet-stream",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
   });
 
   protocol.handle("gradient", (request) => {

@@ -15,6 +15,19 @@
     padding-top: calc(globals.$spacing-unit * 3);
   }
 
+  &--seeding {
+    padding: calc(globals.$spacing-unit * 3);
+    border-top: 1px solid rgba(globals.$seeding-color, 0.15);
+    border-bottom: 1px solid rgba(globals.$seeding-color, 0.15);
+    border-radius: 12px;
+    margin-inline: calc(globals.$spacing-unit * 3);
+    background: linear-gradient(
+      180deg,
+      rgba(globals.$seeding-color, 0.03) 0%,
+      transparent 100%
+    );
+  }
+
   &__header {
     display: flex;
     align-items: center;
@@ -70,7 +83,6 @@
       object-position: 50% 20%;
     }
   }
-  // PLEASE FIX THE COLORS
   &__hero-overlay {
     position: absolute;
     top: 0;
@@ -80,8 +92,8 @@
     background: linear-gradient(
       to bottom,
       rgba(0, 0, 0, 0.3) 0%,
-      rgb(5, 5, 5) 70%,
-      rgb(26, 26, 26) 100%
+      globals.$dark-background-color 70%,
+      globals.$background-color 100%
     );
   }
 
@@ -157,7 +169,7 @@
     h1 {
       font-size: 20px;
       font-weight: 700;
-      color: #ffffff;
+      color: globals.$muted-color;
       text-shadow: 2px 2px 12px rgba(0, 0, 0, 0.9);
       margin: 0;
       cursor: pointer;
@@ -219,7 +231,7 @@
     box-shadow:
       0 10px 15px -3px rgba(0, 0, 0, 0.1),
       0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    color: #fff;
+    color: globals.$muted-color;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -263,7 +275,7 @@
   &__progress-percentage {
     font-size: 14px;
     font-weight: 700;
-    color: #ffffff;
+    color: globals.$muted-color;
     align-self: flex-end;
     display: inline-block;
     overflow: hidden;
@@ -271,6 +283,12 @@
 
     span {
       display: inline-block;
+    }
+
+    &--hero {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
     }
   }
 
@@ -359,7 +377,7 @@
   }
 
   &__stat-value {
-    color: #ffffff;
+    color: globals.$muted-color;
     font-weight: 700;
     font-size: 11px;
     line-height: 1.2;
@@ -380,6 +398,12 @@
     align-items: center;
     gap: calc(globals.$spacing-unit * 2);
     border-radius: 8px;
+    padding: calc(globals.$spacing-unit);
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.03);
+    }
   }
 
   &__simple-thumbnail {
@@ -439,7 +463,7 @@
   &__simple-title {
     font-size: 16px;
     font-weight: 600;
-    color: #ffffff;
+    color: globals.$muted-color;
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -476,7 +500,7 @@
   }
 
   &__simple-seeding {
-    color: #4ade80;
+    color: globals.$seeding-color;
     font-weight: 600;
     font-size: 11px;
     text-transform: uppercase;
@@ -542,12 +566,297 @@
 
   &__progress-fill {
     height: 100%;
-    background-color: #fff;
-    transition: width 0.3s ease;
+    background-color: globals.$muted-color;
+    transition:
+      width 0.3s ease,
+      box-shadow 0.3s ease;
     border-radius: 4px;
 
-    &--extraction {
-      background-color: #fff;
+    &--glow {
+      box-shadow: 0 0 8px 2px var(--glow-color, rgba(255, 255, 255, 0.3));
     }
+
+    &--extraction {
+      background-color: globals.$brand-teal;
+      background-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.15) 50%,
+        transparent 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  &__seeding-indicator {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit / 2);
+  }
+
+  &__seeding-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: globals.$seeding-color;
+    animation: seeding-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes seeding-pulse {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.4;
+      transform: scale(0.85);
+    }
+  }
+
+  &__simple-upload-speed {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit / 2);
+    font-size: 11px;
+    font-weight: 500;
+    color: globals.$brand-teal;
+  }
+
+  &__queue-position {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 2px 8px;
+    flex-shrink: 0;
+    min-width: 28px;
+    text-align: center;
+  }
+
+  &__download-date {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  &__card-extraction-bar {
+    width: 100%;
+    margin-top: calc(globals.$spacing-unit / 2);
+  }
+
+  &__torrent-seeds-peers {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 2);
+  }
+
+  &__torrent-inline-stat {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit / 2);
+    font-size: 11px;
+
+    &-label {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    &-value {
+      font-weight: 700;
+      color: globals.$muted-color;
+
+      &--seeds {
+        color: globals.$seeding-color;
+      }
+    }
+  }
+
+  &__torrent-panel {
+    overflow: hidden;
+    margin-top: calc(globals.$spacing-unit);
+  }
+
+  &__torrent-toggle {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit / 2);
+    background: none;
+    border: none;
+    padding: calc(globals.$spacing-unit / 2) 0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: globals.$muted-color;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  &__torrent-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: calc(globals.$spacing-unit * 2);
+    padding: calc(globals.$spacing-unit * 1.5);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: calc(globals.$spacing-unit);
+  }
+
+  &__torrent-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__torrent-stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  &__torrent-stat-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: globals.$muted-color;
+
+    &--seeds {
+      color: globals.$seeding-color;
+    }
+
+    &--upload {
+      color: globals.$brand-teal;
+    }
+  }
+
+  &__seeding-header-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(globals.$seeding-color, 0.12);
+    color: globals.$seeding-color;
+    flex-shrink: 0;
+    animation: seeding-glow 3s ease-in-out infinite;
+  }
+
+  @keyframes seeding-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(globals.$seeding-color, 0);
+    }
+    50% {
+      box-shadow: 0 0 12px 2px rgba(globals.$seeding-color, 0.2);
+    }
+  }
+
+  &__seeding-total-speed {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit / 2);
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: rgba(globals.$seeding-color, 0.1);
+    border: 1px solid rgba(globals.$seeding-color, 0.2);
+    color: globals.$seeding-color;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  &__seeding-card {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 2);
+    border-radius: 10px;
+    padding: calc(globals.$spacing-unit * 1.5);
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease;
+    border: 1px solid transparent;
+
+    &:hover {
+      background-color: rgba(globals.$seeding-color, 0.04);
+      border-color: rgba(globals.$seeding-color, 0.1);
+    }
+  }
+
+  &__seeding-stats {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 3);
+    flex-shrink: 0;
+  }
+
+  &__seeding-stat {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit);
+  }
+
+  &__seeding-stat-icon {
+    opacity: 0.6;
+    flex-shrink: 0;
+
+    &--upload {
+      color: globals.$brand-teal;
+      opacity: 1;
+    }
+
+    &--seeds {
+      color: globals.$seeding-color;
+      opacity: 1;
+    }
+  }
+
+  &__seeding-stat-data {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  &__seeding-stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: globals.$muted-color;
+    line-height: 1.2;
+
+    &--upload {
+      color: globals.$brand-teal;
+    }
+
+    &--seeds {
+      color: globals.$seeding-color;
+    }
+  }
+
+  &__seeding-stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.4);
   }
 }

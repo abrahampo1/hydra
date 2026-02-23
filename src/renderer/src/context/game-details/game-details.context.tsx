@@ -1,8 +1,6 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 
 import { setHeaderTitle } from "@renderer/features";
-import { levelDBService } from "@renderer/services/leveldb.service";
-import { orderBy } from "lodash-es";
 import { getSteamLanguage } from "@renderer/helpers";
 import {
   useAppDispatch,
@@ -12,7 +10,6 @@ import {
 } from "@renderer/hooks";
 
 import type {
-  DownloadSource,
   GameRepack,
   GameShop,
   GameStats,
@@ -308,34 +305,10 @@ export function GameDetailsContextProvider({
   useEffect(() => {
     if (shop === "custom") return;
 
-    const fetchDownloadSources = async () => {
-      try {
-        const sourcesRaw = (await levelDBService.values(
-          "downloadSources"
-        )) as DownloadSource[];
-        const sources = orderBy(sourcesRaw, "createdAt", "desc");
-
-        const params = {
-          take: 100,
-          skip: 0,
-          downloadSourceIds: sources.map((source) => source.id),
-        };
-
-        const downloads = await window.electron.hydraApi.get<GameRepack[]>(
-          `/games/${shop}/${objectId}/download-sources`,
-          {
-            params,
-            needsAuth: false,
-          }
-        );
-
-        setRepacks(downloads);
-      } catch (error) {
-        console.error("Failed to fetch download sources:", error);
-      }
-    };
-
-    fetchDownloadSources();
+    window.electron
+      .getGameRepacks(shop, objectId)
+      .then((repacks) => setRepacks(repacks))
+      .catch(() => setRepacks([]));
   }, [shop, objectId]);
 
   const getDownloadsPath = async () => {

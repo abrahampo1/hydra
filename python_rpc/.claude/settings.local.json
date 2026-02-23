@@ -1,5 +1,11 @@
 {
   "permissions": {
-    "allow": ["Bash(python:*)", "Bash(tail:*)", "Bash(cd:*)"]
+    "allow": [
+      "Bash(python:*)",
+      "Bash(tail:*)",
+      "Bash(cd:*)",
+      "Bash(cd /e/Repositories/hydra && yarn typecheck 2>&1)",
+      "Bash(cd /e/Repositories/hydra && yarn lint 2>&1)"
+    ]
   }
 }

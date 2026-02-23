@@ -454,7 +454,14 @@
     "keep_downloading": "Non, continuer le téléchargement",
     "yes_cancel": "Oui, annuler",
     "move_up": "Déplacer vers le haut",
-    "move_down": "Déplacer vers le bas"
+    "move_down": "Déplacer vers le bas",
+    "seeds": "Seeds",
+    "peers": "Peers",
+    "upload_speed": "UPLOAD",
+    "torrent_info": "Torrent info",
+    "downloading_metadata_status": "Downloading metadata…",
+    "queue_position": "#{{position}}",
+    "seeding_active": "Partage"
   },
   "settings": {
     "downloads_path": "Chemin des téléchargements",

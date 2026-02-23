@@ -94,7 +94,14 @@
     "delete": "Installatieprogramma verwijderen",
     "delete_modal_title": "Weet je het zeker?",
     "delete_modal_description": "Hiermee worden alle installatiebestanden van uw computer verwijderd",
-    "install": "Installeren"
+    "install": "Installeren",
+    "seeds": "Seeds",
+    "peers": "Peers",
+    "upload_speed": "UPLOAD",
+    "torrent_info": "Torrent info",
+    "downloading_metadata_status": "Downloading metadata…",
+    "queue_position": "#{{position}}",
+    "seeding_active": "Delen"
   },
   "settings": {
     "downloads_path": "Downloadpad",

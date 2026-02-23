@@ -102,7 +102,14 @@
     "delete": "Usuń instalator",
     "delete_modal_title": "Czy na pewno?",
     "delete_modal_description": "Spowoduje to usunięcie wszystkich plików instalacyjnych z komputera",
-    "install": "Instaluj"
+    "install": "Instaluj",
+    "seeds": "Seeds",
+    "peers": "Peers",
+    "upload_speed": "UPLOAD",
+    "torrent_info": "Torrent info",
+    "downloading_metadata_status": "Downloading metadata…",
+    "queue_position": "#{{position}}",
+    "seeding_active": "Udostępnianie"
   },
   "settings": {
     "downloads_path": "Ścieżka pobierania",

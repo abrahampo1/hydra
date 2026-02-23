@@ -395,7 +395,14 @@
     "resume_seeding": "Продовжити сідінг",
     "options": "Налаштування",
     "extract": "Розархівувати файли",
-    "extracting": "Розархівовування файлів…"
+    "extracting": "Розархівовування файлів…",
+    "seeds": "Seeds",
+    "peers": "Peers",
+    "upload_speed": "UPLOAD",
+    "torrent_info": "Torrent info",
+    "downloading_metadata_status": "Downloading metadata…",
+    "queue_position": "#{{position}}",
+    "seeding_active": "Роздача"
   },
   "settings": {
     "downloads_path": "Тека завантажень",

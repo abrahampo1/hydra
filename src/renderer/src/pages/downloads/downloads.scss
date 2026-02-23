@@ -13,15 +13,17 @@
     flex-direction: column;
   }
 
-  &__arrow-icon {
-    width: 60px;
-    height: 60px;
+  &__empty-icon {
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.06);
+    background-color: rgba(globals.$brand-teal, 0.1);
+    border: 1px solid rgba(globals.$brand-teal, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: calc(globals.$spacing-unit * 2);
+    color: globals.$brand-teal;
   }
 
   &__no-downloads {
@@ -32,5 +34,20 @@
     align-items: center;
     flex-direction: column;
     gap: globals.$spacing-unit;
+
+    h2 {
+      color: globals.$muted-color;
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 14px;
+      margin: 0;
+      text-align: center;
+      max-width: 320px;
+    }
   }
 }

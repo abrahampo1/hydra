@@ -172,6 +172,8 @@ export interface RealDebridUser {
 /* Torrent */
 export interface SeedingStatus {
   gameId: string;
-  status: DownloadStatus;
+  status: DownloadStatus | number;
   uploadSpeed: number;
+  numSeeds: number;
+  numPeers: number;
 }

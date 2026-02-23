@@ -135,6 +135,8 @@ export interface UserPreferences {
   createStartMenuShortcut?: boolean;
   backupProvider?: BackupProvider;
   localBackupPath?: string | null;
+  romsPath?: string | null;
+  romsBiosPath?: string | null;
 }
 
 export interface ScreenState {

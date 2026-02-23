@@ -8,6 +8,7 @@ import {
   gameRunningSlice,
   subscriptionSlice,
   catalogueSearchSlice,
+  romsSlice,
 } from "@renderer/features";
 
 export const store = configureStore({
@@ -20,6 +21,7 @@ export const store = configureStore({
     gameRunning: gameRunningSlice.reducer,
     subscription: subscriptionSlice.reducer,
     catalogueSearch: catalogueSearchSlice.reducer,
+    roms: romsSlice.reducer,
   },
 });
 

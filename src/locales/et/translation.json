@@ -195,7 +195,14 @@
     "queued": "Järjekorras",
     "no_downloads_title": "Nii tühi",
     "no_downloads_description": "Sa pole veel Hydraga midagi alla laadinud, aga pole kunagi hilja alustada.",
-    "checking_files": "Failide kontrollimine…"
+    "checking_files": "Failide kontrollimine…",
+    "seeds": "Seeds",
+    "peers": "Peers",
+    "upload_speed": "UPLOAD",
+    "torrent_info": "Torrent info",
+    "downloading_metadata_status": "Downloading metadata…",
+    "queue_position": "#{{position}}",
+    "seeding_active": "Jagamine"
   },
   "settings": {
     "downloads_path": "Allalaadimiste tee",

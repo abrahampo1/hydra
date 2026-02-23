@@ -5,6 +5,7 @@ import {
   HomeIcon,
   BookIcon,
 } from "@primer/octicons-react";
+import { Gamepad2 } from "lucide-react";
 
 export const routes = [
   {
@@ -26,6 +27,11 @@ export const routes = [
     path: "/downloads",
     nameKey: "downloads",
     render: () => <DownloadIcon />,
+  },
+  {
+    path: "/roms",
+    nameKey: "roms",
+    render: () => <Gamepad2 size={16} />,
   },
   {
     path: "/settings",

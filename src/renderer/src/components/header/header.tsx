@@ -20,7 +20,11 @@ import "./header.scss";
 import { AutoUpdateSubHeader } from "./auto-update-sub-header";
 import { ScanGamesModal } from "./scan-games-modal";
 import { OnlineFriendsAvatars } from "./online-friends-avatars";
-import { setFilters, setLibrarySearchQuery } from "@renderer/features";
+import {
+  setFilters,
+  setLibrarySearchQuery,
+  setRomsSearchQuery,
+} from "@renderer/features";
 import cn from "classnames";
 import { SearchDropdown } from "@renderer/components";
 import { buildGameDetailsPath } from "@renderer/helpers";
@@ -55,12 +59,17 @@ export function Header() {
     (state) => state.library.searchQuery
   );
 
+  const romsSearchValue = useAppSelector((state) => state.roms.searchQuery);
+
   const isOnLibraryPage = location.pathname.startsWith("/library");
   const isOnCataloguePage = location.pathname.startsWith("/catalogue");
+  const isOnRomsPage = location.pathname.startsWith("/roms");
 
-  const searchValue = isOnLibraryPage
-    ? librarySearchValue
-    : catalogueSearchValue;
+  const searchValue = isOnRomsPage
+    ? romsSearchValue
+    : isOnLibraryPage
+      ? librarySearchValue
+      : catalogueSearchValue;
 
   const dispatch = useAppDispatch();
 
@@ -86,7 +95,7 @@ export function Header() {
   const { suggestions, isLoading: isLoadingSuggestions } = useSearchSuggestions(
     searchValue,
     isOnLibraryPage,
-    isDropdownVisible && isFocused && !isOnCataloguePage
+    isDropdownVisible && isFocused && !isOnCataloguePage && !isOnRomsPage
   );
 
   const historyItems = getRecentHistory(
@@ -150,7 +159,9 @@ export function Header() {
   };
 
   const handleSearch = (value: string) => {
-    if (isOnLibraryPage) {
+    if (isOnRomsPage) {
+      dispatch(setRomsSearchQuery(value.slice(0, 255)));
+    } else if (isOnLibraryPage) {
       dispatch(setLibrarySearchQuery(value.slice(0, 255)));
     } else {
       dispatch(setFilters({ title: value.slice(0, 255) }));
@@ -159,13 +170,17 @@ export function Header() {
   };
 
   const executeSearch = (query: string) => {
-    const context = isOnLibraryPage ? "library" : "catalogue";
-    if (query.trim()) {
+    if (!isOnRomsPage && query.trim()) {
+      const context = isOnLibraryPage ? "library" : "catalogue";
       addToHistory(query, context);
     }
     handleSearch(query);
 
-    if (!isOnLibraryPage && !location.pathname.startsWith("/catalogue")) {
+    if (
+      !isOnLibraryPage &&
+      !isOnRomsPage &&
+      !location.pathname.startsWith("/catalogue")
+    ) {
       navigate("/catalogue");
     }
 
@@ -188,7 +203,9 @@ export function Header() {
   };
 
   const handleClearSearch = () => {
-    if (isOnLibraryPage) {
+    if (isOnRomsPage) {
+      dispatch(setRomsSearchQuery(""));
+    } else if (isOnLibraryPage) {
       dispatch(setLibrarySearchQuery(""));
     } else {
       dispatch(setFilters({ title: "" }));
@@ -343,7 +360,13 @@ export function Header() {
               ref={inputRef}
               type="text"
               name="search"
-              placeholder={isOnLibraryPage ? t("search_library") : t("search")}
+              placeholder={
+                isOnRomsPage
+                  ? t("search_roms")
+                  : isOnLibraryPage
+                    ? t("search_library")
+                    : t("search")
+              }
               value={searchValue}
               className="header__search-input"
               onChange={(event) => handleSearch(event.target.value)}

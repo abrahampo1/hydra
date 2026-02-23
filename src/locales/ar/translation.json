@@ -227,7 +227,14 @@
     "seeding": "جاري التوزيع",
     "stop_seeding": "إيقاف التوزيع",
     "resume_seeding": "استئناف التوزيع",
-    "options": "إدارة"
+    "options": "إدارة",
+    "seeds": "Seeds",
+    "peers": "Peers",
+    "upload_speed": "UPLOAD",
+    "torrent_info": "Torrent info",
+    "downloading_metadata_status": "Downloading metadata…",
+    "queue_position": "#{{position}}",
+    "seeding_active": "مشاركة"
   },
   "settings": {
     "downloads_path": "مسار التنزيلات",

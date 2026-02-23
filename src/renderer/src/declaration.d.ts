@@ -12,6 +12,7 @@ import type {
   FriendRequestAction,
   UpdateProfileRequest,
   GameStats,
+  GameRepack,
   UserDetails,
   FriendRequestSync,
   NotificationSync,
@@ -35,6 +36,7 @@ import type {
   LocalNotification,
   GoogleDriveUserInfo,
   GoogleDriveBackupArtifact,
+  RomEntry,
 } from "@types";
 import type { AxiosProgressEvent } from "axios";
 
@@ -85,6 +87,7 @@ declare global {
       objectId: string,
       shop: GameShop
     ) => Promise<ShopAssets | null>;
+    getGameRepacks: (shop: GameShop, objectId: string) => Promise<GameRepack[]>;
     onUpdateAchievements: (
       objectId: string,
       shop: GameShop,
@@ -560,6 +563,40 @@ declare global {
     onNewDownloadOptions: (
       cb: (gamesWithNewOptions: { gameId: string; count: number }[]) => void
     ) => () => Electron.IpcRenderer;
+
+    /* ROMs (Beta) */
+    roms: {
+      scan: (romsPath: string) => Promise<RomEntry[]>;
+      getAll: () => Promise<RomEntry[]>;
+      getById: (id: string) => Promise<RomEntry | null>;
+      selectFolder: () => Promise<string | null>;
+      selectBiosFolder: () => Promise<string | null>;
+      delete: (id: string) => Promise<void>;
+      updatePlaytime: (
+        id: string,
+        deltaInMilliseconds: number
+      ) => Promise<void>;
+      toggleFavorite: (id: string) => Promise<boolean>;
+      getEmulatorDataPath: () => Promise<string>;
+      updateTitle: (id: string, newTitle: string) => Promise<RomEntry | null>;
+      scrape: (id: string, searchTitle: string) => Promise<RomEntry | null>;
+      uploadSaves: () => Promise<void>;
+      downloadSaves: (artifactId: string) => Promise<void>;
+      getSavesInfo: () => Promise<{
+        sizeInBytes: number;
+        lastModified: string | null;
+      }>;
+      listSaveBackups: () => Promise<GoogleDriveBackupArtifact[]>;
+      deleteSaveBackup: (fileName: string) => Promise<void>;
+      saveGameSRAM: (romId: string, data: number[]) => Promise<void>;
+      loadGameSRAM: (romId: string) => Promise<number[] | null>;
+      saveGameState: (
+        romId: string,
+        slot: number,
+        data: number[]
+      ) => Promise<void>;
+      loadGameState: (romId: string, slot: number) => Promise<number[] | null>;
+    };
 
     /* LevelDB Generic CRUD */
     leveldb: {

@@ -31,10 +31,10 @@
     gap: calc(globals.$spacing-unit * 1.5);
     overflow-x: auto;
     padding-bottom: globals.$spacing-unit;
-    scrollbar-width: thin;
+    scrollbar-width: none;
 
     &::-webkit-scrollbar {
-      height: 6px;
+      display: none;
     }
 
     &::-webkit-scrollbar-thumb {

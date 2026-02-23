@@ -1,0 +1,261 @@
+@use "../../scss/globals.scss";
+
+.roms {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: globals.$spacing-unit * 2 globals.$spacing-unit * 3;
+    border-bottom: 1px solid globals.$border-color;
+    gap: globals.$spacing-unit * 2;
+  }
+
+  &__header-left {
+    display: flex;
+    align-items: center;
+    gap: globals.$spacing-unit;
+  }
+
+  &__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: globals.$muted-color;
+    margin: 0;
+  }
+
+  &__beta-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    background-color: globals.$brand-teal;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  &__header-actions {
+    display: flex;
+    align-items: center;
+    gap: globals.$spacing-unit;
+  }
+
+  &__search-input {
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid globals.$border-color;
+    border-radius: 8px;
+    padding: globals.$spacing-unit globals.$spacing-unit * 1.5;
+    color: globals.$body-color;
+    font-size: globals.$small-font-size;
+    width: 200px;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    &:focus {
+      border-color: globals.$brand-teal;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  &__console-sidebar {
+    width: 200px;
+    min-width: 200px;
+    border-right: 1px solid globals.$border-color;
+    overflow-y: auto;
+    padding: globals.$spacing-unit 0;
+  }
+
+  &__console-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: globals.$spacing-unit globals.$spacing-unit * 2;
+    background: none;
+    border: none;
+    color: globals.$body-color;
+    font-size: globals.$small-font-size;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    text-align: left;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.04);
+    }
+
+    &--active {
+      background-color: rgba(255, 255, 255, 0.08);
+      color: globals.$muted-color;
+      font-weight: 500;
+    }
+  }
+
+  &__console-count {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    margin-left: globals.$spacing-unit;
+  }
+
+  &__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: globals.$spacing-unit * 2 globals.$spacing-unit * 3;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: globals.$spacing-unit * 2;
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid globals.$border-color;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    &:hover &-cover-img {
+      transform: scale(1.05);
+    }
+  }
+
+  &__card-cover {
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.3);
+
+    &-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    &-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.3);
+      opacity: 0.6;
+    }
+  }
+
+  &__card-console {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: globals.$spacing-unit;
+    margin-left: globals.$spacing-unit;
+    margin-top: globals.$spacing-unit;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    align-self: flex-start;
+    color: #fff;
+  }
+
+  &__card-title {
+    font-size: globals.$body-font-size;
+    font-weight: 500;
+    color: globals.$muted-color;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: globals.$spacing-unit / 2;
+    padding: 0 globals.$spacing-unit;
+  }
+
+  &__card-meta {
+    font-size: globals.$small-font-size;
+    color: rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    gap: globals.$spacing-unit / 2;
+    padding: 0 globals.$spacing-unit;
+    padding-bottom: globals.$spacing-unit;
+  }
+
+  &__card-favorite {
+    position: absolute;
+    top: globals.$spacing-unit;
+    right: globals.$spacing-unit;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.3);
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+
+    &:hover {
+      color: globals.$brand-teal;
+    }
+
+    &--active {
+      color: globals.$brand-teal;
+    }
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: globals.$spacing-unit * 2;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: center;
+    padding: globals.$spacing-unit * 4;
+  }
+
+  &__empty-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: globals.$muted-color;
+  }
+
+  &__empty-description {
+    font-size: globals.$body-font-size;
+    max-width: 400px;
+  }
+
+  &__folder-info {
+    font-size: globals.$small-font-size;
+    color: rgba(255, 255, 255, 0.35);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 300px;
+  }
+}

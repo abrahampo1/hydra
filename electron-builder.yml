@@ -8,6 +8,8 @@ extraResources:
   - seeds
   - from: node_modules/create-desktop-shortcuts/src/windows.vbs
   - from: resources/achievement.wav
+  - from: node_modules/@emulatorjs/emulatorjs/data
+    to: emulatorjs-data
 files:
   - "!**/.vscode/*"
   - "!src/*"

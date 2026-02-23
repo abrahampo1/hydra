@@ -454,7 +454,14 @@
     "network": "RETE",
     "peak": "PICCO",
     "move_up": "Sposta su",
-    "move_down": "Sposta giù"
+    "move_down": "Sposta giù",
+    "seeds": "Seeds",
+    "peers": "Peers",
+    "upload_speed": "UPLOAD",
+    "torrent_info": "Torrent info",
+    "downloading_metadata_status": "Downloading metadata…",
+    "queue_position": "#{{position}}",
+    "seeding_active": "Condivisione"
   },
   "settings": {
     "downloads_path": "Percorso dei download",

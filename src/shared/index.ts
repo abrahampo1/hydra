@@ -20,6 +20,7 @@ import { AchievementNotificationInfo } from "@types";
 
 export * from "./constants";
 export * from "./html-sanitizer";
+export * from "./rom-consoles";
 
 export class UserNotLoggedInError extends Error {
   constructor() {

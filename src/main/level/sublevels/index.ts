@@ -9,3 +9,5 @@ export * from "./themes";
 export * from "./download-sources";
 export * from "./downloadSourcesCheckTimestamp";
 export * from "./local-notifications";
+export * from "./roms";
+export * from "./repack-cache";

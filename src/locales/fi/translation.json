@@ -399,7 +399,14 @@
     "resume_seeding": "Jatka jakamista",
     "options": "Hallinnoi",
     "extract": "Pura tiedostot",
-    "extracting": "Puretaan tiedostoja…"
+    "extracting": "Puretaan tiedostoja…",
+    "seeds": "Seeds",
+    "peers": "Peers",
+    "upload_speed": "UPLOAD",
+    "torrent_info": "Torrent info",
+    "downloading_metadata_status": "Downloading metadata…",
+    "queue_position": "#{{position}}",
+    "seeding_active": "Jakaminen"
   },
   "settings": {
     "downloads_path": "Latausten polku",

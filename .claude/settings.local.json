@@ -60,7 +60,25 @@
       "WebFetch(domain:nostalgist.js.org)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:www.npmjs.com)",
-      "Bash(cd /e/Repositories/hydra && yarn build 2>&1)"
+      "Bash(cd /e/Repositories/hydra && yarn build 2>&1)",
+      "Bash(cd /e/Repositories/hydra && yarn add @emulatorjs/emulatorjs 2>&1)",
+      "Bash(cd /e/Repositories/hydra && NODE_OPTIONS=\"--max-old-space-size=8192\" yarn add @emulatorjs/emulatorjs 2>&1)",
+      "Bash(cd /e/Repositories/hydra && npm view @emulatorjs/emulatorjs version 2>&1)",
+      "Bash(cd /e/Repositories/hydra && NODE_OPTIONS=\"--max-old-space-size=16384\" yarn install --network-timeout 600000 2>&1)",
+      "Bash(cp:*)",
+      "Bash(cd /e/Repositories/hydra && yarn format-check 2>&1)",
+      "Bash(sed:*)",
+      "Bash(perl:*)",
+      "Bash(xxd:*)",
+      "WebFetch(domain:api.thegamesdb.net)",
+      "WebFetch(domain:thumbnails.libretro.com)",
+      "WebFetch(domain:www.mobygames.com)",
+      "WebFetch(domain:documenter.getpostman.com)",
+      "WebFetch(domain:docs.romm.app)",
+      "Bash(PYTHONIOENCODING=utf-8 python3:*)",
+      "WebFetch(domain:www.screenscraper.fr)",
+      "Bash(cd E:/Repositories/hydra && npx tsc --noEmit -p tsconfig.web.json --composite false 2>&1)",
+      "Bash(cd E:/Repositories/hydra && npx eslint src/renderer/src/pages/downloads/downloads.tsx src/renderer/src/pages/downloads/download-group.tsx src/types/download.types.ts 2>&1)"
     ]
   }
 }

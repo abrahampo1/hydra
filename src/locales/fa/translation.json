@@ -94,7 +94,14 @@
     "delete": "پاک کردن",
     "delete_modal_title": "مطمئنی؟",
     "delete_modal_description": "این کار تمام فایل‌های اینستالر را از کامپیوتر شما حذف می‌کند",
-    "install": "نصف"
+    "install": "نصف",
+    "seeds": "Seeds",
+    "peers": "Peers",
+    "upload_speed": "UPLOAD",
+    "torrent_info": "Torrent info",
+    "downloading_metadata_status": "Downloading metadata…",
+    "queue_position": "#{{position}}",
+    "seeding_active": "اشتراک‌گذاری"
   },
   "settings": {
     "downloads_path": "مسیر دانلودها",

@@ -451,6 +451,7 @@ export * from "./ludusavi.types";
 export * from "./how-long-to-beat.types";
 export * from "./level.types";
 export * from "./theme.types";
+export * from "./rom.types";
 
 export interface GoogleDriveTokens {
   accessToken: string;

@@ -36,6 +36,9 @@ import Library from "./pages/library/library";
 import Notifications from "./pages/notifications/notifications";
 import { AchievementNotification } from "./pages/achievements/notification/achievement-notification";
 import GameLauncher from "./pages/game-launcher/game-launcher";
+import Roms from "./pages/roms/roms";
+import RomPlayer from "./pages/roms/rom-player";
+import RomDetail from "./pages/roms/rom-detail";
 
 console.log = logger.log;
 
@@ -81,6 +84,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/roms" element={<Roms />} />
+            <Route path="/roms/:id" element={<RomDetail />} />
+            <Route path="/roms/play" element={<RomPlayer />} />
           </Route>
 
           <Route path="/theme-editor" element={<ThemeEditor />} />

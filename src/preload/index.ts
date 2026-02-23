@@ -84,6 +84,8 @@ contextBridge.exposeInMainWorld("electron", {
     ipcRenderer.invoke("getGameStats", objectId, shop),
   getGameAssets: (objectId: string, shop: GameShop) =>
     ipcRenderer.invoke("getGameAssets", objectId, shop),
+  getGameRepacks: (shop: GameShop, objectId: string) =>
+    ipcRenderer.invoke("getGameRepacks", shop, objectId),
   onUpdateAchievements: (
     objectId: string,
     shop: GameShop,
@@ -827,6 +829,48 @@ contextBridge.exposeInMainWorld("electron", {
   closeGameLauncherWindow: () => ipcRenderer.invoke("closeGameLauncherWindow"),
   openMainWindow: () => ipcRenderer.invoke("openMainWindow"),
   isMainWindowOpen: () => ipcRenderer.invoke("isMainWindowOpen"),
+
+  /* ROMs (Beta) */
+  roms: {
+    scan: (romsPath: string) => ipcRenderer.invoke("scanRoms", romsPath),
+    getAll: () => ipcRenderer.invoke("getRoms"),
+    getById: (id: string) => ipcRenderer.invoke("getRomById", id),
+    selectFolder: () => ipcRenderer.invoke("selectRomsFolder"),
+    selectBiosFolder: () => ipcRenderer.invoke("selectRomsBiosFolder"),
+    delete: (id: string) => ipcRenderer.invoke("deleteRom", id),
+    updatePlaytime: (id: string, deltaInMilliseconds: number) =>
+      ipcRenderer.invoke("updateRomPlaytime", id, deltaInMilliseconds),
+    toggleFavorite: (id: string) => ipcRenderer.invoke("toggleRomFavorite", id),
+    getEmulatorDataPath: () => ipcRenderer.invoke("getEmulatorDataPath"),
+    updateTitle: (id: string, newTitle: string) =>
+      ipcRenderer.invoke("updateRomTitle", id, newTitle),
+    scrape: (id: string, searchTitle: string) =>
+      ipcRenderer.invoke("scrapeRom", id, searchTitle),
+    uploadSaves: () => ipcRenderer.invoke("uploadRomSaves"),
+    downloadSaves: (artifactId: string) =>
+      ipcRenderer.invoke("downloadRomSaves", artifactId),
+    getSavesInfo: () =>
+      ipcRenderer.invoke("getRomSavesInfo") as Promise<{
+        sizeInBytes: number;
+        lastModified: string | null;
+      }>,
+    listSaveBackups: () =>
+      ipcRenderer.invoke("listRomSaveBackups") as Promise<
+        GoogleDriveBackupArtifact[]
+      >,
+    deleteSaveBackup: (fileName: string) =>
+      ipcRenderer.invoke("deleteRomSaveBackup", fileName),
+    saveGameSRAM: (romId: string, data: number[]) =>
+      ipcRenderer.invoke("saveGameSRAM", romId, data),
+    loadGameSRAM: (romId: string) =>
+      ipcRenderer.invoke("loadGameSRAM", romId) as Promise<number[] | null>,
+    saveGameState: (romId: string, slot: number, data: number[]) =>
+      ipcRenderer.invoke("saveGameState", romId, slot, data),
+    loadGameState: (romId: string, slot: number) =>
+      ipcRenderer.invoke("loadGameState", romId, slot) as Promise<
+        number[] | null
+      >,
+  },
 
   /* LevelDB Generic CRUD */
   leveldb: {

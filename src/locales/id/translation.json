@@ -142,7 +142,14 @@
     "queued": "Dalam antrian",
     "no_downloads_title": "Kosong",
     "no_downloads_description": "Kamu belum mengunduh apa pun dengan Hydra, tapi belum terlambat untuk mulai.",
-    "checking_files": "Memeriksa file…"
+    "checking_files": "Memeriksa file…",
+    "seeds": "Seeds",
+    "peers": "Peers",
+    "upload_speed": "UPLOAD",
+    "torrent_info": "Torrent info",
+    "downloading_metadata_status": "Downloading metadata…",
+    "queue_position": "#{{position}}",
+    "seeding_active": "Berbagi"
   },
   "settings": {
     "downloads_path": "Path unduhan",

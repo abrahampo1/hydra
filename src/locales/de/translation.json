@@ -243,7 +243,14 @@
     "resume_seeding": "Seeding fortsetzen",
     "options": "Verwalten",
     "extract": "Dateien entpacken",
-    "extracting": "Dateien werden entpackt…"
+    "extracting": "Dateien werden entpackt…",
+    "seeds": "Seeds",
+    "peers": "Peers",
+    "upload_speed": "UPLOAD",
+    "torrent_info": "Torrent info",
+    "downloading_metadata_status": "Downloading metadata…",
+    "queue_position": "#{{position}}",
+    "seeding_active": "Teilen"
   },
   "settings": {
     "downloads_path": "Download-Pfad",

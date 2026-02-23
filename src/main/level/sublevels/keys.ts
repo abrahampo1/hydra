@@ -24,4 +24,6 @@ export const levelKeys = {
   commonRedistPassed: "commonRedistPassed", // Whether common redistributables preflight has passed
   googleDriveTokens: "googleDriveTokens",
   googleDriveUserInfo: "googleDriveUserInfo",
+  roms: "roms",
+  repackCache: "repackCache",
 };
