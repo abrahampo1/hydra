@@ -152,7 +152,9 @@
     "extracting": "Extracting {{title}}… ({{percentage}} complete)",
     "installing_common_redist": "{{log}}…",
     "installation_complete": "Installation complete",
-    "installation_complete_message": "Common redistributables installed successfully"
+    "installation_complete_message": "Common redistributables installed successfully",
+    "seeding": "Seeding",
+    "seeding_games": "Sharing {{count}} game(s)"
   },
   "catalogue": {
     "search": "Filter…",
@@ -504,9 +506,22 @@
     "peers": "Peers",
     "upload_speed": "UPLOAD",
     "torrent_info": "Torrent info",
+    "torrent_files": "Files",
     "downloading_metadata_status": "Downloading metadata…",
     "queue_position": "#{{position}}",
-    "seeding_active": "Sharing"
+    "seeding_active": "Sharing",
+    "play": "Play",
+    "clear_from_list": "Clear from list",
+    "select_executable": "Select executable",
+    "select_executable_action_title": "What would you like to do?",
+    "select_executable_action_description": "You selected \"{{fileName}}\"",
+    "set_as_game_executable": "Set as game executable",
+    "run_as_installer": "Run as installer",
+    "installer_launched": "Installer launched. After installation, click \"Select executable\" to set the game executable.",
+    "executable_files": "Executable files",
+    "password_required_title": "Password required",
+    "password_required_description": "This file is password protected. Please enter the password to extract it.",
+    "password_placeholder": "Enter password"
   },
   "settings": {
     "downloads_path": "Downloads path",
@@ -734,7 +749,20 @@
     "beta": "Beta",
     "beta_features": "Beta Features",
     "beta_features_description": "Experimental features that are still in development. Use at your own risk.",
-    "show_roms_in_sidebar": "Show ROMs in sidebar"
+    "show_roms_in_sidebar": "Show ROMs in sidebar",
+    "display_name": "Display name",
+    "bio": "Bio",
+    "bio_placeholder": "Tell us about yourself...",
+    "view_profile": "View profile",
+    "save_profile": "Save",
+    "saving_profile": "Saving...",
+    "displayname_min_length": "Display name must be at least 3 characters",
+    "displayname_max_length": "Display name must be at most 50 characters",
+    "image_process_failure": "Failed to process the image",
+    "profile": "Profile",
+    "profile_description": "Customize how others see you on Hydra",
+    "security": "Security",
+    "security_description": "Manage your email and password"
   },
   "notifications": {
     "download_complete": "Download complete",

@@ -266,6 +266,7 @@ export class DownloadManager {
         fileSize,
         folderName,
         status,
+        files,
       } = response.data;
 
       const isDownloadingMetadata =
@@ -297,6 +298,7 @@ export class DownloadManager {
         progress,
         gameId: downloadId,
         download,
+        files,
       } as DownloadProgress;
     } catch {
       return null;

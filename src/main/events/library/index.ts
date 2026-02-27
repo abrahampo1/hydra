@@ -1,6 +1,7 @@
 import "./add-custom-game-to-library";
 import "./add-game-to-favorites";
 import "./add-game-to-library";
+import "./cancel-extraction";
 import "./change-game-playtime";
 import "./cleanup-unused-assets";
 import "./clear-new-download-options";
@@ -26,7 +27,9 @@ import "./refresh-library-assets";
 import "./remove-game-from-favorites";
 import "./remove-game-from-library";
 import "./remove-game";
+import "./retry-extraction-with-password";
 import "./reset-game-achievements";
+import "./run-game-installer-file";
 import "./scan-installed-games";
 import "./select-game-wine-prefix";
 import "./toggle-automatic-cloud-sync";

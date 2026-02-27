@@ -151,7 +151,9 @@
     "extracting": "Extrayendo {{title}}… ({{percentage}} completado)",
     "installing_common_redist": "{{log}}…",
     "installation_complete": "Instalación completada",
-    "installation_complete_message": "Common redistributables instalados correctamente"
+    "installation_complete_message": "Common redistributables instalados correctamente",
+    "seeding": "Compartiendo",
+    "seeding_games": "Compartiendo {{count}} juego(s)"
   },
   "catalogue": {
     "search": "Filtrar…",
@@ -495,9 +497,22 @@
     "peers": "Peers",
     "upload_speed": "UPLOAD",
     "torrent_info": "Torrent info",
+    "torrent_files": "Archivos",
     "downloading_metadata_status": "Downloading metadata…",
     "queue_position": "#{{position}}",
-    "seeding_active": "Compartiendo"
+    "seeding_active": "Compartiendo",
+    "play": "Jugar",
+    "clear_from_list": "Quitar de la lista",
+    "select_executable": "Seleccionar ejecutable",
+    "select_executable_action_title": "¿Qué deseas hacer?",
+    "select_executable_action_description": "Seleccionaste \"{{fileName}}\"",
+    "set_as_game_executable": "Establecer como ejecutable del juego",
+    "run_as_installer": "Ejecutar como instalador",
+    "installer_launched": "Instalador iniciado. Después de la instalación, haz clic en \"Seleccionar ejecutable\" para establecer el ejecutable del juego.",
+    "executable_files": "Archivos ejecutables",
+    "password_required_title": "Contraseña requerida",
+    "password_required_description": "Este archivo está protegido con contraseña. Por favor, ingresa la contraseña para extraerlo.",
+    "password_placeholder": "Ingresar contraseña"
   },
   "settings": {
     "downloads_path": "Ruta de descarga",
@@ -711,7 +726,20 @@
     "space_to_free": "Espacio a liberar",
     "space_remaining_after": "Espacio restante en disco",
     "confirm_delete": "Eliminar",
-    "other_usage": "Otros"
+    "other_usage": "Otros",
+    "display_name": "Nombre para mostrar",
+    "bio": "Biografía",
+    "bio_placeholder": "Cuéntanos sobre ti...",
+    "view_profile": "Ver perfil",
+    "save_profile": "Guardar",
+    "saving_profile": "Guardando...",
+    "displayname_min_length": "El nombre debe tener al menos 3 caracteres",
+    "displayname_max_length": "El nombre debe tener como máximo 50 caracteres",
+    "image_process_failure": "Error al procesar la imagen",
+    "profile": "Perfil",
+    "profile_description": "Personaliza cómo te ven los demás en Hydra",
+    "security": "Seguridad",
+    "security_description": "Administra tu correo y contraseña"
   },
   "notifications": {
     "download_complete": "Descarga completada",

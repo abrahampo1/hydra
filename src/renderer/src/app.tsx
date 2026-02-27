@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 import { useSubscription } from "./hooks/use-subscription";
 import { HydraCloudModal } from "./pages/shared-modals/hydra-cloud/hydra-cloud-modal";
 import { ArchiveDeletionModal } from "./pages/downloads/archive-deletion-error-modal";
+import { PasswordRequiredModal } from "./pages/downloads/password-required-modal";
 
 import {
   injectCustomCss,
@@ -33,7 +34,7 @@ import {
   getAchievementSoundVolume,
 } from "./helpers";
 import { levelDBService } from "./services/leveldb.service";
-import type { UserPreferences } from "@types";
+import type { GameShop, UserPreferences } from "@types";
 import "./app.scss";
 
 export interface AppProps {
@@ -76,6 +77,13 @@ export function App() {
     useState(false);
   const [archivePaths, setArchivePaths] = useState<string[]>([]);
   const [archiveTotalSize, setArchiveTotalSize] = useState(0);
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordRequiredShop, setPasswordRequiredShop] =
+    useState<GameShop | null>(null);
+  const [passwordRequiredObjectId, setPasswordRequiredObjectId] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     Promise.all([
@@ -195,6 +203,11 @@ export function App() {
         setArchiveTotalSize(totalSizeInBytes);
         setShowArchiveDeletionModal(true);
       }),
+      window.electron.onPasswordRequired((shop, objectId) => {
+        setPasswordRequiredShop(shop);
+        setPasswordRequiredObjectId(objectId);
+        setShowPasswordModal(true);
+      }),
     ];
 
     return () => {
@@ -286,6 +299,13 @@ export function App() {
         archivePaths={archivePaths}
         totalSizeInBytes={archiveTotalSize}
         onClose={() => setShowArchiveDeletionModal(false)}
+      />
+
+      <PasswordRequiredModal
+        visible={showPasswordModal}
+        shop={passwordRequiredShop}
+        objectId={passwordRequiredObjectId}
+        onClose={() => setShowPasswordModal(false)}
       />
 
       <main>
