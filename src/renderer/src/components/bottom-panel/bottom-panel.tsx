@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -20,6 +20,10 @@ import {
   SearchIcon,
   ToolsIcon,
 } from "@primer/octicons-react";
+import { Upload } from "lucide-react";
+import { formatBytes } from "@shared";
+import type { SeedingStatus } from "@types";
+import { SeedingHoverCard } from "./seeding-hover-card";
 
 type ActivityType =
   | "downloading"
@@ -49,6 +53,15 @@ export function BottomPanel() {
   const [commonRedistStatus, setCommonRedistStatus] = useState<string | null>(
     null
   );
+
+  const [seedingStatus, setSeedingStatus] = useState<SeedingStatus[]>([]);
+  const [showSeedingCard, setShowSeedingCard] = useState(false);
+  const [seedingCardPosition, setSeedingCardPosition] = useState({
+    x: 0,
+    y: 0,
+  });
+  const seedingButtonRef = useRef<HTMLButtonElement>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     window.electron.getVersion().then((result) => setVersion(result));
@@ -80,6 +93,42 @@ export function BottomPanel() {
   useEffect(() => {
     window.electron.getSessionHash().then((result) => setSessionHash(result));
   }, [userDetails?.id]);
+
+  useEffect(() => {
+    const unlisten = window.electron.onSeedingStatus((status) => {
+      setSeedingStatus(status);
+    });
+
+    return () => unlisten();
+  }, []);
+
+  const totalUploadSpeed = useMemo(
+    () => seedingStatus.reduce((acc, s) => acc + s.uploadSpeed, 0),
+    [seedingStatus]
+  );
+
+  const handleSeedingMouseEnter = useCallback(() => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+
+    hoverTimerRef.current = setTimeout(() => {
+      if (seedingButtonRef.current) {
+        const rect = seedingButtonRef.current.getBoundingClientRect();
+        setSeedingCardPosition({
+          x: rect.left,
+          y: rect.top - 8,
+        });
+      }
+      setShowSeedingCard(true);
+    }, 300);
+  }, []);
+
+  const handleSeedingMouseLeave = useCallback(() => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+
+    hoverTimerRef.current = setTimeout(() => {
+      setShowSeedingCard(false);
+    }, 200);
+  }, []);
 
   const activityInfo = useMemo(() => {
     if (commonRedistStatus) {
@@ -251,6 +300,36 @@ export function BottomPanel() {
           <small className="bottom-panel__eta">{activityInfo.eta}</small>
         )}
       </button>
+
+      {seedingStatus.length > 0 && totalUploadSpeed > 0 && (
+        <>
+          <button
+            ref={seedingButtonRef}
+            type="button"
+            className="bottom-panel__seeding-button"
+            onClick={() => navigate("/downloads")}
+            onMouseEnter={handleSeedingMouseEnter}
+            onMouseLeave={handleSeedingMouseLeave}
+          >
+            <div className="bottom-panel__seeding-icon">
+              <Upload size={14} />
+            </div>
+            <small className="bottom-panel__seeding-speed">
+              {formatBytes(totalUploadSpeed)}/s
+            </small>
+          </button>
+
+          {showSeedingCard && (
+            <SeedingHoverCard
+              seedingStatus={seedingStatus}
+              library={library}
+              position={seedingCardPosition}
+              onMouseEnter={handleSeedingMouseEnter}
+              onMouseLeave={handleSeedingMouseLeave}
+            />
+          )}
+        </>
+      )}
 
       <div className="bottom-panel__version-button">
         <small>

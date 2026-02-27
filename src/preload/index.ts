@@ -223,6 +223,8 @@ contextBridge.exposeInMainWorld("electron", {
   refreshLibraryAssets: () => ipcRenderer.invoke("refreshLibraryAssets"),
   openGameInstaller: (shop: GameShop, objectId: string) =>
     ipcRenderer.invoke("openGameInstaller", shop, objectId),
+  runGameInstallerFile: (filePath: string) =>
+    ipcRenderer.invoke("runGameInstallerFile", filePath),
   getGameInstallerActionType: (shop: GameShop, objectId: string) =>
     ipcRenderer.invoke("getGameInstallerActionType", shop, objectId),
   openGameInstallerPath: (shop: GameShop, objectId: string) =>
@@ -321,6 +323,23 @@ contextBridge.exposeInMainWorld("electron", {
     return () =>
       ipcRenderer.removeListener("on-archive-deletion-prompt", listener);
   },
+  onPasswordRequired: (cb: (shop: GameShop, objectId: string) => void) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      shop: GameShop,
+      objectId: string
+    ) => cb(shop, objectId);
+    ipcRenderer.on("on-password-required", listener);
+    return () => ipcRenderer.removeListener("on-password-required", listener);
+  },
+  retryExtractionWithPassword: (
+    shop: GameShop,
+    objectId: string,
+    password: string
+  ) =>
+    ipcRenderer.invoke("retryExtractionWithPassword", shop, objectId, password),
+  cancelExtraction: (shop: GameShop, objectId: string) =>
+    ipcRenderer.invoke("cancelExtraction", shop, objectId),
   deleteArchive: (filePath: string) =>
     ipcRenderer.invoke("deleteArchive", filePath),
 

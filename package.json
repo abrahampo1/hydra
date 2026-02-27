@@ -1,6 +1,6 @@
 {
   "name": "hydralauncher",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Hydra",
   "main": "./out/main/index.js",
   "author": "Los Broxas",
@@ -32,7 +32,6 @@
     "protoc": "npx protoc --ts_out src/main/generated --proto_path proto proto/*.proto"
   },
   "dependencies": {
-    "@emulatorjs/emulatorjs": "^4.2.3",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@fontsource/noto-sans": "^5.2.10",

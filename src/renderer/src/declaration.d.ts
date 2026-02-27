@@ -180,10 +180,11 @@ declare global {
     getLibrary: () => Promise<LibraryGame[]>;
     refreshLibraryAssets: () => Promise<void>;
     openGameInstaller: (shop: GameShop, objectId: string) => Promise<boolean>;
+    runGameInstallerFile: (filePath: string) => Promise<boolean>;
     getGameInstallerActionType: (
       shop: GameShop,
       objectId: string
-    ) => Promise<"install" | "open-folder">;
+    ) => Promise<"install" | "open-folder" | "select-executable">;
     openGameInstallerPath: (shop: GameShop, objectId: string) => Promise<void>;
     openGameExecutablePath: (shop: GameShop, objectId: string) => Promise<void>;
     getGameSaveFolder: (
@@ -250,6 +251,15 @@ declare global {
     onArchiveDeletionPrompt: (
       cb: (archivePaths: string[], totalSizeInBytes: number) => void
     ) => () => Electron.IpcRenderer;
+    onPasswordRequired: (
+      cb: (shop: GameShop, objectId: string) => void
+    ) => () => Electron.IpcRenderer;
+    retryExtractionWithPassword: (
+      shop: GameShop,
+      objectId: string,
+      password: string
+    ) => Promise<void>;
+    cancelExtraction: (shop: GameShop, objectId: string) => Promise<void>;
     deleteArchive: (filePath: string) => Promise<boolean>;
     getDefaultWinePrefixSelectionPath: () => Promise<string | null>;
     createSteamShortcut: (shop: GameShop, objectId: string) => Promise<void>;
