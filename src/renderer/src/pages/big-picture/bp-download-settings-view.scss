@@ -1,0 +1,271 @@
+@use "../../scss/globals";
+
+$bp-accent: globals.$brand-teal;
+$bp-text: globals.$muted-color;
+$bp-bg: globals.$dark-background-color;
+$bp-surface: globals.$background-color;
+$bp-success: #4caf50;
+$bp-danger: globals.$error-color;
+
+@keyframes bp-settings-enter {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.bp-download-settings {
+  animation: bp-settings-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  &__title {
+    font-size: 32px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 28px;
+  }
+
+  &__storage {
+    margin-bottom: 28px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+
+    &-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: rgba($bp-text, 0.6);
+    }
+
+    &-free {
+      color: rgba($bp-text, 0.4);
+    }
+
+    &-bar {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+
+      &-used {
+        height: 100%;
+        background: rgba($bp-text, 0.3);
+        transition: width 0.3s ease;
+      }
+
+      &-download {
+        height: 100%;
+        background: $bp-accent;
+        transition: width 0.3s ease;
+
+        &--overflow {
+          background: $bp-danger;
+        }
+      }
+    }
+
+    &-legend {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 13px;
+      color: rgba($bp-text, 0.5);
+    }
+
+    &-warning {
+      color: $bp-danger;
+      font-weight: 500;
+    }
+  }
+
+  &__section {
+    margin-bottom: 24px;
+
+    &-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: rgba($bp-text, 0.7);
+      margin: 0 0 12px;
+    }
+  }
+
+  &__downloaders {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  &__downloader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
+    background: transparent;
+    color: $bp-text;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    &--selected {
+      background: rgba($bp-accent, 0.1);
+      border-left: 3px solid $bp-accent;
+    }
+
+    &--disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    &-name {
+      font-weight: 500;
+    }
+
+    &-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: rgba($bp-text, 0.5);
+    }
+
+    &-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+
+      &--online {
+        background: $bp-success;
+        box-shadow: 0 0 6px rgba($bp-success, 0.4);
+      }
+
+      &--warning {
+        background: #f59e0b;
+      }
+
+      &--offline {
+        background: $bp-danger;
+      }
+
+      &--disabled {
+        background: rgba($bp-text, 0.2);
+      }
+    }
+  }
+
+  &__path {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px 16px;
+
+    &-value {
+      flex: 1;
+      font-size: 14px;
+      color: rgba($bp-text, 0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &-btn {
+      flex-shrink: 0;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: $bp-text;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    &-error {
+      display: block;
+      margin-top: 8px;
+      font-size: 13px;
+      color: $bp-danger;
+    }
+  }
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 14px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    color: $bp-text;
+    font-size: 16px;
+    cursor: pointer;
+
+    &-switch {
+      position: relative;
+      width: 52px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      transition: background 0.25s ease;
+
+      &--on {
+        background: $bp-accent;
+      }
+    }
+
+    &-knob {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.25s ease;
+
+      .bp-download-settings__toggle-switch--on & {
+        transform: translateX(24px);
+      }
+    }
+  }
+
+  &__start {
+    display: block;
+    width: 100%;
+    padding: 20px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, $bp-accent, #11967f);
+    color: #000;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    letter-spacing: 0.5px;
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
