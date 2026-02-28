@@ -28,8 +28,6 @@ export default function BigPictureGameDetail() {
   const {
     registerBackHandler,
     unregisterBackHandler,
-    registerSectionHandler,
-    unregisterSectionHandler,
   } = useBigPictureContext();
 
   const gameRunning = useAppSelector((state) => state.gameRunning.gameRunning);
@@ -99,44 +97,6 @@ export default function BigPictureGameDetail() {
     registerBackHandler(handler);
     return () => unregisterBackHandler();
   }, [viewState, mediaViewerIndex, registerBackHandler, unregisterBackHandler]);
-
-  // Section handler: LB/RB scroll between sections
-  useEffect(() => {
-    const sectionHandler = (direction: "prev" | "next"): boolean => {
-      if (viewState !== "main") return true;
-
-      const refs = sectionRefs.current.filter(Boolean);
-      if (refs.length === 0) return false;
-
-      const container = scrollContainerRef.current?.closest(
-        ".big-picture__content"
-      ) as HTMLElement | null;
-      if (!container) return true;
-
-      const scrollTop = container.scrollTop;
-      const containerHeight = container.clientHeight;
-      const midPoint = scrollTop + containerHeight / 2;
-
-      let currentIndex = 0;
-      for (let i = 0; i < refs.length; i++) {
-        const el = refs[i]!;
-        if (el.offsetTop <= midPoint) {
-          currentIndex = i;
-        }
-      }
-
-      const nextIndex =
-        direction === "next"
-          ? Math.min(currentIndex + 1, refs.length - 1)
-          : Math.max(currentIndex - 1, 0);
-
-      refs[nextIndex]?.scrollIntoView({ behavior: "smooth", block: "start" });
-      return true;
-    };
-
-    registerSectionHandler(sectionHandler);
-    return () => unregisterSectionHandler();
-  }, [viewState, registerSectionHandler, unregisterSectionHandler]);
 
   const isRunning = game ? gameRunning?.id === game.id : false;
   const isDownloading = game ? lastPacket?.gameId === game.id : false;
