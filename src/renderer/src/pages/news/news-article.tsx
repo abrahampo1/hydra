@@ -179,6 +179,26 @@ export default function NewsArticlePage() {
     translateArticle();
   }, [article, scrapedContent, i18n.language, translation, translateArticle]);
 
+  const needsTranslation =
+    article &&
+    translation &&
+    getBaseLanguage(translation.detectedLanguage) !==
+      getBaseLanguage(i18n.language);
+
+  const displayTitle =
+    needsTranslation && !showOriginal
+      ? translation.title
+      : (article?.title ?? "");
+
+  const displayContent = useMemo(() => {
+    const raw =
+      needsTranslation && !showOriginal && translation?.content
+        ? translation.content
+        : scrapedContent;
+    if (!raw || !article) return null;
+    return cleanArticleHtml(raw, article.title);
+  }, [scrapedContent, translation, needsTranslation, showOriginal, article]);
+
   if (!article) {
     return (
       <section className="news-article">
@@ -215,28 +235,15 @@ export default function NewsArticlePage() {
     }
   };
 
-  const needsTranslation =
-    translation &&
-    getBaseLanguage(translation.detectedLanguage) !==
-      getBaseLanguage(i18n.language);
-
-  const displayTitle =
-    needsTranslation && !showOriginal ? translation.title : article.title;
-
-  const displayContent = useMemo(() => {
-    const raw =
-      needsTranslation && !showOriginal && translation.content
-        ? translation.content
-        : scrapedContent;
-    if (!raw) return null;
-    return cleanArticleHtml(raw, article.title);
-  }, [
-    scrapedContent,
-    translation,
-    needsTranslation,
-    showOriginal,
-    article.title,
-  ]);
+  const handleContentKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      const anchor = (e.target as HTMLElement).closest("a");
+      if (anchor?.href) {
+        e.preventDefault();
+        window.electron.openExternal(anchor.href);
+      }
+    }
+  };
 
   const getLanguageName = (languageCode: string | null) => {
     if (!languageCode) return "";
@@ -309,9 +316,11 @@ export default function NewsArticlePage() {
 
           {displayContent && (
             <div
+              role="article"
               className="news-article__content"
               dangerouslySetInnerHTML={{ __html: displayContent }}
               onClick={handleContentClick}
+              onKeyDown={handleContentKeyDown}
             />
           )}
 
