@@ -3,6 +3,23 @@ import type { GamepadDirection } from "./use-gamepad";
 
 const FOCUSABLE_SELECTOR = "[data-bp-focusable]";
 
+const findScrollParent = (element: HTMLElement): HTMLElement | null => {
+  let parent = element.parentElement;
+  while (parent) {
+    const style = getComputedStyle(parent);
+    if (
+      style.overflowY === "auto" ||
+      style.overflowY === "scroll" ||
+      style.overflow === "auto" ||
+      style.overflow === "scroll"
+    ) {
+      return parent;
+    }
+    parent = parent.parentElement;
+  }
+  return null;
+};
+
 export function useSpatialNavigation() {
   const [focusedIndex, setFocusedIndex] = useState(0);
   const savedPositions = useRef<Record<string, number>>({});
@@ -19,13 +36,10 @@ export function useSpatialNavigation() {
       if (elements[index]) {
         elements[index].setAttribute("data-bp-focused", "true");
 
-        // First focusable element: scroll container to top so hero is fully visible
         if (index === 0) {
-          const scrollContainer = document.querySelector(
-            ".big-picture__content"
-          );
-          if (scrollContainer) {
-            scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
+          const scrollParent = findScrollParent(elements[0]);
+          if (scrollParent) {
+            scrollParent.scrollTo({ top: 0, behavior: "smooth" });
           }
         } else {
           elements[index].scrollIntoView({
@@ -85,10 +99,21 @@ export function useSpatialNavigation() {
 
         const dx = tx - cx;
         const dy = ty - cy;
-        const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < bestDistance) {
-          bestDistance = distance;
+        // Apply cross-axis penalty so navigation favours items
+        // aligned with the direction of movement (prevents diagonal
+        // jumps in grids with variable-size items like Bento layouts).
+        const CROSS_PENALTY = 3;
+        let weighted: number;
+
+        if (direction === "left" || direction === "right") {
+          weighted = Math.sqrt(dx * dx + (dy * CROSS_PENALTY) ** 2);
+        } else {
+          weighted = Math.sqrt((dx * CROSS_PENALTY) ** 2 + dy * dy);
+        }
+
+        if (weighted < bestDistance) {
+          bestDistance = weighted;
           bestIndex = i;
         }
       }
@@ -130,6 +155,16 @@ export function useSpatialNavigation() {
     applyFocus(0);
   }, [applyFocus]);
 
+  const focusNth = useCallback(
+    (n: number) => {
+      const elements = getFocusableElements();
+      if (elements.length === 0) return;
+      const clamped = Math.max(0, Math.min(n, elements.length - 1));
+      applyFocus(clamped);
+    },
+    [getFocusableElements, applyFocus]
+  );
+
   return {
     focusedIndex,
     navigate,
@@ -137,5 +172,6 @@ export function useSpatialNavigation() {
     savePosition,
     restorePosition,
     resetFocus,
+    focusNth,
   };
 }
