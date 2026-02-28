@@ -162,7 +162,7 @@ export function BpReviewsSection({
 
       <div className="bp-reviews__list">
         {reviews.map((review) => (
-          <div key={review.id} className="bp-reviews__card">
+          <div key={review.id} className="bp-reviews__card" data-bp-focusable>
             <div className="bp-reviews__card-header">
               <div className="bp-reviews__user">
                 {review.user.profileImageUrl ? (

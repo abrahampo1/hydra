@@ -41,6 +41,27 @@ $bp-success: #4caf50;
   }
 }
 
+@keyframes bp-launching-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes bp-launching-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(0.98);
+  }
+}
+
 @keyframes bp-stat-enter {
   from {
     opacity: 0;
@@ -242,6 +263,50 @@ $bp-success: #4caf50;
           0 0 32px rgba($bp-accent, 0.35),
           0 8px 40px rgba($bp-accent, 0.2);
         animation: bp-play-pulse 2s ease-in-out infinite;
+      }
+    }
+
+    // Launching state
+    &--launching {
+      cursor: not-allowed;
+      pointer-events: none;
+      background: linear-gradient(
+        90deg,
+        rgba($bp-accent, 0.15) 0%,
+        rgba($bp-accent, 0.35) 25%,
+        rgba($bp-accent, 0.15) 50%,
+        rgba($bp-accent, 0.35) 75%,
+        rgba($bp-accent, 0.15) 100%
+      );
+      background-size: 200% 100%;
+      animation:
+        bp-launching-shimmer 1.8s ease-in-out infinite,
+        bp-launching-pulse 2s ease-in-out infinite;
+      border: 1px solid rgba($bp-accent, 0.3);
+      color: $bp-accent;
+      font-weight: 600;
+      letter-spacing: 1px;
+
+      &[data-bp-focused="true"] {
+        background: linear-gradient(
+          90deg,
+          rgba($bp-accent, 0.2) 0%,
+          rgba($bp-accent, 0.5) 25%,
+          rgba($bp-accent, 0.2) 50%,
+          rgba($bp-accent, 0.5) 75%,
+          rgba($bp-accent, 0.2) 100%
+        );
+        background-size: 200% 100%;
+        animation:
+          bp-launching-shimmer 1.8s ease-in-out infinite,
+          bp-launching-pulse 2s ease-in-out infinite;
+        box-shadow:
+          0 0 0 2px rgba($bp-accent, 0.4),
+          0 0 24px rgba($bp-accent, 0.2);
+        border-color: rgba($bp-accent, 0.5);
+        color: $bp-accent;
+        font-size: 22px;
+        padding: 24px 80px;
       }
     }
 

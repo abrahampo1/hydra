@@ -20,90 +20,66 @@ $bp-danger: globals.$error-color;
 
 .bp-download-settings {
   animation: bp-settings-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 
   &__title {
     font-size: 32px;
     font-weight: 600;
     color: #fff;
-    margin: 0 0 28px;
+    margin: 0 0 8px;
   }
 
-  &__storage {
-    margin-bottom: 28px;
+  // ── Card wrapper ──
+  &__card {
     padding: 20px;
     background: rgba(255, 255, 255, 0.03);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.05);
-
-    &-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      font-size: 14px;
-      color: rgba($bp-text, 0.6);
-    }
-
-    &-free {
-      color: rgba($bp-text, 0.4);
-    }
-
-    &-bar {
-      height: 8px;
-      background: rgba(255, 255, 255, 0.06);
-      border-radius: 4px;
-      overflow: hidden;
-      display: flex;
-
-      &-used {
-        height: 100%;
-        background: rgba($bp-text, 0.3);
-        transition: width 0.3s ease;
-      }
-
-      &-download {
-        height: 100%;
-        background: $bp-accent;
-        transition: width 0.3s ease;
-
-        &--overflow {
-          background: $bp-danger;
-        }
-      }
-    }
-
-    &-legend {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 10px;
-      font-size: 13px;
-      color: rgba($bp-text, 0.5);
-    }
-
-    &-warning {
-      color: $bp-danger;
-      font-weight: 500;
-    }
   }
 
-  &__section {
-    margin-bottom: 24px;
-
-    &-title {
-      font-size: 18px;
-      font-weight: 500;
-      color: rgba($bp-text, 0.7);
-      margin: 0 0 12px;
-    }
+  &__card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
   }
 
+  &__card-label {
+    font-size: 18px;
+    font-weight: 500;
+    color: rgba($bp-text, 0.7);
+    margin: 0;
+  }
+
+  &__card-hint {
+    display: flex;
+    gap: 6px;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba($bp-text, 0.6);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  // ── Downloader list ──
   &__downloaders {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    overflow: hidden;
   }
 
   &__downloader {
@@ -111,26 +87,29 @@ $bp-danger: globals.$error-color;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: 14px 20px;
-    border: none;
-    background: transparent;
+    padding: 16px 20px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background: rgba(255, 255, 255, 0.02);
     color: $bp-text;
     font-size: 16px;
     cursor: pointer;
-    transition: background 0.15s ease;
+    text-align: left;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
 
-    &:not(:last-child) {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    }
+    &[data-bp-focused="true"] {
+      background: rgba($bp-accent, 0.12);
+      border-color: $bp-accent;
+      box-shadow:
+        inset 0 0 0 1px rgba($bp-accent, 0.3),
+        0 0 12px rgba($bp-accent, 0.15);
+      overflow: hidden;
 
-    &--selected {
-      background: rgba($bp-accent, 0.1);
-      border-left: 3px solid $bp-accent;
-    }
-
-    &--disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
+      &::after {
+        display: none;
+      }
     }
 
     &-name {
@@ -162,110 +141,156 @@ $bp-danger: globals.$error-color;
       &--offline {
         background: $bp-danger;
       }
+    }
+  }
 
-      &--disabled {
-        background: rgba($bp-text, 0.2);
+  // ── Storage bar ──
+  &__storage-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: rgba($bp-text, 0.6);
+  }
+
+  &__storage-free {
+    color: rgba($bp-text, 0.4);
+  }
+
+  &__storage-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+
+    &-used {
+      height: 100%;
+      background: rgba($bp-text, 0.3);
+      transition: width 0.3s ease;
+    }
+
+    &-download {
+      height: 100%;
+      background: $bp-accent;
+      transition: width 0.3s ease;
+
+      &--overflow {
+        background: $bp-danger;
       }
     }
   }
 
-  &__path {
+  &__storage-legend {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 12px 16px;
-
-    &-value {
-      flex: 1;
-      font-size: 14px;
-      color: rgba($bp-text, 0.6);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    &-btn {
-      flex-shrink: 0;
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.05);
-      color: $bp-text;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    &-error {
-      display: block;
-      margin-top: 8px;
-      font-size: 13px;
-      color: $bp-danger;
-    }
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 13px;
+    color: rgba($bp-text, 0.5);
   }
 
-  &__toggle {
+  &__storage-warning {
+    color: $bp-danger;
+    font-weight: 500;
+  }
+
+  // ── Option row (path, toggle) ──
+  &__option {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: 14px 20px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 18px 24px;
     border-radius: 12px;
+    border: 2px solid transparent;
     background: rgba(255, 255, 255, 0.03);
     color: $bp-text;
     font-size: 16px;
     cursor: pointer;
+    text-align: left;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
 
-    &-switch {
-      position: relative;
-      width: 52px;
-      height: 28px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 14px;
-      transition: background 0.25s ease;
+    &[data-bp-focused="true"] {
+      background: rgba($bp-accent, 0.1);
+      border-color: $bp-accent;
+      box-shadow:
+        inset 0 0 0 1px rgba($bp-accent, 0.3),
+        0 0 12px rgba($bp-accent, 0.15);
+      overflow: hidden;
 
-      &--on {
-        background: $bp-accent;
-      }
-    }
-
-    &-knob {
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 22px;
-      height: 22px;
-      background: #fff;
-      border-radius: 50%;
-      transition: transform 0.25s ease;
-
-      .bp-download-settings__toggle-switch--on & {
-        transform: translateX(24px);
+      &::after {
+        display: none;
       }
     }
   }
 
-  &__start {
-    display: block;
-    width: 100%;
-    padding: 20px;
-    border: none;
-    border-radius: 14px;
-    background: linear-gradient(135deg, $bp-accent, #11967f);
-    color: #000;
-    font-size: 20px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    letter-spacing: 0.5px;
+  &__option-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+  }
 
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
+  &__option-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba($bp-text, 0.85);
+  }
+
+  &__option-value {
+    font-size: 14px;
+    color: rgba($bp-text, 0.4);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__option-action {
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: $bp-accent;
+    margin-left: 16px;
+  }
+
+  &__path-error {
+    display: block;
+    margin-top: 4px;
+    padding: 0 24px;
+    font-size: 13px;
+    color: $bp-danger;
+  }
+
+  // ── Toggle switch ──
+  &__switch {
+    position: relative;
+    width: 52px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    transition: background 0.25s ease;
+    flex-shrink: 0;
+
+    &--on {
+      background: $bp-accent;
+    }
+  }
+
+  &__switch-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.25s ease;
+
+    .bp-download-settings__switch--on & {
+      transform: translateX(24px);
     }
   }
 }

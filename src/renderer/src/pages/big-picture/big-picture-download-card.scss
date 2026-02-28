@@ -86,17 +86,17 @@ $bp-danger: globals.$error-color;
   // ── Progress bar ──
   &__progress-bar {
     width: 100%;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 3px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
     overflow: hidden;
     margin-bottom: 10px;
   }
 
   &__progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, $bp-accent, #1dc0a3);
-    border-radius: 3px;
+    background: $bp-accent;
+    border-radius: 4px;
     transition: width 0.4s ease;
     position: relative;
 

@@ -108,6 +108,66 @@ $bp-bg: globals.$dark-background-color;
     }
   }
 
+  &__download {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    position: relative;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.85;
+    }
+
+    &-ring {
+      width: 44px;
+      height: 44px;
+      transform: rotate(-90deg);
+
+      &-bg {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.08);
+        stroke-width: 3;
+      }
+
+      &-fill {
+        fill: none;
+        stroke: $bp-accent;
+        stroke-width: 3;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+    }
+
+    &-center {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $bp-accent;
+      pointer-events: none;
+    }
+
+    &-speed {
+      font-size: 9px;
+      font-weight: 600;
+      color: rgba($bp-text, 0.55);
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.2px;
+    }
+  }
+
   &__right {
     display: flex;
     align-items: center;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDownload, useAppSelector, useDate } from "@renderer/hooks";
 import { Downloader } from "@shared";
@@ -13,6 +13,7 @@ import type {
 } from "@types";
 import { useBigPictureContext } from "./big-picture-app";
 import { BpMediaSlider } from "./bp-media-slider";
+import { BpTrailerPlayer } from "./bp-trailer-player";
 import { BpReviewsSection } from "./bp-reviews-section";
 import { BpRepacksView } from "./bp-repacks-view";
 import { BpDownloadSettingsView } from "./bp-download-settings-view";
@@ -23,12 +24,9 @@ type DetailView = "main" | "repacks" | "download-settings";
 export default function BigPictureGameDetail() {
   const { shop, objectId } = useParams<{ shop: string; objectId: string }>();
   const { t, i18n } = useTranslation("big_picture");
-  const navigate = useNavigate();
   const { formatDate } = useDate();
-  const {
-    registerBackHandler,
-    unregisterBackHandler,
-  } = useBigPictureContext();
+  const { registerBackHandler, unregisterBackHandler, resetFocus } =
+    useBigPictureContext();
 
   const gameRunning = useAppSelector((state) => state.gameRunning.gameRunning);
   const {
@@ -49,7 +47,10 @@ export default function BigPictureGameDetail() {
   const [selectedRepack, setSelectedRepack] = useState<GameRepack | null>(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [mediaViewerIndex, setMediaViewerIndex] = useState<number | null>(null);
+  const [trailerViewerOpen, setTrailerViewerOpen] = useState(false);
   const [isLoadingDetails, setIsLoadingDetails] = useState(true);
+  const [isLaunching, setIsLaunching] = useState(false);
+  const launchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
@@ -62,7 +63,7 @@ export default function BigPictureGameDetail() {
 
     window.electron.getGameByObjectId(shop as GameShop, objectId).then(setGame);
 
-    window.electron
+    const shopDetailsPromise = window.electron
       .getGameShopDetails(
         objectId,
         shop as GameShop,
@@ -70,6 +71,21 @@ export default function BigPictureGameDetail() {
       )
       .then((details) => {
         if (details) setShopDetails(details);
+      });
+
+    const assetsPromise = window.electron.getGameAssets(
+      objectId,
+      shop as GameShop
+    );
+
+    Promise.all([shopDetailsPromise, assetsPromise])
+      .then(([_, assets]) => {
+        if (assets) {
+          setShopDetails((prev) => {
+            if (!prev) return null;
+            return { ...prev, assets };
+          });
+        }
       })
       .finally(() => setIsLoadingDetails(false));
 
@@ -79,6 +95,10 @@ export default function BigPictureGameDetail() {
   // Back handler: navigate the view stack
   useEffect(() => {
     const handler = (): boolean => {
+      if (trailerViewerOpen) {
+        setTrailerViewerOpen(false);
+        return true;
+      }
       if (mediaViewerIndex !== null) {
         setMediaViewerIndex(null);
         return true;
@@ -96,7 +116,13 @@ export default function BigPictureGameDetail() {
 
     registerBackHandler(handler);
     return () => unregisterBackHandler();
-  }, [viewState, mediaViewerIndex, registerBackHandler, unregisterBackHandler]);
+  }, [
+    viewState,
+    mediaViewerIndex,
+    trailerViewerOpen,
+    registerBackHandler,
+    unregisterBackHandler,
+  ]);
 
   const isRunning = game ? gameRunning?.id === game.id : false;
   const isDownloading = game ? lastPacket?.gameId === game.id : false;
@@ -106,14 +132,34 @@ export default function BigPictureGameDetail() {
     repacks.length > 0 && !isInstalled && !isDownloading && !isPaused;
 
   const handlePlay = useCallback(() => {
-    if (!game?.executablePath) return;
+    if (!game?.executablePath || isLaunching) return;
+    setIsLaunching(true);
     window.electron.openGame(
       game.shop,
       game.objectId,
       game.executablePath,
       game.launchOptions
     );
-  }, [game]);
+    if (launchTimerRef.current) clearTimeout(launchTimerRef.current);
+    launchTimerRef.current = setTimeout(() => setIsLaunching(false), 10_000);
+  }, [game, isLaunching]);
+
+  useEffect(() => {
+    return () => {
+      if (launchTimerRef.current) clearTimeout(launchTimerRef.current);
+    };
+  }, []);
+
+  // Clear launching lock early when the game is detected as running
+  useEffect(() => {
+    if (isRunning && isLaunching) {
+      setIsLaunching(false);
+      if (launchTimerRef.current) {
+        clearTimeout(launchTimerRef.current);
+        launchTimerRef.current = null;
+      }
+    }
+  }, [isRunning, isLaunching]);
 
   const handleCloseGame = useCallback(() => {
     if (!game) return;
@@ -194,6 +240,10 @@ export default function BigPictureGameDetail() {
     );
   }, [game, shopDetails]);
 
+  const hasTrailer = useMemo(() => {
+    return shopDetails?.movies && shopDetails.movies.length > 0;
+  }, [shopDetails]);
+
   const hasMedia = useMemo(() => {
     return (
       shopDetails &&
@@ -203,6 +253,16 @@ export default function BigPictureGameDetail() {
   }, [shopDetails]);
 
   const gameTitle = game?.title || shopDetails?.name || "";
+
+  // When any overlay is open, disable page-level focusable elements
+  const overlayOpen = trailerViewerOpen || mediaViewerIndex !== null;
+
+  // Focus the first action button (play / download) once the main view renders
+  useEffect(() => {
+    if (viewState === "main" && !isLoadingDetails) {
+      resetFocus();
+    }
+  }, [viewState, isLoadingDetails, resetFocus]);
 
   if (isLoadingDetails && !game && !shopDetails) {
     return <div className="bp-game-detail__loading" />;
@@ -328,7 +388,7 @@ export default function BigPictureGameDetail() {
             <button
               type="button"
               className="bp-game-detail__action bp-game-detail__action--danger"
-              data-bp-focusable
+              data-bp-focusable={!overlayOpen ? "" : undefined}
               onClick={handleCloseGame}
             >
               {t("close_game")}
@@ -338,11 +398,14 @@ export default function BigPictureGameDetail() {
           {!isRunning && isInstalled && (
             <button
               type="button"
-              className="bp-game-detail__action bp-game-detail__action--primary"
-              data-bp-focusable
+              className={`bp-game-detail__action bp-game-detail__action--primary${
+                isLaunching ? " bp-game-detail__action--launching" : ""
+              }`}
+              data-bp-focusable={!overlayOpen ? "" : undefined}
               onClick={handlePlay}
+              disabled={isLaunching}
             >
-              {t("play")}
+              {isLaunching ? t("launching") : t("play")}
             </button>
           )}
 
@@ -350,7 +413,7 @@ export default function BigPictureGameDetail() {
             <button
               type="button"
               className="bp-game-detail__action bp-game-detail__action--download"
-              data-bp-focusable
+              data-bp-focusable={!overlayOpen ? "" : undefined}
               onClick={handleDownloadClick}
             >
               {t("download")}
@@ -361,7 +424,7 @@ export default function BigPictureGameDetail() {
             <button
               type="button"
               className="bp-game-detail__action"
-              data-bp-focusable
+              data-bp-focusable={!overlayOpen ? "" : undefined}
               onClick={handlePause}
             >
               {t("pause_download")} ({progress})
@@ -372,35 +435,45 @@ export default function BigPictureGameDetail() {
             <button
               type="button"
               className="bp-game-detail__action"
-              data-bp-focusable
+              data-bp-focusable={!overlayOpen ? "" : undefined}
               onClick={handleResume}
             >
               {t("resume_download")}
             </button>
           )}
-
-          <button
-            type="button"
-            className="bp-game-detail__action bp-game-detail__action--secondary"
-            data-bp-focusable
-            onClick={() => navigate(-1)}
-          >
-            {t("press_b_back")}
-          </button>
         </section>
 
-        {/* Media */}
-        {hasMedia && shopDetails && (
+        {/* Trailer */}
+        {hasTrailer && shopDetails && (
           <section
             className="bp-game-detail__section"
             ref={(el) => {
               sectionRefs.current[2] = el;
             }}
           >
+            <BpTrailerPlayer
+              shopDetails={shopDetails}
+              isViewerOpen={trailerViewerOpen}
+              onOpenViewer={() => setTrailerViewerOpen(true)}
+              onCloseViewer={() => setTrailerViewerOpen(false)}
+            />
+          </section>
+        )}
+
+        {/* Media */}
+        {hasMedia && shopDetails && (
+          <section
+            className="bp-game-detail__section"
+            ref={(el) => {
+              sectionRefs.current[3] = el;
+            }}
+          >
             <BpMediaSlider
               shopDetails={shopDetails}
               viewerIndex={mediaViewerIndex}
               onOpenViewer={setMediaViewerIndex}
+              onCloseViewer={() => setMediaViewerIndex(null)}
+              disabled={trailerViewerOpen}
             />
           </section>
         )}
@@ -410,7 +483,7 @@ export default function BigPictureGameDetail() {
           <section
             className="bp-game-detail__section"
             ref={(el) => {
-              sectionRefs.current[3] = el;
+              sectionRefs.current[4] = el;
             }}
           >
             <h2 className="bp-game-detail__section-title">
@@ -429,7 +502,7 @@ export default function BigPictureGameDetail() {
             <button
               type="button"
               className="bp-game-detail__expand-btn"
-              data-bp-focusable
+              data-bp-focusable={!overlayOpen ? "" : undefined}
               onClick={() => setDescriptionExpanded(!descriptionExpanded)}
             >
               {descriptionExpanded ? t("show_less") : t("show_more")}
@@ -442,7 +515,7 @@ export default function BigPictureGameDetail() {
           <section
             className="bp-game-detail__section"
             ref={(el) => {
-              sectionRefs.current[4] = el;
+              sectionRefs.current[5] = el;
             }}
           >
             <BpReviewsSection shop={shop as GameShop} objectId={objectId} />

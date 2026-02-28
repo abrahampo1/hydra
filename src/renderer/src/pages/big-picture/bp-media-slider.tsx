@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import type { ShopDetailsWithAssets } from "@types";
+import { useBigPictureContext, type ViewerAction } from "./big-picture-app";
 import "./bp-media-slider.scss";
 
 interface BpMediaSliderProps {
   shopDetails: ShopDetailsWithAssets;
   viewerIndex: number | null;
   onOpenViewer: (index: number) => void;
+  onCloseViewer: () => void;
+  disabled?: boolean;
 }
 
 interface MediaItem {
@@ -28,10 +32,18 @@ export function BpMediaSlider({
   shopDetails,
   viewerIndex,
   onOpenViewer,
+  onCloseViewer,
+  disabled = false,
 }: Readonly<BpMediaSliderProps>) {
   const { t } = useTranslation("big_picture");
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const { registerViewerHandler, unregisterViewerHandler } =
+    useBigPictureContext();
+
+  // Stable refs for callbacks so the viewer handler effect doesn't re-run on every render
+  const onOpenViewerRef = useRef(onOpenViewer);
+  onOpenViewerRef.current = onOpenViewer;
+  const onCloseViewerRef = useRef(onCloseViewer);
+  onCloseViewerRef.current = onCloseViewer;
 
   // Video player state
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -40,6 +52,7 @@ export function BpMediaSlider({
   const [duration, setDuration] = useState(0);
 
   const viewerOpen = viewerIndex !== null;
+  const itemsFocusable = !viewerOpen && !disabled;
 
   const mediaItems = useMemo<MediaItem[]>(() => {
     const items: MediaItem[] = [];
@@ -48,7 +61,6 @@ export function BpMediaSlider({
       shopDetails.movies.forEach((video, index) => {
         let videoSrc: string | undefined;
 
-        // Prefer MP4/WebM for native playback in custom player
         if (video.mp4?.max) {
           videoSrc = video.mp4.max;
         } else if (video.webm?.max) {
@@ -90,43 +102,8 @@ export function BpMediaSlider({
   const currentViewerItem =
     viewerIndex !== null ? mediaItems[viewerIndex] : null;
 
-  // --- Thumbnail strip logic ---
-
-  const handleScroll = useCallback(() => {
-    if (!scrollRef.current) return;
-    const container = scrollRef.current;
-    const scrollLeft = container.scrollLeft;
-    const itemWidth = container.firstElementChild
-      ? (container.firstElementChild as HTMLElement).offsetWidth
-      : 1;
-    const index = Math.round(scrollLeft / (itemWidth + 16));
-    setActiveIndex(Math.min(index, mediaItems.length - 1));
-  }, [mediaItems.length]);
-
-  const scrollToIndex = useCallback((index: number) => {
-    if (!scrollRef.current) return;
-    const children = scrollRef.current.children;
-    if (children[index]) {
-      (children[index] as HTMLElement).scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "center",
-      });
-      setActiveIndex(index);
-    }
-  }, []);
-
-  const handleThumbnailClick = useCallback(
-    (index: number) => {
-      scrollToIndex(index);
-      onOpenViewer(index);
-    },
-    [scrollToIndex, onOpenViewer]
-  );
-
   // --- Video player logic ---
 
-  // Reset video state when viewer item changes
   useEffect(() => {
     setIsPlaying(false);
     setCurrentTime(0);
@@ -186,181 +163,205 @@ export function BpMediaSlider({
     onOpenViewer(viewerIndex + 1);
   }, [viewerIndex, mediaItems.length, onOpenViewer]);
 
+  // Stable refs for values used inside the viewer handler
+  const viewerIndexRef = useRef(viewerIndex);
+  viewerIndexRef.current = viewerIndex;
+  const mediaItemsRef = useRef(mediaItems);
+  mediaItemsRef.current = mediaItems;
+
+  // Register viewer handler: intercepts all gamepad/keyboard input while viewer is open
+  useEffect(() => {
+    if (!viewerOpen) {
+      return;
+    }
+
+    const handler = (action: ViewerAction) => {
+      const idx = viewerIndexRef.current;
+      const items = mediaItemsRef.current;
+
+      switch (action.type) {
+        case "navigate":
+          if (action.direction === "left") {
+            if (idx !== null && idx > 0) {
+              onOpenViewerRef.current(idx - 1);
+            }
+          } else if (action.direction === "right") {
+            if (idx !== null && idx < items.length - 1) {
+              onOpenViewerRef.current(idx + 1);
+            }
+          }
+          break;
+        case "select":
+          // Toggle play/pause for videos
+          if (idx !== null && items[idx]?.type === "video") {
+            if (videoRef.current) {
+              if (videoRef.current.paused) {
+                videoRef.current.play();
+                setIsPlaying(true);
+              } else {
+                videoRef.current.pause();
+                setIsPlaying(false);
+              }
+            }
+          }
+          break;
+        case "back":
+          onCloseViewerRef.current();
+          break;
+      }
+    };
+
+    registerViewerHandler(handler);
+    return () => unregisterViewerHandler();
+  }, [viewerOpen, registerViewerHandler, unregisterViewerHandler]);
+
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   if (mediaItems.length === 0) return null;
 
   return (
     <div className="bp-media-slider">
-      {/* Thumbnail strip (normal mode) */}
       <div className="bp-media-slider__header">
         <h2 className="bp-media-slider__title">{t("media")}</h2>
         <span className="bp-media-slider__counter">
-          {activeIndex + 1} / {mediaItems.length}
+          {mediaItems.length} {t("media").toLowerCase()}
         </span>
       </div>
 
-      <div
-        className="bp-media-slider__viewport"
-        ref={scrollRef}
-        onScroll={handleScroll}
-      >
-        {mediaItems.map((item) => (
-          <div key={item.id} className="bp-media-slider__slide">
-            {item.type === "video" ? (
+      {/* Bento grid */}
+      <div className="bp-media-slider__bento">
+        {mediaItems.map((item, i) => {
+          const mod = i % 6;
+          let sizeClass = "";
+          if (mod === 0) sizeClass = "bp-media-slider__bento-item--large";
+          else if (mod === 3) sizeClass = "bp-media-slider__bento-item--wide";
+          else if (mod === 5) sizeClass = "bp-media-slider__bento-item--tall";
+
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={`bp-media-slider__bento-item ${sizeClass}`}
+              data-bp-focusable={itemsFocusable ? "" : undefined}
+              onClick={() => onOpenViewer(i)}
+            >
               <img
-                className="bp-media-slider__media"
-                src={item.poster}
+                src={item.type === "video" ? item.poster : item.src}
                 alt={item.alt}
-              />
-            ) : (
-              <img
-                className="bp-media-slider__media"
-                src={item.src}
-                alt={item.alt}
+                className="bp-media-slider__bento-image"
                 loading="lazy"
               />
-            )}
-            {item.type === "video" && (
-              <div className="bp-media-slider__slide-play-badge">&#9654;</div>
-            )}
-          </div>
-        ))}
+              <div className="bp-media-slider__bento-overlay" />
+              {item.type === "video" && (
+                <div className="bp-media-slider__bento-play">&#9654;</div>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="bp-media-slider__thumbnails">
-        {mediaItems.map((item, i) => (
-          <button
-            key={item.id}
-            type="button"
-            className={`bp-media-slider__thumbnail ${
-              activeIndex === i ? "bp-media-slider__thumbnail--active" : ""
-            }`}
-            data-bp-focusable={!viewerOpen ? "" : undefined}
-            onClick={() => handleThumbnailClick(i)}
-          >
-            <img
-              src={item.type === "video" ? item.poster : item.src}
-              alt={item.alt}
-              className="bp-media-slider__thumbnail-image"
-            />
-            {item.type === "video" && (
-              <div className="bp-media-slider__play-icon">&#9654;</div>
-            )}
-          </button>
-        ))}
-      </div>
+      {/* Fullscreen viewer overlay — portalled to body to escape ancestor transforms */}
+      {viewerOpen &&
+        currentViewerItem &&
+        createPortal(
+          <div className="bp-media-viewer">
+            <div className="bp-media-viewer__backdrop" />
 
-      {/* Fullscreen viewer overlay */}
-      {viewerOpen && currentViewerItem && (
-        <div className="bp-media-viewer">
-          <div className="bp-media-viewer__backdrop" />
+            <div className="bp-media-viewer__content">
+              {currentViewerItem.type === "video" ? (
+                // eslint-disable-next-line jsx-a11y/media-has-caption -- game trailers don't have caption tracks
+                <video
+                  ref={videoRef}
+                  className="bp-media-viewer__video"
+                  src={currentViewerItem.videoSrc}
+                  poster={currentViewerItem.poster}
+                  onTimeUpdate={handleTimeUpdate}
+                  onLoadedMetadata={handleLoadedMetadata}
+                  onEnded={handleVideoEnded}
+                  playsInline
+                />
+              ) : (
+                <img
+                  className="bp-media-viewer__image"
+                  src={currentViewerItem.src}
+                  alt={currentViewerItem.alt}
+                />
+              )}
+            </div>
 
-          <div className="bp-media-viewer__content">
-            {currentViewerItem.type === "video" ? (
-              // eslint-disable-next-line jsx-a11y/media-has-caption -- game trailers don't have caption tracks
-              <video
-                ref={videoRef}
-                className="bp-media-viewer__video"
-                src={currentViewerItem.videoSrc}
-                poster={currentViewerItem.poster}
-                onTimeUpdate={handleTimeUpdate}
-                onLoadedMetadata={handleLoadedMetadata}
-                onEnded={handleVideoEnded}
-                playsInline
-              />
-            ) : (
-              <img
-                className="bp-media-viewer__image"
-                src={currentViewerItem.src}
-                alt={currentViewerItem.alt}
-              />
-            )}
-          </div>
+            <div className="bp-media-viewer__controls">
+              <div className="bp-media-viewer__controls-row">
+                <button
+                  type="button"
+                  className="bp-media-viewer__btn"
+                  onClick={handleViewerPrev}
+                  disabled={viewerIndex <= 0}
+                >
+                  &#9664; {t("viewer_prev")}
+                </button>
 
-          {/* Controls bar */}
-          <div className="bp-media-viewer__controls">
-            <div className="bp-media-viewer__controls-row">
-              {/* Prev */}
-              <button
-                type="button"
-                className="bp-media-viewer__btn"
-                data-bp-focusable=""
-                onClick={handleViewerPrev}
-                disabled={viewerIndex <= 0}
-              >
-                &#9664; {t("viewer_prev")}
-              </button>
+                {currentViewerItem.type === "video" && (
+                  <>
+                    <button
+                      type="button"
+                      className="bp-media-viewer__btn"
+                      onClick={handleSeekBack}
+                    >
+                      &#9194; 10s
+                    </button>
 
-              {/* Video-specific controls */}
+                    <button
+                      type="button"
+                      className="bp-media-viewer__btn bp-media-viewer__btn--play"
+                      onClick={handlePlayPause}
+                    >
+                      {isPlaying ? "\u23F8" : "\u25B6"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="bp-media-viewer__btn"
+                      onClick={handleSeekForward}
+                    >
+                      10s &#9193;
+                    </button>
+                  </>
+                )}
+
+                <button
+                  type="button"
+                  className="bp-media-viewer__btn"
+                  onClick={handleViewerNext}
+                  disabled={viewerIndex >= mediaItems.length - 1}
+                >
+                  {t("viewer_next")} &#9654;
+                </button>
+              </div>
+
               {currentViewerItem.type === "video" && (
-                <>
-                  <button
-                    type="button"
-                    className="bp-media-viewer__btn"
-                    data-bp-focusable=""
-                    onClick={handleSeekBack}
-                  >
-                    &#9194; 10s
-                  </button>
-
-                  <button
-                    type="button"
-                    className="bp-media-viewer__btn bp-media-viewer__btn--play"
-                    data-bp-focusable=""
-                    onClick={handlePlayPause}
-                  >
-                    {isPlaying ? "\u23F8" : "\u25B6"}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="bp-media-viewer__btn"
-                    data-bp-focusable=""
-                    onClick={handleSeekForward}
-                  >
-                    10s &#9193;
-                  </button>
-                </>
+                <div className="bp-media-viewer__progress-row">
+                  <span className="bp-media-viewer__time">
+                    {formatTime(currentTime)}
+                  </span>
+                  <div className="bp-media-viewer__progress-bar">
+                    <div
+                      className="bp-media-viewer__progress-fill"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                  <span className="bp-media-viewer__time">
+                    {formatTime(duration)}
+                  </span>
+                </div>
               )}
 
-              {/* Next */}
-              <button
-                type="button"
-                className="bp-media-viewer__btn"
-                data-bp-focusable=""
-                onClick={handleViewerNext}
-                disabled={viewerIndex >= mediaItems.length - 1}
-              >
-                {t("viewer_next")} &#9654;
-              </button>
-            </div>
-
-            {/* Progress bar + time (video only) */}
-            {currentViewerItem.type === "video" && (
-              <div className="bp-media-viewer__progress-row">
-                <span className="bp-media-viewer__time">
-                  {formatTime(currentTime)}
-                </span>
-                <div className="bp-media-viewer__progress-bar">
-                  <div
-                    className="bp-media-viewer__progress-fill"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-                <span className="bp-media-viewer__time">
-                  {formatTime(duration)}
-                </span>
+              <div className="bp-media-viewer__counter">
+                {(viewerIndex ?? 0) + 1} / {mediaItems.length}
               </div>
-            )}
-
-            {/* Counter */}
-            <div className="bp-media-viewer__counter">
-              {(viewerIndex ?? 0) + 1} / {mediaItems.length}
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

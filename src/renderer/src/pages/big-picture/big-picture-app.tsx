@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
   createContext,
   useContext,
 } from "react";
@@ -20,6 +21,11 @@ const sections = [
   "/big-picture/settings",
 ] as const;
 
+export type ViewerAction =
+  | { type: "navigate"; direction: "left" | "right" }
+  | { type: "select" }
+  | { type: "back" };
+
 interface BigPictureContextValue {
   activeSection: number;
   navigateSection: (direction: "prev" | "next") => void;
@@ -34,6 +40,10 @@ interface BigPictureContextValue {
     handler: (direction: "prev" | "next") => boolean
   ) => void;
   unregisterPageHandler: () => void;
+  registerViewerHandler: (handler: (action: ViewerAction) => void) => void;
+  unregisterViewerHandler: () => void;
+  resetFocus: () => void;
+  focusNth: (n: number) => void;
 }
 
 const BigPictureContext = createContext<BigPictureContextValue>({
@@ -46,6 +56,10 @@ const BigPictureContext = createContext<BigPictureContextValue>({
   unregisterSectionHandler: () => {},
   registerPageHandler: () => {},
   unregisterPageHandler: () => {},
+  registerViewerHandler: () => {},
+  unregisterViewerHandler: () => {},
+  resetFocus: () => {},
+  focusNth: () => {},
 });
 
 export const useBigPictureContext = () => useContext(BigPictureContext);
@@ -59,6 +73,7 @@ export default function BigPictureApp() {
     navigate: spatialNavigate,
     select,
     resetFocus,
+    focusNth,
   } = useSpatialNavigation();
 
   const backHandlerRef = useRef<(() => boolean) | null>(null);
@@ -68,9 +83,27 @@ export default function BigPictureApp() {
   const pageHandlerRef = useRef<
     ((direction: "prev" | "next") => boolean) | null
   >(null);
+  const viewerHandlerRef = useRef<((action: ViewerAction) => void) | null>(
+    null
+  );
 
   const gameRunning = useAppSelector((state) => state.gameRunning.gameRunning);
   const prevGameRunningRef = useRef(gameRunning);
+
+  const [windowFocused, setWindowFocused] = useState(document.hasFocus());
+
+  useEffect(() => {
+    const onFocus = () => setWindowFocused(true);
+    const onBlur = () => setWindowFocused(false);
+
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("blur", onBlur);
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, []);
 
   useEffect(() => {
     const wasRunning = prevGameRunningRef.current !== null;
@@ -111,6 +144,17 @@ export default function BigPictureApp() {
 
   const unregisterPageHandler = useCallback(() => {
     pageHandlerRef.current = null;
+  }, []);
+
+  const registerViewerHandler = useCallback(
+    (handler: (action: ViewerAction) => void) => {
+      viewerHandlerRef.current = handler;
+    },
+    []
+  );
+
+  const unregisterViewerHandler = useCallback(() => {
+    viewerHandlerRef.current = null;
   }, []);
 
   const activeSection = sections.findIndex((s) => location.pathname === s);
@@ -159,6 +203,24 @@ export default function BigPictureApp() {
       dx?: number;
       dy?: number;
     }) => {
+      // When a viewer is active, only forward navigate left/right, select, and back
+      if (viewerHandlerRef.current) {
+        if (
+          action.type === "navigate" &&
+          (action.direction === "left" || action.direction === "right")
+        ) {
+          viewerHandlerRef.current({
+            type: "navigate",
+            direction: action.direction,
+          });
+        } else if (action.type === "select") {
+          viewerHandlerRef.current({ type: "select" });
+        } else if (action.type === "back") {
+          viewerHandlerRef.current({ type: "back" });
+        }
+        return;
+      }
+
       switch (action.type) {
         case "navigate":
           spatialNavigate(action.direction as "up" | "down" | "left" | "right");
@@ -185,7 +247,9 @@ export default function BigPictureApp() {
           exitBigPicture();
           break;
         case "scroll": {
-          const container = document.querySelector(".big-picture__content");
+          const repackList = document.querySelector(".bp-repacks__list");
+          const container =
+            repackList || document.querySelector(".big-picture__content");
           if (container) {
             container.scrollBy(
               applyScrollCurve(action.dx ?? 0),
@@ -207,12 +271,30 @@ export default function BigPictureApp() {
   );
 
   useGamepad({
-    enabled: true,
+    enabled: windowFocused,
     onAction: handleGamepadAction,
   });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // When a viewer is active, only forward relevant keys
+      if (viewerHandlerRef.current) {
+        if (e.key === "ArrowLeft") {
+          viewerHandlerRef.current({ type: "navigate", direction: "left" });
+          e.preventDefault();
+        } else if (e.key === "ArrowRight") {
+          viewerHandlerRef.current({ type: "navigate", direction: "right" });
+          e.preventDefault();
+        } else if (e.key === "Enter") {
+          viewerHandlerRef.current({ type: "select" });
+          e.preventDefault();
+        } else if (e.key === "Escape" || e.key === "Backspace") {
+          viewerHandlerRef.current({ type: "back" });
+          e.preventDefault();
+        }
+        return;
+      }
+
       switch (e.key) {
         case "Escape":
           handleBack();
@@ -263,6 +345,10 @@ export default function BigPictureApp() {
         unregisterSectionHandler,
         registerPageHandler,
         unregisterPageHandler,
+        registerViewerHandler,
+        unregisterViewerHandler,
+        resetFocus,
+        focusNth,
       }}
     >
       <div className="big-picture">

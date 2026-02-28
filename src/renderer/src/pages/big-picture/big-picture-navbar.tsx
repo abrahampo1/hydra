@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -8,6 +8,7 @@ import {
   GearIcon,
   SearchIcon,
 } from "@primer/octicons-react";
+import { useDownload, useLibrary } from "@renderer/hooks";
 import { useBigPictureContext } from "./big-picture-app";
 import "./big-picture-navbar.scss";
 
@@ -23,6 +24,15 @@ export function BigPictureNavbar() {
   const { activeSection, exitBigPicture } = useBigPictureContext();
   const navigate = useNavigate();
   const [time, setTime] = useState(new Date());
+  const { lastPacket, downloadSpeed } = useDownload();
+  const { library } = useLibrary();
+
+  const activeGame = useMemo(() => {
+    if (!lastPacket?.gameId) return null;
+    return library.find((game) => game.id === lastPacket.gameId) ?? null;
+  }, [library, lastPacket?.gameId]);
+
+  const isDownloading = !!lastPacket && !!activeGame;
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 30_000);
@@ -61,6 +71,37 @@ export function BigPictureNavbar() {
       </div>
 
       <div className="bp-navbar__right">
+        {isDownloading && (
+          <button
+            type="button"
+            className="bp-navbar__download"
+            onClick={() => navigate("/big-picture/downloads")}
+            title={`${activeGame!.title} — ${Math.round((lastPacket!.progress ?? 0) * 100)}%`}
+          >
+            <svg className="bp-navbar__download-ring" viewBox="0 0 44 44">
+              <circle
+                className="bp-navbar__download-ring-bg"
+                cx="22"
+                cy="22"
+                r="19"
+              />
+              <circle
+                className="bp-navbar__download-ring-fill"
+                cx="22"
+                cy="22"
+                r="19"
+                strokeDasharray={2 * Math.PI * 19}
+                strokeDashoffset={
+                  2 * Math.PI * 19 * (1 - (lastPacket!.progress ?? 0))
+                }
+              />
+            </svg>
+            <div className="bp-navbar__download-center">
+              <DownloadIcon size={16} />
+            </div>
+            <span className="bp-navbar__download-speed">{downloadSpeed}</span>
+          </button>
+        )}
         <div className="bp-navbar__clock">
           <span className="bp-navbar__clock-time">{formattedTime}</span>
           <span className="bp-navbar__clock-date">{formattedDate}</span>

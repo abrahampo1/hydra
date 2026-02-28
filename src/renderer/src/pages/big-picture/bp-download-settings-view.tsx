@@ -43,8 +43,6 @@ export function BpDownloadSettingsView({
   const [automaticExtractionEnabled, setAutomaticExtractionEnabled] = useState(
     userPreferences?.extractFilesByDefault ?? true
   );
-  const [selectedDownloader, setSelectedDownloader] =
-    useState<Downloader | null>(null);
   const [hasWritePermission, setHasWritePermission] = useState<boolean | null>(
     null
   );
@@ -154,23 +152,6 @@ export function BpDownloadSettingsView({
     userPreferences?.torBoxApiToken,
   ]);
 
-  const getDefaultDownloader = useCallback(
-    (availableDownloaders: Downloader[]) => {
-      if (availableDownloaders.length === 0) return null;
-
-      if (availableDownloaders.includes(Downloader.RealDebrid)) {
-        return Downloader.RealDebrid;
-      }
-
-      if (availableDownloaders.includes(Downloader.TorBox)) {
-        return Downloader.TorBox;
-      }
-
-      return availableDownloaders[0];
-    },
-    []
-  );
-
   useEffect(() => {
     if (userPreferences?.downloadsPath) {
       setSelectedPath(userPreferences.downloadsPath);
@@ -179,13 +160,7 @@ export function BpDownloadSettingsView({
         .getDefaultDownloadsPath()
         .then((defaultDownloadsPath) => setSelectedPath(defaultDownloadsPath));
     }
-
-    const availableDownloaders = downloadOptions
-      .filter((option) => option.isAvailable)
-      .map((option) => option.downloader);
-
-    setSelectedDownloader(getDefaultDownloader(availableDownloaders));
-  }, [getDefaultDownloader, userPreferences?.downloadsPath, downloadOptions]);
+  }, [userPreferences?.downloadsPath]);
 
   const handleChooseDownloadsPath = async () => {
     const { filePaths } = await window.electron.showOpenDialog({
@@ -198,14 +173,14 @@ export function BpDownloadSettingsView({
     }
   };
 
-  const handleStartClick = async () => {
-    if (!repack || !selectedDownloader) return;
+  const handleStartWithDownloader = async (downloader: Downloader) => {
+    if (!repack || downloadStarting) return;
 
     setDownloadStarting(true);
     try {
       const response = await onStartDownload(
         repack,
-        selectedDownloader,
+        downloader,
         selectedPath,
         automaticExtractionEnabled,
         hasActiveDownload
@@ -239,8 +214,7 @@ export function BpDownloadSettingsView({
     if (option.isAvailable) return t("downloader_online");
     if (option.isAvailableButNotConfigured)
       return t("downloader_not_configured");
-    if (option.canHandle) return t("downloader_offline");
-    return t("not_available");
+    return t("downloader_offline");
   };
 
   const getStatusClass = (option: {
@@ -250,17 +224,16 @@ export function BpDownloadSettingsView({
   }) => {
     if (option.isAvailable) return "online";
     if (option.isAvailableButNotConfigured) return "warning";
-    if (option.canHandle) return "offline";
-    return "disabled";
+    return "offline";
   };
 
   return (
     <div className="bp-download-settings">
       <h2 className="bp-download-settings__title">{t("download_settings")}</h2>
 
-      {/* Storage bar */}
+      {/* Storage info */}
       {diskUsage && (
-        <div className="bp-download-settings__storage">
+        <div className="bp-download-settings__card">
           <div className="bp-download-settings__storage-header">
             <span>{t("storage_usage")}</span>
             <span className="bp-download-settings__storage-free">
@@ -309,111 +282,95 @@ export function BpDownloadSettingsView({
         </div>
       )}
 
-      {/* Downloaders */}
-      <div className="bp-download-settings__section">
-        <h3 className="bp-download-settings__section-title">
-          {t("downloader")}
-        </h3>
-        <div className="bp-download-settings__downloaders">
-          {downloadOptions.map((option) => {
-            const isSelected = selectedDownloader === option.downloader;
-            const isDisabled =
-              !option.canHandle ||
-              (!option.isAvailable && !option.isAvailableButNotConfigured);
-            const statusClass = getStatusClass(option);
-
-            return (
-              <button
-                key={option.downloader}
-                type="button"
-                className={`bp-download-settings__downloader ${
-                  isSelected ? "bp-download-settings__downloader--selected" : ""
-                } ${
-                  isDisabled ? "bp-download-settings__downloader--disabled" : ""
-                }`}
-                data-bp-focusable
-                disabled={isDisabled}
-                onClick={() => setSelectedDownloader(option.downloader)}
-              >
-                <span className="bp-download-settings__downloader-name">
-                  {DOWNLOADER_NAME[option.downloader]}
-                </span>
-                <span className="bp-download-settings__downloader-status">
-                  <span
-                    className={`bp-download-settings__downloader-dot bp-download-settings__downloader-dot--${statusClass}`}
-                  />
-                  {getStatusLabel(option)}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Download path */}
-      <div className="bp-download-settings__section">
-        <h3 className="bp-download-settings__section-title">
-          {t("download_path")}
-        </h3>
-        <div className="bp-download-settings__path">
-          <span className="bp-download-settings__path-value">
-            {selectedPath}
-          </span>
-          <button
-            type="button"
-            className="bp-download-settings__path-btn"
-            data-bp-focusable
-            onClick={handleChooseDownloadsPath}
-          >
-            {t("change_path")}
-          </button>
-        </div>
-        {hasWritePermission === false && (
-          <span className="bp-download-settings__path-error">
-            {t("no_write_permission")}
-          </span>
-        )}
-      </div>
-
-      {/* Auto-extract toggle */}
-      <div className="bp-download-settings__section">
-        <button
-          type="button"
-          className="bp-download-settings__toggle"
-          data-bp-focusable
-          onClick={() =>
-            setAutomaticExtractionEnabled(!automaticExtractionEnabled)
-          }
-        >
-          <span>{t("auto_extract_downloads")}</span>
-          <span
-            className={`bp-download-settings__toggle-switch ${
-              automaticExtractionEnabled
-                ? "bp-download-settings__toggle-switch--on"
-                : ""
-            }`}
-          >
-            <span className="bp-download-settings__toggle-knob" />
-          </span>
-        </button>
-      </div>
-
-      {/* Start download */}
       <button
         type="button"
-        className="bp-download-settings__start"
+        className="bp-download-settings__option"
         data-bp-focusable
-        disabled={
-          downloadStarting || selectedDownloader === null || !hasWritePermission
-        }
-        onClick={handleStartClick}
+        onClick={handleChooseDownloadsPath}
       >
-        {downloadStarting
-          ? t("starting_download")
-          : hasActiveDownload
-            ? t("add_to_queue")
-            : t("start_download")}
+        <div className="bp-download-settings__option-left">
+          <span className="bp-download-settings__option-label">
+            {t("download_path")}
+          </span>
+          <span className="bp-download-settings__option-value">
+            {selectedPath}
+          </span>
+        </div>
+        <span className="bp-download-settings__option-action">
+          {t("change_path")}
+        </span>
       </button>
+      {hasWritePermission === false && (
+        <span className="bp-download-settings__path-error">
+          {t("no_write_permission")}
+        </span>
+      )}
+
+      {/* Auto-extract toggle */}
+      <button
+        type="button"
+        className="bp-download-settings__option"
+        data-bp-focusable
+        onClick={() =>
+          setAutomaticExtractionEnabled(!automaticExtractionEnabled)
+        }
+      >
+        <span className="bp-download-settings__option-label">
+          {t("auto_extract_downloads")}
+        </span>
+        <span
+          className={`bp-download-settings__switch ${
+            automaticExtractionEnabled ? "bp-download-settings__switch--on" : ""
+          }`}
+        >
+          <span className="bp-download-settings__switch-knob" />
+        </span>
+      </button>
+
+      {/* Downloader selector — click downloads directly */}
+      <div className="bp-download-settings__card">
+        <div className="bp-download-settings__card-header">
+          <h3 className="bp-download-settings__card-label">
+            {t("downloader")}
+          </h3>
+        </div>
+
+        <div className="bp-download-settings__downloaders">
+          {downloadOptions
+            .filter(
+              (option) =>
+                option.canHandle &&
+                (option.isAvailable || option.isAvailableButNotConfigured)
+            )
+            .map((option) => {
+              const statusClass = getStatusClass(option);
+
+              return (
+                <button
+                  key={option.downloader}
+                  type="button"
+                  className="bp-download-settings__downloader"
+                  data-bp-focusable
+                  disabled={downloadStarting || !hasWritePermission}
+                  onClick={() => {
+                    handleStartWithDownloader(option.downloader);
+                  }}
+                >
+                  <span className="bp-download-settings__downloader-name">
+                    {DOWNLOADER_NAME[option.downloader]}
+                  </span>
+                  <span className="bp-download-settings__downloader-status">
+                    <span
+                      className={`bp-download-settings__downloader-dot bp-download-settings__downloader-dot--${statusClass}`}
+                    />
+                    {getStatusLabel(option)}
+                  </span>
+                </button>
+              );
+            })}
+        </div>
+      </div>
     </div>
   );
 }
