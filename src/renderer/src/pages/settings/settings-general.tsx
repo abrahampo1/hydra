@@ -56,6 +56,7 @@ export function SettingsGeneral() {
     repackUpdatesNotificationsEnabled: false,
     friendRequestNotificationsEnabled: false,
     friendStartGameNotificationsEnabled: true,
+    friendStartGameCustomNotificationsEnabled: true,
     achievementNotificationsEnabled: true,
     achievementCustomNotificationsEnabled: true,
     achievementCustomNotificationPosition:
@@ -141,6 +142,8 @@ export function SettingsGeneral() {
           userPreferences.friendRequestNotificationsEnabled ?? false,
         friendStartGameNotificationsEnabled:
           userPreferences.friendStartGameNotificationsEnabled ?? true,
+        friendStartGameCustomNotificationsEnabled:
+          userPreferences.friendStartGameCustomNotificationsEnabled ?? true,
         language: language ?? "en",
         useNativeHttpDownloader:
           userPreferences.useNativeHttpDownloader ?? true,
@@ -192,7 +195,7 @@ export function SettingsGeneral() {
     [updateUserPreferences]
   );
 
-  const handleChangeAchievementCustomNotificationPosition = async (
+  const handleChangeCustomNotificationPosition = async (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const value = event.target.value as AchievementCustomNotificationPosition;
@@ -235,6 +238,12 @@ export function SettingsGeneral() {
       setInstallingCommonRedist(false);
     }
   };
+
+  const hasAnyCustomNotificationEnabled =
+    (form.achievementNotificationsEnabled &&
+      form.achievementCustomNotificationsEnabled) ||
+    (form.friendStartGameNotificationsEnabled &&
+      form.friendStartGameCustomNotificationsEnabled);
 
   return (
     <div className="settings-general">
@@ -326,12 +335,14 @@ export function SettingsGeneral() {
         <CheckboxField
           label={t("enable_friend_start_game_notifications")}
           checked={form.friendStartGameNotificationsEnabled}
-          onChange={() =>
-            handleChange({
+          onChange={async () => {
+            await handleChange({
               friendStartGameNotificationsEnabled:
                 !form.friendStartGameNotificationsEnabled,
-            })
-          }
+            });
+
+            window.electron.updateAchievementCustomNotificationWindow();
+          }}
         />
 
         <CheckboxField
@@ -346,41 +357,88 @@ export function SettingsGeneral() {
             window.electron.updateAchievementCustomNotificationWindow();
           }}
         />
-
-        <CheckboxField
-          label={t("enable_achievement_custom_notifications")}
-          checked={form.achievementCustomNotificationsEnabled}
-          disabled={!form.achievementNotificationsEnabled}
-          onChange={async () => {
-            await handleChange({
-              achievementCustomNotificationsEnabled:
-                !form.achievementCustomNotificationsEnabled,
-            });
-
-            window.electron.updateAchievementCustomNotificationWindow();
-          }}
-        />
       </div>
 
-      {form.achievementNotificationsEnabled &&
-        form.achievementCustomNotificationsEnabled && (
-          <div className="settings-general__achievement-customization">
+      <h3 className="settings-general__section-title">
+        {t("custom_notifications")}
+      </h3>
+      <p className="settings-general__section-description">
+        {t("custom_notifications_description")}
+      </p>
+
+      <div className="settings-general__section-content">
+        <div className="settings-general__section-grid">
+          <CheckboxField
+            label={t("enable_achievement_custom_notifications")}
+            checked={form.achievementCustomNotificationsEnabled}
+            disabled={!form.achievementNotificationsEnabled}
+            onChange={async () => {
+              await handleChange({
+                achievementCustomNotificationsEnabled:
+                  !form.achievementCustomNotificationsEnabled,
+              });
+
+              window.electron.updateAchievementCustomNotificationWindow();
+            }}
+          />
+
+          <CheckboxField
+            label={t("enable_friend_start_game_custom_notifications")}
+            checked={form.friendStartGameCustomNotificationsEnabled}
+            disabled={!form.friendStartGameNotificationsEnabled}
+            onChange={async () => {
+              await handleChange({
+                friendStartGameCustomNotificationsEnabled:
+                  !form.friendStartGameCustomNotificationsEnabled,
+              });
+
+              window.electron.updateAchievementCustomNotificationWindow();
+            }}
+          />
+        </div>
+
+        {hasAnyCustomNotificationEnabled && (
+          <div className="settings-general__custom-notification-options">
             <SelectField
-              className="settings-general__achievement-custom-notification-position__select-variation"
-              label={t("achievement_custom_notification_position")}
+              className="settings-general__custom-notification-position-select"
+              label={t("custom_notification_position")}
               value={form.achievementCustomNotificationPosition}
-              onChange={handleChangeAchievementCustomNotificationPosition}
+              onChange={handleChangeCustomNotificationPosition}
               options={achievementCustomNotificationPositionOptions}
             />
 
-            <Button
-              className="settings-general__test-achievement-notification-button"
-              onClick={() => window.electron.showAchievementTestNotification()}
-            >
-              {t("test_notification")}
-            </Button>
+            <div className="settings-general__test-buttons">
+              <span className="settings-general__test-buttons-label">
+                {t("test_notifications")}
+              </span>
+              <div className="settings-general__test-buttons-row">
+                <Button
+                  theme="outline"
+                  disabled={
+                    !form.achievementNotificationsEnabled ||
+                    !form.achievementCustomNotificationsEnabled
+                  }
+                  onClick={() =>
+                    window.electron.showAchievementTestNotification()
+                  }
+                >
+                  {t("test_achievement")}
+                </Button>
+                <Button
+                  theme="outline"
+                  disabled={
+                    !form.friendStartGameNotificationsEnabled ||
+                    !form.friendStartGameCustomNotificationsEnabled
+                  }
+                  onClick={() => window.electron.showFriendTestNotification()}
+                >
+                  {t("test_friend_activity")}
+                </Button>
+              </div>
+            </div>
           </div>
         )}
+      </div>
 
       {form.achievementNotificationsEnabled && (
         <div className="settings-general__volume-control">

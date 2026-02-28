@@ -34,17 +34,33 @@
     gap: globals.$spacing-unit * 2;
   }
 
-  &__achievement-customization {
+  &__custom-notification-options {
     display: flex;
     flex-direction: column;
     gap: globals.$spacing-unit * 2;
   }
 
-  &__common-redist-button {
-    align-self: flex-start;
+  &__custom-notification-position-select {
+    max-width: 300px;
   }
 
-  &__test-achievement-notification-button {
+  &__test-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: globals.$spacing-unit;
+  }
+
+  &__test-buttons-label {
+    font-size: 14px;
+    color: globals.$muted-color;
+  }
+
+  &__test-buttons-row {
+    display: flex;
+    gap: globals.$spacing-unit;
+  }
+
+  &__common-redist-button {
     align-self: flex-start;
   }
 
