@@ -188,7 +188,19 @@
     "installation_complete": "Instalación completada",
     "installation_complete_message": "Common redistributables instalados correctamente",
     "seeding": "Compartiendo",
-    "seeding_games": "Compartiendo {{count}} juego(s)"
+    "seeding_games": "Compartiendo {{count}} juego(s)",
+    "update_modal_title": "Actualización de software",
+    "checking_for_updates": "Buscando actualizaciones...",
+    "up_to_date": "¡Estás al día!",
+    "up_to_date_description": "Hydra {{version}} es la versión más reciente.",
+    "check_again": "Verificar de nuevo",
+    "update_available": "La versión {{version}} está disponible",
+    "update_available_description": "Una nueva versión de Hydra está disponible para descargar.",
+    "downloading_update": "Descargando actualización...",
+    "download_from_github": "Descargar desde GitHub",
+    "ready_to_install": "Lista para instalar",
+    "ready_to_install_description": "La versión {{version}} se ha descargado y está lista para instalar.",
+    "restart_and_install": "Reiniciar e instalar"
   },
   "catalogue": {
     "search": "Filtrar…",
