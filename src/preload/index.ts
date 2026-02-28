@@ -19,6 +19,7 @@ import type {
   ShortcutLocation,
   AchievementCustomNotificationPosition,
   AchievementNotificationInfo,
+  FriendNotificationInfo,
   GoogleDriveUserInfo,
   GoogleDriveBackupArtifact,
 } from "@types";
@@ -806,10 +807,27 @@ contextBridge.exposeInMainWorld("electron", {
     return () =>
       ipcRenderer.removeListener("on-combined-achievements-unlocked", listener);
   },
+  onFriendStartedPlaying: (
+    cb: (
+      position?: AchievementCustomNotificationPosition,
+      friendInfo?: FriendNotificationInfo
+    ) => void
+  ) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      position?: AchievementCustomNotificationPosition,
+      friendInfo?: FriendNotificationInfo
+    ) => cb(position, friendInfo);
+    ipcRenderer.on("on-friend-started-playing", listener);
+    return () =>
+      ipcRenderer.removeListener("on-friend-started-playing", listener);
+  },
   updateAchievementCustomNotificationWindow: () =>
     ipcRenderer.invoke("updateAchievementCustomNotificationWindow"),
   showAchievementTestNotification: () =>
     ipcRenderer.invoke("showAchievementTestNotification"),
+  showFriendTestNotification: () =>
+    ipcRenderer.invoke("showFriendTestNotification"),
 
   /* Themes */
   addCustomTheme: (theme: Theme) => ipcRenderer.invoke("addCustomTheme", theme),
@@ -872,6 +890,19 @@ contextBridge.exposeInMainWorld("electron", {
   closeGameLauncherWindow: () => ipcRenderer.invoke("closeGameLauncherWindow"),
   openMainWindow: () => ipcRenderer.invoke("openMainWindow"),
   isMainWindowOpen: () => ipcRenderer.invoke("isMainWindowOpen"),
+
+  /* News */
+  news: {
+    getFeeds: () => ipcRenderer.invoke("getRssFeeds"),
+    addFeed: (name: string, url: string) =>
+      ipcRenderer.invoke("addRssFeed", name, url),
+    removeFeed: (feedId: string) => ipcRenderer.invoke("removeRssFeed", feedId),
+    fetchArticles: () => ipcRenderer.invoke("fetchNewsArticles"),
+    seedDefaultFeeds: () => ipcRenderer.invoke("seedDefaultFeeds"),
+    scrapeArticle: (url: string) => ipcRenderer.invoke("scrapeArticle", url),
+    translateText: (text: string, targetLang: string) =>
+      ipcRenderer.invoke("translateText", text, targetLang),
+  },
 
   /* ROMs (Beta) */
   roms: {

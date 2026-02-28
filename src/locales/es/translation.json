@@ -28,6 +28,23 @@
     "no_recent_activity": "No hay actividad reciente de amigos",
     "review_score": "{{score}}/5"
   },
+  "news": {
+    "title": "Noticias de Juegos",
+    "all_feeds": "Todos",
+    "search_placeholder": "Buscar artículos...",
+    "refresh": "Actualizar",
+    "no_articles": "No se encontraron artículos. Añade fuentes RSS en Ajustes.",
+    "no_search_results": "Ningún artículo coincide con tu búsqueda.",
+    "loading": "Cargando artículos...",
+    "back_to_news": "Volver a Noticias",
+    "read_original": "Leer en el sitio original",
+    "article_not_found": "Artículo no encontrado. Vuelve y selecciona un artículo.",
+    "loading_article": "Cargando artículo...",
+    "show_original_translated_from": "Mostrar original (traducido de {{language}})",
+    "hide_original": "Ocultar original",
+    "retry_translation": "Reintentar traducción",
+    "translating": "Traduciendo..."
+  },
   "sidebar": {
     "catalogue": "Catálogo",
     "library": "Biblioteca",
@@ -121,7 +138,8 @@
     "import_steam_games_found": "Juegos encontrados",
     "import_steam_games_imported": "Juegos importados",
     "import_steam_games_already_in_library": "Ya en la biblioteca",
-    "import_steam_games_close": "Cerrar"
+    "import_steam_games_close": "Cerrar",
+    "news": "Noticias"
   },
   "header": {
     "search": "Buscar juegos",
@@ -139,6 +157,7 @@
     "downloads": "Descargas",
     "search_results": "Resultados de búsqueda",
     "settings": "Ajustes",
+    "news": "Noticias",
     "version_available_install": "Versión {{version}} disponible. Pulsa aquí para reiniciar e instalar.",
     "version_available_download": "Versión {{version}} disponible. Pulsa aquí para descargar.",
     "scan_games_tooltip": "Escanear PC en busca de juegos instalados",
@@ -152,7 +171,11 @@
     "scan_games_close": "Cerrar",
     "scan_games_scan_again": "Escanear Nuevamente",
     "playing_for_time": "Jugando desde hace {{hours}}h {{minutes}}m",
-    "playing_for_minutes": "Jugando desde hace {{minutes}}m"
+    "playing_for_minutes": "Jugando desde hace {{minutes}}m",
+    "friends": "Amigos",
+    "online": "En l\u00ednea",
+    "offline": "Desconectados",
+    "no_friends_yet": "A\u00fan no tienes amigos agregados"
   },
   "bottom_panel": {
     "no_downloads_in_progress": "Sin descargas en progreso",
@@ -751,7 +774,16 @@
     "profile": "Perfil",
     "profile_description": "Personaliza cómo te ven los demás en Hydra",
     "security": "Seguridad",
-    "security_description": "Administra tu correo y contraseña"
+    "security_description": "Administra tu correo y contraseña",
+    "news_feeds": "Fuentes de Noticias",
+    "news_feeds_description": "Administra tus suscripciones a fuentes RSS de noticias de juegos.",
+    "news_feed_added": "Fuente añadida correctamente",
+    "news_feed_removed": "Fuente eliminada",
+    "news_feed_add_failed": "Error al añadir la fuente. Verifica la URL.",
+    "add_news_feed": "Añadir Fuente",
+    "news_feed_name": "Nombre de la fuente",
+    "news_feed_url": "URL de la fuente",
+    "confirm_remove_feed": "¿Estás seguro de que quieres eliminar esta fuente?"
   },
   "notifications": {
     "download_complete": "Descarga completada",
@@ -977,6 +1009,7 @@
     "all_games": "Todos los Juegos",
     "recently_played": "Jugados Recientemente",
     "favorites": "Favoritos",
+    "installed": "Instalados",
     "disk_usage": "Uso de disco",
     "disk_usage_tooltip": "Tamaño instalado en el disco",
     "installer_size_tooltip": "Tamaño del instalador",

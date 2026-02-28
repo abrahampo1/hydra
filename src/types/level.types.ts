@@ -124,6 +124,7 @@ export interface UserPreferences {
   achievementSoundVolume?: number;
   friendRequestNotificationsEnabled?: boolean;
   friendStartGameNotificationsEnabled?: boolean;
+  friendStartGameCustomNotificationsEnabled?: boolean;
   showDownloadSpeedInMegabytes?: boolean;
   extractFilesByDefault?: boolean;
   autoDeleteInstallerAfterExtraction?: boolean;

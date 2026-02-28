@@ -30,6 +30,7 @@ import type {
   ShopDetailsWithAssets,
   AchievementCustomNotificationPosition,
   AchievementNotificationInfo,
+  FriendNotificationInfo,
   Game,
   DiskUsage,
   DownloadSource,
@@ -37,6 +38,8 @@ import type {
   GoogleDriveUserInfo,
   GoogleDriveBackupArtifact,
   RomEntry,
+  RssFeed,
+  NewsArticle,
 } from "@types";
 import type { AxiosProgressEvent } from "axios";
 
@@ -547,8 +550,15 @@ declare global {
         position: AchievementCustomNotificationPosition
       ) => void
     ) => () => Electron.IpcRenderer;
+    onFriendStartedPlaying: (
+      cb: (
+        position?: AchievementCustomNotificationPosition,
+        friendInfo?: FriendNotificationInfo
+      ) => void
+    ) => () => Electron.IpcRenderer;
     updateAchievementCustomNotificationWindow: () => Promise<void>;
     showAchievementTestNotification: () => Promise<void>;
+    showFriendTestNotification: () => Promise<void>;
 
     /* Themes */
     addCustomTheme: (theme: Theme) => Promise<void>;
@@ -587,6 +597,23 @@ declare global {
     onNewDownloadOptions: (
       cb: (gamesWithNewOptions: { gameId: string; count: number }[]) => void
     ) => () => Electron.IpcRenderer;
+
+    /* News */
+    news: {
+      getFeeds: () => Promise<RssFeed[]>;
+      addFeed: (name: string, url: string) => Promise<RssFeed>;
+      removeFeed: (feedId: string) => Promise<void>;
+      fetchArticles: () => Promise<NewsArticle[]>;
+      seedDefaultFeeds: () => Promise<void>;
+      scrapeArticle: (url: string) => Promise<{ content: string } | null>;
+      translateText: (
+        text: string,
+        targetLang: string
+      ) => Promise<{
+        translatedText: string;
+        detectedLanguage: string | null;
+      }>;
+    };
 
     /* ROMs (Beta) */
     roms: {
