@@ -93,6 +93,12 @@ export function App() {
   }, [navigate, location.pathname, dispatch, updateLibrary]);
 
   useEffect(() => {
+    window.electron.importSteamGames().then(() => {
+      updateLibrary();
+    });
+  }, [updateLibrary]);
+
+  useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
   }, [location.pathname, location.search]);
 

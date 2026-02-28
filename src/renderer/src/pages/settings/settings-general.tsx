@@ -13,7 +13,7 @@ import {
   SelectField,
 } from "@renderer/components";
 import { useTranslation } from "react-i18next";
-import { useAppSelector } from "@renderer/hooks";
+import { useAppSelector, useLibrary } from "@renderer/hooks";
 import { changeLanguage } from "i18next";
 import languageResources from "@locales";
 import { orderBy } from "lodash-es";
@@ -21,6 +21,7 @@ import { settingsContext } from "@renderer/context";
 import "./settings-general.scss";
 import {
   DesktopDownloadIcon,
+  SyncIcon,
   ToolsIcon,
   UnmuteIcon,
 } from "@primer/octicons-react";
@@ -49,6 +50,14 @@ export function SettingsGeneral() {
 
   const [canInstallCommonRedist, setCanInstallCommonRedist] = useState(false);
   const [installingCommonRedist, setInstallingCommonRedist] = useState(false);
+  const [isSteamImporting, setIsSteamImporting] = useState(false);
+  const [steamImportResult, setSteamImportResult] = useState<{
+    importedCount: number;
+    totalFound: number;
+    alreadyInLibrary: number;
+  } | null>(null);
+
+  const { updateLibrary } = useLibrary();
 
   const [form, setForm] = useState({
     downloadsPath: "",
@@ -488,6 +497,42 @@ export function SettingsGeneral() {
           ? t("installing_common_redist")
           : t("install_common_redist")}
       </Button>
+
+      <h3 className="settings-general__section-title">{t("steam_import")}</h3>
+      <p className="settings-general__section-description">
+        {t("steam_import_description")}
+      </p>
+
+      <Button
+        onClick={async () => {
+          setIsSteamImporting(true);
+          setSteamImportResult(null);
+          try {
+            const result = await window.electron.importSteamGames();
+            setSteamImportResult(result);
+            updateLibrary();
+          } catch (err) {
+            logger.error(err);
+          } finally {
+            setIsSteamImporting(false);
+          }
+        }}
+        className="settings-general__common-redist-button"
+        disabled={isSteamImporting}
+      >
+        <SyncIcon />
+        {isSteamImporting ? t("steam_importing") : t("steam_import_button")}
+      </Button>
+
+      {steamImportResult && (
+        <p className="settings-general__section-description">
+          {t("steam_import_result", {
+            imported: steamImportResult.importedCount,
+            total: steamImportResult.totalFound,
+            existing: steamImportResult.alreadyInLibrary,
+          })}
+        </p>
+      )}
 
       <h3 className="settings-general__section-title">{t("developer")}</h3>
       <p className="settings-general__section-description">

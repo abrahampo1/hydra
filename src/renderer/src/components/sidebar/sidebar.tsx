@@ -26,7 +26,6 @@ import cn from "classnames";
 import {
   ClockIcon,
   CommentDiscussionIcon,
-  DesktopDownloadIcon,
   PlayIcon,
   PlusIcon,
   TrophyIcon,
@@ -35,7 +34,7 @@ import {
 import { SidebarGameItem } from "./sidebar-game-item";
 import { SidebarDragLayer } from "./sidebar-drag-layer";
 import { SidebarAddingCustomGameModal } from "./sidebar-adding-custom-game-modal";
-import { SidebarSteamImportModal } from "./sidebar-steam-import-modal";
+
 import { setFriendRequestCount } from "@renderer/features/user-details-slice";
 import { useDispatch } from "react-redux";
 import { AnimatePresence, motion } from "framer-motion";
@@ -128,7 +127,6 @@ export function Sidebar() {
 
   const [showPlayableOnly, setShowPlayableOnly] = useState(false);
   const [showAddGameModal, setShowAddGameModal] = useState(false);
-  const [showSteamImportModal, setShowSteamImportModal] = useState(false);
 
   const visibleLibraryGames = useMemo(() => {
     return sortedLibrary.filter(
@@ -184,15 +182,6 @@ export function Sidebar() {
 
   const handleCloseAddGameModal = () => {
     setShowAddGameModal(false);
-  };
-
-  const handleImportSteamGames = () => {
-    setShowSteamImportModal(true);
-  };
-
-  const handleCloseSteamImportModal = () => {
-    setShowSteamImportModal(false);
-    updateLibrary();
   };
 
   const loadDeckyPluginInfo = async () => {
@@ -590,16 +579,6 @@ export function Sidebar() {
                 <button
                   type="button"
                   className="sidebar__add-button"
-                  onClick={handleImportSteamGames}
-                  data-tooltip-id="import-steam-games-tooltip"
-                  data-tooltip-content={t("import_steam_games_tooltip")}
-                  data-tooltip-place="top"
-                >
-                  <DesktopDownloadIcon size={16} />
-                </button>
-                <button
-                  type="button"
-                  className="sidebar__add-button"
                   onClick={handleAddGameButtonClick}
                   data-tooltip-id="add-custom-game-tooltip"
                   data-tooltip-content={t("add_custom_game_tooltip")}
@@ -675,11 +654,6 @@ export function Sidebar() {
         onClose={handleCloseAddGameModal}
       />
 
-      <SidebarSteamImportModal
-        visible={showSteamImportModal}
-        onClose={handleCloseSteamImportModal}
-      />
-
       <ConfirmationModal
         visible={showDeckyConfirmModal}
         title={
@@ -698,7 +672,6 @@ export function Sidebar() {
         confirmButtonLabel={t("confirm")}
       />
 
-      <Tooltip id="import-steam-games-tooltip" />
       <Tooltip id="add-custom-game-tooltip" />
       <Tooltip id="show-playable-only-tooltip" />
     </aside>
