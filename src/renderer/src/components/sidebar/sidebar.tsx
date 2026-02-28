@@ -8,6 +8,7 @@ import type { LibraryGame } from "@types";
 import { TextField, ConfirmationModal } from "@renderer/components";
 import {
   useAppSelector,
+  useBigPicture,
   useDownload,
   useLibrary,
   useToast,
@@ -29,6 +30,7 @@ import {
   DesktopDownloadIcon,
   PlayIcon,
   PlusIcon,
+  ScreenFullIcon,
   TrophyIcon,
   XIcon,
 } from "@primer/octicons-react";
@@ -124,6 +126,7 @@ export function Sidebar() {
     (state) => state.userPreferences.value
   );
 
+  const { enterBigPicture } = useBigPicture();
   const { showWarningToast, showSuccessToast, showErrorToast } = useToast();
 
   const [showPlayableOnly, setShowPlayableOnly] = useState(false);
@@ -650,6 +653,16 @@ export function Sidebar() {
       </div>
 
       <div className="sidebar__bottom-buttons">
+        <button
+          type="button"
+          className="sidebar__help-button"
+          onClick={enterBigPicture}
+        >
+          <div className="sidebar__help-button-icon">
+            <ScreenFullIcon size={14} />
+          </div>
+          <span>{t("big_picture_mode")}</span>
+        </button>
         {hasActiveSubscription && (
           <button
             type="button"

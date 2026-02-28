@@ -15,6 +15,7 @@ import "react-tooltip/dist/react-tooltip.css";
 import "sileo/styles.css";
 
 import { App } from "./app";
+import { IPCListenerProvider } from "./components/ipc-listener-provider";
 
 import { store } from "./store";
 
@@ -41,6 +42,13 @@ import News from "./pages/news/news";
 import NewsArticlePage from "./pages/news/news-article";
 import RomPlayer from "./pages/roms/rom-player";
 import RomDetail from "./pages/roms/rom-detail";
+
+import BigPictureApp from "./pages/big-picture/big-picture-app";
+import BigPictureLibrary from "./pages/big-picture/big-picture-library";
+import BigPictureCatalogue from "./pages/big-picture/big-picture-catalogue";
+import BigPictureDownloads from "./pages/big-picture/big-picture-downloads";
+import BigPictureSettings from "./pages/big-picture/big-picture-settings";
+import BigPictureGameDetail from "./pages/big-picture/big-picture-game-detail";
 
 console.log = logger.log;
 
@@ -76,21 +84,34 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <Provider store={store}>
       <HashRouter>
         <Routes>
-          <Route element={<App />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/catalogue" element={<Catalogue />} />
-            <Route path="/library" element={<Library />} />
-            <Route path="/downloads" element={<Downloads />} />
-            <Route path="/game/:shop/:objectId" element={<GameDetails />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/profile/:userId" element={<Profile />} />
-            <Route path="/achievements" element={<Achievements />} />
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/news/article" element={<NewsArticlePage />} />
-            <Route path="/roms" element={<Roms />} />
-            <Route path="/roms/:id" element={<RomDetail />} />
-            <Route path="/roms/play" element={<RomPlayer />} />
+          <Route element={<IPCListenerProvider />}>
+            <Route element={<App />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/catalogue" element={<Catalogue />} />
+              <Route path="/library" element={<Library />} />
+              <Route path="/downloads" element={<Downloads />} />
+              <Route path="/game/:shop/:objectId" element={<GameDetails />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/profile/:userId" element={<Profile />} />
+              <Route path="/achievements" element={<Achievements />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/news/article" element={<NewsArticlePage />} />
+              <Route path="/roms" element={<Roms />} />
+              <Route path="/roms/:id" element={<RomDetail />} />
+              <Route path="/roms/play" element={<RomPlayer />} />
+            </Route>
+
+            <Route path="/big-picture" element={<BigPictureApp />}>
+              <Route index element={<BigPictureLibrary />} />
+              <Route path="catalogue" element={<BigPictureCatalogue />} />
+              <Route path="downloads" element={<BigPictureDownloads />} />
+              <Route path="settings" element={<BigPictureSettings />} />
+              <Route
+                path="game/:shop/:objectId"
+                element={<BigPictureGameDetail />}
+              />
+            </Route>
           </Route>
 
           <Route path="/theme-editor" element={<ThemeEditor />} />
