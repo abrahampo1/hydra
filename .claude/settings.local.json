@@ -92,7 +92,9 @@
       "Bash(yarn install:*)",
       "Bash(rm:*)",
       "Bash(npx eslint:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(yarn build:*)",
+      "Bash(wc:*)"
     ]
   }
 }
