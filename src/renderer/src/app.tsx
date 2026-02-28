@@ -11,6 +11,8 @@ import {
 } from "@renderer/hooks";
 import { useDownloadOptionsListener } from "@renderer/hooks/use-download-options-listener";
 
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   setUserPreferences,
@@ -274,7 +276,7 @@ export function App() {
   }, [playAudio]);
 
   return (
-    <>
+    <DndProvider backend={HTML5Backend}>
       {window.electron.platform === "win32" && (
         <div className="title-bar">
           <h4>
@@ -325,6 +327,6 @@ export function App() {
       </main>
 
       <BottomPanel />
-    </>
+    </DndProvider>
   );
 }

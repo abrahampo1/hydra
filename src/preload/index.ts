@@ -270,6 +270,30 @@ contextBridge.exposeInMainWorld("electron", {
   extractGameDownload: (shop: GameShop, objectId: string) =>
     ipcRenderer.invoke("extractGameDownload", shop, objectId),
   scanInstalledGames: () => ipcRenderer.invoke("scanInstalledGames"),
+  importSteamGames: () => ipcRenderer.invoke("importSteamGames"),
+  onSteamImportProgress: (
+    cb: (value: {
+      totalGames: number;
+      currentIndex: number;
+      currentGame: string;
+      importedCount: number;
+      done: boolean;
+    }) => void
+  ) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      value: {
+        totalGames: number;
+        currentIndex: number;
+        currentGame: string;
+        importedCount: number;
+        done: boolean;
+      }
+    ) => cb(value);
+    ipcRenderer.on("on-steam-import-progress", listener);
+    return () =>
+      ipcRenderer.removeListener("on-steam-import-progress", listener);
+  },
   getDefaultWinePrefixSelectionPath: () =>
     ipcRenderer.invoke("getDefaultWinePrefixSelectionPath"),
   createSteamShortcut: (shop: GameShop, objectId: string) =>

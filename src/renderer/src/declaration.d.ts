@@ -242,6 +242,20 @@ declare global {
       foundGames: { title: string; executablePath: string }[];
       total: number;
     }>;
+    importSteamGames: () => Promise<{
+      importedCount: number;
+      totalFound: number;
+      alreadyInLibrary: number;
+    }>;
+    onSteamImportProgress: (
+      cb: (value: {
+        totalGames: number;
+        currentIndex: number;
+        currentGame: string;
+        importedCount: number;
+        done: boolean;
+      }) => void
+    ) => () => Electron.IpcRenderer;
     onExtractionComplete: (
       cb: (shop: GameShop, objectId: string) => void
     ) => () => Electron.IpcRenderer;

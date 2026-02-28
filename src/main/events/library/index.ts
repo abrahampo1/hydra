@@ -15,6 +15,7 @@ import "./delete-game-installer";
 import "./extract-game-download";
 import "./get-default-wine-prefix-selection-path";
 import "./get-game-by-object-id";
+import "./import-steam-games";
 import "./get-game-installer-action-type";
 import "./get-game-save-folder";
 import "./get-library";
