@@ -315,6 +315,7 @@ export default function NewsArticlePage() {
           )}
 
           {displayContent && (
+            /* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- intercepts anchor clicks to open externally */
             <div
               role="article"
               className="news-article__content"
