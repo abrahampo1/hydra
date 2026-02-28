@@ -62,6 +62,10 @@ export class UpdateManager {
         publishNotificationUpdateReadyToInstall(this.newVersion);
       }
     });
+
+    autoUpdater.on("update-not-available", () => {
+      this.sendEvent({ type: "update-not-available" });
+    });
   }
 
   public static async checkForUpdates() {
@@ -76,6 +80,8 @@ export class UpdateManager {
       });
     } else if (sendEventsForDebug) {
       this.mockValuesForDebug();
+    } else {
+      this.sendEvent({ type: "update-not-available" });
     }
 
     return isAutoInstallAvailable;

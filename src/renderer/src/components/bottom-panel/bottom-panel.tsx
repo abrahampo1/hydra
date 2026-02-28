@@ -18,12 +18,14 @@ import {
   FileZipIcon,
   HorizontalRuleIcon,
   SearchIcon,
+  SyncIcon,
   ToolsIcon,
 } from "@primer/octicons-react";
 import { Upload } from "lucide-react";
 import { formatBytes } from "@shared";
-import type { SeedingStatus } from "@types";
+import type { AppUpdaterEvent, SeedingStatus } from "@types";
 import { SeedingHoverCard } from "./seeding-hover-card";
+import { UpdateModal } from "./update-modal";
 
 type ActivityType =
   | "downloading"
@@ -53,6 +55,10 @@ export function BottomPanel() {
   const [commonRedistStatus, setCommonRedistStatus] = useState<string | null>(
     null
   );
+
+  const [hasUpdate, setHasUpdate] = useState(false);
+  const [isReadyToInstall, setIsReadyToInstall] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   const [seedingStatus, setSeedingStatus] = useState<SeedingStatus[]>([]);
   const [showSeedingCard, setShowSeedingCard] = useState(false);
@@ -98,6 +104,24 @@ export function BottomPanel() {
     const unlisten = window.electron.onSeedingStatus((status) => {
       setSeedingStatus(status);
     });
+
+    return () => unlisten();
+  }, []);
+
+  useEffect(() => {
+    const unlisten = window.electron.onAutoUpdaterEvent(
+      (event: AppUpdaterEvent) => {
+        if (event.type === "update-available") {
+          setHasUpdate(true);
+        }
+
+        if (event.type === "update-downloaded") {
+          setIsReadyToInstall(true);
+        }
+      }
+    );
+
+    window.electron.checkForUpdates();
 
     return () => unlisten();
   }, []);
@@ -333,12 +357,26 @@ export function BottomPanel() {
         </>
       )}
 
-      <div className="bottom-panel__version-button">
+      <button
+        type="button"
+        className="bottom-panel__version-button"
+        onClick={() => setShowUpdateModal(true)}
+      >
+        {(hasUpdate || isReadyToInstall) && (
+          <div className="bottom-panel__update-icon">
+            <SyncIcon size={12} />
+          </div>
+        )}
         <small>
           {sessionHash ? `${sessionHash} -` : ""} v{version} &quot;
           {VERSION_CODENAME}&quot;
         </small>
-      </div>
+      </button>
+
+      <UpdateModal
+        visible={showUpdateModal}
+        onClose={() => setShowUpdateModal(false)}
+      />
     </footer>
   );
 }
