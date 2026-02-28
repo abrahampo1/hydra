@@ -50,7 +50,7 @@ export function NewsArticleCard({ article }: NewsArticleCardProps) {
 
   const translateCard = useCallback(async () => {
     const userLang = getBaseLanguage(i18n.language);
-    if (!userLang || userLang === "en") return;
+    if (!userLang) return;
 
     setIsTranslating(true);
     setTranslationFailed(false);
@@ -62,7 +62,19 @@ export function NewsArticleCard({ article }: NewsArticleCardProps) {
       );
 
       const detectedLang = getBaseLanguage(titleResult.detectedLanguage);
-      if (detectedLang === userLang) return;
+      if (detectedLang === userLang) {
+        dispatch(
+          setArticleTranslation({
+            articleId: article.id,
+            translation: {
+              title: article.title,
+              contentSnippet: article.contentSnippet,
+              detectedLanguage: titleResult.detectedLanguage,
+            },
+          })
+        );
+        return;
+      }
 
       const snippetResult = article.contentSnippet
         ? await window.electron.news.translateText(
@@ -93,7 +105,7 @@ export function NewsArticleCard({ article }: NewsArticleCardProps) {
     if (!isVisible || translation || isTranslating) return;
 
     const userLang = getBaseLanguage(i18n.language);
-    if (!userLang || userLang === "en") return;
+    if (!userLang) return;
 
     translateCard();
   }, [isVisible, translation, isTranslating, i18n.language, translateCard]);
@@ -136,8 +148,7 @@ export function NewsArticleCard({ article }: NewsArticleCardProps) {
 
   const visibleCategories = article.categories.slice(0, 3);
 
-  const showTranslatingStatus =
-    isTranslating && getBaseLanguage(i18n.language) !== "en";
+  const showTranslatingStatus = isTranslating;
 
   return (
     <div className="news-article-card" ref={cardRef}>

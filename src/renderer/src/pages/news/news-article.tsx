@@ -108,7 +108,7 @@ export default function NewsArticlePage() {
     if (!article || !scrapedContent) return;
 
     const userLang = getBaseLanguage(i18n.language);
-    if (!userLang || userLang === "en") return;
+    if (!userLang) return;
 
     setIsTranslating(true);
     setTranslationFailed(false);
@@ -124,7 +124,19 @@ export default function NewsArticlePage() {
           userLang
         );
         detectedLang = getBaseLanguage(titleResult.detectedLanguage);
-        if (detectedLang === userLang) return;
+        if (detectedLang === userLang) {
+          dispatch(
+            setArticleTranslation({
+              articleId: article.id,
+              translation: {
+                title: article.title,
+                contentSnippet: article.contentSnippet,
+                detectedLanguage: titleResult.detectedLanguage,
+              },
+            })
+          );
+          return;
+        }
 
         const snippetResult = article.contentSnippet
           ? await window.electron.news.translateText(
@@ -173,7 +185,7 @@ export default function NewsArticlePage() {
     if (translation?.content) return;
 
     const userLang = getBaseLanguage(i18n.language);
-    if (!userLang || userLang === "en") return;
+    if (!userLang) return;
 
     contentTranslatingRef.current = true;
     translateArticle();
@@ -340,7 +352,7 @@ export default function NewsArticlePage() {
             </button>
           )}
 
-          {isTranslating && getBaseLanguage(i18n.language) !== "en" && (
+          {isTranslating && (
             <span className="news-article__translation-status">
               <Loader2 size={13} className="news-article__spinner" />
               {t("translating")}
