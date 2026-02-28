@@ -9,7 +9,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useGamepad } from "@renderer/hooks/use-gamepad";
 import { useSpatialNavigation } from "@renderer/hooks/use-spatial-navigation";
-import { useBigPicture } from "@renderer/hooks";
+import { useAppSelector, useBigPicture } from "@renderer/hooks";
 import { BigPictureNavbar } from "./big-picture-navbar";
 import "./big-picture-app.scss";
 
@@ -68,6 +68,20 @@ export default function BigPictureApp() {
   const pageHandlerRef = useRef<
     ((direction: "prev" | "next") => boolean) | null
   >(null);
+
+  const gameRunning = useAppSelector((state) => state.gameRunning.gameRunning);
+  const prevGameRunningRef = useRef(gameRunning);
+
+  useEffect(() => {
+    const wasRunning = prevGameRunningRef.current !== null;
+    const isNowStopped = gameRunning === null;
+
+    if (wasRunning && isNowStopped) {
+      window.electron.openMainWindow();
+    }
+
+    prevGameRunningRef.current = gameRunning;
+  }, [gameRunning]);
 
   const registerBackHandler = useCallback((handler: () => boolean) => {
     backHandlerRef.current = handler;
