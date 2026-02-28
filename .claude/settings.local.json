@@ -81,7 +81,18 @@
       "Bash(cd E:/Repositories/hydra && npx eslint src/renderer/src/pages/downloads/downloads.tsx src/renderer/src/pages/downloads/download-group.tsx src/types/download.types.ts 2>&1)",
       "Bash(yarn typecheck:*)",
       "Bash(yarn lint:*)",
-      "Bash(yarn typecheck:node:*)"
+      "Bash(yarn typecheck:node:*)",
+      "Bash(find E:\\\\Repositories\\\\hydra\\\\src:*)",
+      "Bash(yarn typecheck:web:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(yarn add:*)",
+      "Bash(yarn install:*)",
+      "Bash(rm:*)",
+      "Bash(npx eslint:*)",
+      "Bash(find:*)"
     ]
   }
 }
