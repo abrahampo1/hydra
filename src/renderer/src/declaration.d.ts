@@ -397,6 +397,7 @@ declare global {
     ) => () => Electron.IpcRenderer;
 
     /* Misc */
+    setFullScreen: (flag: boolean) => Promise<void>;
     openExternal: (src: string) => Promise<void>;
     openCheckout: () => Promise<void>;
     getVersion: () => Promise<string>;

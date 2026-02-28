@@ -543,6 +543,7 @@ contextBridge.exposeInMainWorld("electron", {
   },
 
   /* Misc */
+  setFullScreen: (flag: boolean) => ipcRenderer.invoke("setFullScreen", flag),
   ping: () => ipcRenderer.invoke("ping"),
   getVersion: () => ipcRenderer.invoke("getVersion"),
   getDefaultDownloadsPath: () => ipcRenderer.invoke("getDefaultDownloadsPath"),
