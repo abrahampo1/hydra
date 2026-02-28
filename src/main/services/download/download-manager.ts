@@ -467,9 +467,10 @@ export class DownloadManager {
       .get<LibtorrentPayload[] | []>("/seed-status")
       .then((res) => res.data);
 
-    if (!seedStatus.length) return;
-
-    logger.log(seedStatus);
+    if (!seedStatus.length) {
+      WindowManager.mainWindow?.webContents.send("on-seeding-status", []);
+      return;
+    }
 
     seedStatus.forEach(async (status) => {
       const download = await downloadsSublevel.get(status.gameId);

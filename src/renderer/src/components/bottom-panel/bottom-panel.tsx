@@ -113,9 +113,11 @@ export function BottomPanel() {
     hoverTimerRef.current = setTimeout(() => {
       if (seedingButtonRef.current) {
         const rect = seedingButtonRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const bottomY = window.innerHeight - rect.top + 8;
         setSeedingCardPosition({
-          x: rect.left,
-          y: rect.top - 8,
+          x: centerX,
+          y: bottomY,
         });
       }
       setShowSeedingCard(true);

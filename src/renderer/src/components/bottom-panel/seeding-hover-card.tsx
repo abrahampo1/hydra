@@ -38,7 +38,7 @@ export function SeedingHoverCard({
   const cardContent = (
     <div
       className="seeding-hover-card"
-      style={{ left: position.x, top: position.y }}
+      style={{ left: position.x, bottom: position.y }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
