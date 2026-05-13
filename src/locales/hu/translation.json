@@ -403,7 +403,13 @@
     "hide_original": "Eredeti elrejtése",
     "review_from_blocked_user": "Letiltott felhasználó véleménye",
     "show": "Megjelenítés",
-    "hide": "Elrejtés"
+    "hide": "Elrejtés",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Feltörve",
+    "uncracked": "Nincs feltörve",
+    "crack_group": "Csoport",
+    "crack_date": "Feltörés dátuma",
+    "protection": "Védelem"
   },
   "activation": {
     "title": "Hydra Aktiválása",

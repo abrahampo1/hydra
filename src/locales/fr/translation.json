@@ -403,7 +403,13 @@
     "searching_save_folder": "Recherche du dossier de sauvegarde...",
     "no_save_folder_found": "Aucun dossier de sauvegarde trouvé",
     "shortcuts_section_title": "Raccourcis",
-    "shortcuts_section_description": "Créer des raccourcis pour lancer rapidement ce jeu"
+    "shortcuts_section_description": "Créer des raccourcis pour lancer rapidement ce jeu",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Cracké",
+    "uncracked": "Non cracké",
+    "crack_group": "Groupe",
+    "crack_date": "Date du crack",
+    "protection": "Protection"
   },
   "activation": {
     "title": "Activer Hydra",

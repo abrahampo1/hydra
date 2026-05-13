@@ -204,7 +204,13 @@
     "create_start_menu_shortcut": "Startmenü-Verknüpfung erstellen",
     "invalid_wine_prefix_path": "Ungültiger Wine-Präfix-Pfad",
     "invalid_wine_prefix_path_description": "Der Pfad zum Wine-Präfix ist ungültig. Bitte überprüfe den Pfad und versuche es erneut.",
-    "missing_wine_prefix": "Wine-Präfix ist erforderlich, um eine Sicherung unter Linux zu erstellen"
+    "missing_wine_prefix": "Wine-Präfix ist erforderlich, um eine Sicherung unter Linux zu erstellen",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Gecrackt",
+    "uncracked": "Nicht gecrackt",
+    "crack_group": "Gruppe",
+    "crack_date": "Crack-Datum",
+    "protection": "Schutz"
   },
   "activation": {
     "title": "Hydra aktivieren",

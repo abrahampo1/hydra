@@ -203,7 +203,13 @@
     "create_start_menu_shortcut": "Skapa genväg i Startmenyn",
     "invalid_wine_prefix_path": "Ogiltig sökväg för Wine-prefix",
     "invalid_wine_prefix_path_description": "Sökvägen till Wine-prefixet är ogiltig. Kontrollera sökvägen och försök igen.",
-    "missing_wine_prefix": "Wine-prefix krävs för att skapa en säkerhetskopia på Linux"
+    "missing_wine_prefix": "Wine-prefix krävs för att skapa en säkerhetskopia på Linux",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Crackad",
+    "uncracked": "Inte crackad",
+    "crack_group": "Grupp",
+    "crack_date": "Crack-datum",
+    "protection": "Skydd"
   },
   "activation": {
     "title": "Aktivera Hydra",

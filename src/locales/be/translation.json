@@ -69,7 +69,13 @@
     "change": "Змяніць",
     "repacks_modal_description": "Абярыце рэпак, які хочаце сцягнуць",
     "select_folder_hint": "Каб змяніць папку па змоўчанні, адкрыйце",
-    "download_now": "Сцягнуць зараз"
+    "download_now": "Сцягнуць зараз",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Узламана",
+    "uncracked": "Не ўзламана",
+    "crack_group": "Група",
+    "crack_date": "Дата ўзлому",
+    "protection": "Абарона"
   },
   "activation": {
     "title": "Актываваць Hydra",

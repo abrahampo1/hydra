@@ -384,7 +384,13 @@
     "hide_original": "Skrij original",
     "review_from_blocked_user": "Mnenje blokiranega uporabnika",
     "show": "Pokaži",
-    "hide": "Skrij"
+    "hide": "Skrij",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Vlomljeno",
+    "uncracked": "Ni vlomljeno",
+    "crack_group": "Skupina",
+    "crack_date": "Datum vloma",
+    "protection": "Zaščita"
   },
   "activation": {
     "title": "Aktiviraj Hydra",

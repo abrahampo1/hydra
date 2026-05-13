@@ -110,7 +110,13 @@
     "download_paused": "Descàrrega en pausa",
     "last_downloaded_option": "Opció de l'última descàrrega",
     "create_shortcut_success": "Accés directe creat satisfactòriament",
-    "create_shortcut_error": "Error al crear l'accés directe"
+    "create_shortcut_error": "Error al crear l'accés directe",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Crackejat",
+    "uncracked": "No crackejat",
+    "crack_group": "Grup",
+    "crack_date": "Data del crack",
+    "protection": "Protecció"
   },
   "activation": {
     "title": "Activa l'Hydra",

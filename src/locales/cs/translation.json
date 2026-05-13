@@ -196,7 +196,13 @@
     "download_error_not_cached_on_torbox": "Toto stahování není dostupné na TorBox a získávání informací o stahování z TorBox není zatím dostupné.",
     "game_removed_from_favorites": "Hra odebrána z oblíbených",
     "game_added_to_favorites": "Hra přidána do oblíbených",
-    "automatically_extract_downloaded_files": "Automaticky rozbalit stažené soubory"
+    "automatically_extract_downloaded_files": "Automaticky rozbalit stažené soubory",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Cracknuto",
+    "uncracked": "Nedostupný crack",
+    "crack_group": "Skupina",
+    "crack_date": "Datum cracku",
+    "protection": "Ochrana"
   },
   "activation": {
     "title": "Aktivovat hydru",

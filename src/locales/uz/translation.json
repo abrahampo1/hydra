@@ -167,7 +167,13 @@
     "download_error_not_cached_on_torbox": "Bu yuklab olish TorBox'da mavjud emas, va TorBox'dan yuklab olish holatini olish hozircha mumkin emas.",
     "game_added_to_favorites": "O'yin sevimlilarga qo'shildi",
     "game_removed_from_favorites": "O'yin sevimlilardan olib tashlandi",
-    "automatically_extract_downloaded_files": "Yuklab olingan fayllarni avtomatik chiqarish"
+    "automatically_extract_downloaded_files": "Yuklab olingan fayllarni avtomatik chiqarish",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Crack qilingan",
+    "uncracked": "Crack qilinmagan",
+    "crack_group": "Guruh",
+    "crack_date": "Crack sanasi",
+    "protection": "Himoya"
   },
   "activation": {
     "title": "Hydra'ni faollashtirish",

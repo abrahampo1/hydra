@@ -392,7 +392,13 @@
     "rating_count": "Avaliação",
     "review_from_blocked_user": "Avaliação de usuário bloqueado",
     "show": "Mostrar",
-    "hide": "Ocultar"
+    "hide": "Ocultar",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Crackeado",
+    "uncracked": "Sem crack",
+    "crack_group": "Grupo",
+    "crack_date": "Data do crack",
+    "protection": "Proteção"
   },
   "activation": {
     "title": "Ativação",

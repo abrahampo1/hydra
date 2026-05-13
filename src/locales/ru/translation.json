@@ -395,7 +395,13 @@
     "hide_original": "Скрыть оригинал",
     "review_from_blocked_user": "Отзыв от заблокированного пользователя",
     "show": "Показать",
-    "hide": "Скрыть"
+    "hide": "Скрыть",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Взломана",
+    "uncracked": "Не взломана",
+    "crack_group": "Группа",
+    "crack_date": "Дата взлома",
+    "protection": "Защита"
   },
   "activation": {
     "title": "Активировать Hydra",

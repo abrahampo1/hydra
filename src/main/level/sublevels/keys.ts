@@ -8,6 +8,7 @@ export const levelKeys = {
   themes: "themes",
   gameShopAssets: "gameShopAssets",
   gameStatsCache: "gameStatsAssets",
+  crackwatchCache: "crackwatchCache",
   gameShopCache: "gameShopCache",
   gameShopCacheItem: (shop: GameShop, objectId: string, language: string) =>
     `${shop}:${objectId}:${language}`,

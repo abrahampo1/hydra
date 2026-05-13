@@ -315,9 +315,9 @@
     "playing_for_time": "Jugando desde hace {{hours}}h {{minutes}}m",
     "playing_for_minutes": "Jugando desde hace {{minutes}}m",
     "friends": "Amigos",
-    "online": "En l\u00ednea",
+    "online": "En línea",
     "offline": "Desconectados",
-    "no_friends_yet": "A\u00fan no tienes amigos agregados"
+    "no_friends_yet": "Aún no tienes amigos agregados"
   },
   "bottom_panel": {
     "no_downloads_in_progress": "Sin descargas en progreso",
@@ -633,7 +633,13 @@
     "hide": "Ocultar",
     "publisher_games": "Más de {{publisher}}",
     "about_this_game": "Sobre este juego",
-    "media": "Multimedia"
+    "media": "Multimedia",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Crackeado",
+    "uncracked": "Sin crackear",
+    "crack_group": "Grupo",
+    "crack_date": "Fecha del crack",
+    "protection": "Protección"
   },
   "activation": {
     "title": "Activar Hydra",

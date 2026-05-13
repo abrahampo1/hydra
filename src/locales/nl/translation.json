@@ -69,7 +69,13 @@
     "change": "Verander",
     "repacks_modal_description": "Kies de herverpakking die u wilt downloaden",
     "select_folder_hint": "Om de standaardmap te wijzigen, gaat u naar <0>instellingen</0>",
-    "download_now": "Download nu"
+    "download_now": "Download nu",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Gekraakt",
+    "uncracked": "Niet gekraakt",
+    "crack_group": "Groep",
+    "crack_date": "Kraakdatum",
+    "protection": "Beveiliging"
   },
   "activation": {
     "title": "Activeer Hydra",

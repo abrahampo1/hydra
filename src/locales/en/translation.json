@@ -653,7 +653,13 @@
     "hide": "Hide",
     "publisher_games": "More from {{publisher}}",
     "about_this_game": "About this game",
-    "media": "Media"
+    "media": "Media",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Cracked",
+    "uncracked": "Uncracked",
+    "crack_group": "Group",
+    "crack_date": "Crack date",
+    "protection": "Protection"
   },
   "activation": {
     "title": "Activate Hydra",

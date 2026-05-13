@@ -203,7 +203,13 @@
     "create_start_menu_shortcut": "Създай пряк път в старт менюто",
     "invalid_wine_prefix_path": "Невалиден път до Wine префикса",
     "invalid_wine_prefix_path_description": "Пътят до Wine префикса е невалиден. Моля, проверете го и опитайте отново.",
-    "missing_wine_prefix": "Wine префикс е необходим за създаване на архив в Linux"
+    "missing_wine_prefix": "Wine префикс е необходим за създаване на архив в Linux",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Кракнато",
+    "uncracked": "Некракнато",
+    "crack_group": "Група",
+    "crack_date": "Дата на крака",
+    "protection": "Защита"
   },
   "activation": {
     "title": "Активирай Hydra",

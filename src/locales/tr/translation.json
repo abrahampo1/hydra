@@ -369,7 +369,13 @@
     "hide_original": "Orijinali gizle",
     "review_from_blocked_user": "Engellenen kullanıcıdan gelen inceleme",
     "show": "Göster",
-    "hide": "Gizle"
+    "hide": "Gizle",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Kırıldı",
+    "uncracked": "Kırılmadı",
+    "crack_group": "Grup",
+    "crack_date": "Kırılma tarihi",
+    "protection": "Koruma"
   },
   "activation": {
     "title": "Hydra'yı Etkinleştir",

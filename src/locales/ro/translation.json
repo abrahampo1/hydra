@@ -81,7 +81,13 @@
     "screenshot": "Captură de ecran {{number}}",
     "open_screenshot": "Deschide captura de ecran {{number}}",
     "download_settings": "Setări de descărcare",
-    "downloader": "Program de descărcare"
+    "downloader": "Program de descărcare",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Spart",
+    "uncracked": "Nespart",
+    "crack_group": "Grup",
+    "crack_date": "Data spargerii",
+    "protection": "Protecție"
   },
   "activation": {
     "title": "Activează Hydra",

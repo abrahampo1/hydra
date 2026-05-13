@@ -109,7 +109,13 @@
     "download_paused": "Жүктеу тоқтатылды",
     "last_downloaded_option": "Соңғы жүктеу нұсқасы",
     "create_shortcut_success": "Жарлық жасалды",
-    "create_shortcut_error": "Жарлық жасау мүмкін болмады"
+    "create_shortcut_error": "Жарлық жасау мүмкін болмады",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Бұзылған",
+    "uncracked": "Бұзылмаған",
+    "crack_group": "Топ",
+    "crack_date": "Бұзу күні",
+    "protection": "Қорғаныс"
   },
   "activation": {
     "title": "Hydra-ны белсендіру",

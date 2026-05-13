@@ -534,7 +534,13 @@
     "create_steam_shortcut_modal_cancel_button": "キャンセル",
     "delete_shortcut_success": "Steamショートカットを削除しました",
     "delete_shortcut_error": "Steamショートカットの削除に失敗しました",
-    "delete_steam_shortcut": "Steamショートカットを削除"
+    "delete_steam_shortcut": "Steamショートカットを削除",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "クラック済み",
+    "uncracked": "未クラック",
+    "crack_group": "グループ",
+    "crack_date": "クラック日",
+    "protection": "保護"
   },
   "activation": {
     "title": "Hydraをアクティベート",

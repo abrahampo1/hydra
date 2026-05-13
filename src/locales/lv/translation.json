@@ -360,7 +360,13 @@
     "caption": "Subtitri",
     "audio": "Audio",
     "filter_by_source": "Filtrēt pēc avota",
-    "no_repacks_found": "Avoti šai spēlei nav atrasti"
+    "no_repacks_found": "Avoti šai spēlei nav atrasti",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Uzlauzts",
+    "uncracked": "Nav uzlauzts",
+    "crack_group": "Grupa",
+    "crack_date": "Uzlaušanas datums",
+    "protection": "Aizsardzība"
   },
   "activation": {
     "title": "Aktivizēt Hydra",

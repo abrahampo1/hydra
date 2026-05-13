@@ -392,7 +392,13 @@
     "shortcuts_section_description": "Criar atalhos para iniciar este jogo rapidamente",
     "source_offline": "Fonte está offline",
     "source_online": "Fonte está online",
-    "source_partial": "Alguns links estão offline"
+    "source_partial": "Alguns links estão offline",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Crackado",
+    "uncracked": "Sem crack",
+    "crack_group": "Grupo",
+    "crack_date": "Data do crack",
+    "protection": "Proteção"
   },
   "activation": {
     "title": "Ativação",

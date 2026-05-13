@@ -403,7 +403,13 @@
     "hide_original": "Nascondi originale",
     "review_from_blocked_user": "Recensione di un utente bloccato",
     "show": "Mostra",
-    "hide": "Nascondi"
+    "hide": "Nascondi",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Craccato",
+    "uncracked": "Non craccato",
+    "crack_group": "Gruppo",
+    "crack_date": "Data del crack",
+    "protection": "Protezione"
   },
   "activation": {
     "title": "Attiva Hydra",

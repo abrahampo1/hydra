@@ -356,7 +356,13 @@
     "caption": "Субтитри",
     "audio": "Аудіо",
     "filter_by_source": "Фільтр за джерелом",
-    "no_repacks_found": "Джерела для цієї гри не знайдено"
+    "no_repacks_found": "Джерела для цієї гри не знайдено",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Зламано",
+    "uncracked": "Не зламано",
+    "crack_group": "Група",
+    "crack_date": "Дата злому",
+    "protection": "Захист"
   },
   "activation": {
     "title": "Активувати Hydra",

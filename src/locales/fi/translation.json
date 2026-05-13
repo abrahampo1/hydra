@@ -360,7 +360,13 @@
     "caption": "Tekstitys",
     "audio": "Ääni",
     "filter_by_source": "Suodata lähteen mukaan",
-    "no_repacks_found": "Tämän pelin lähteitä ei löytynyt"
+    "no_repacks_found": "Tämän pelin lähteitä ei löytynyt",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Crackattu",
+    "uncracked": "Ei crackattu",
+    "crack_group": "Ryhmä",
+    "crack_date": "Crackin päivämäärä",
+    "protection": "Suojaus"
   },
   "activation": {
     "title": "Aktivoi Hydra",

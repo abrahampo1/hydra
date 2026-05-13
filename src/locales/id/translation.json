@@ -109,7 +109,13 @@
     "download_paused": "Unduhan dijeda",
     "last_downloaded_option": "Opsi terakhir diunduh",
     "create_shortcut_success": "Pintasan berhasil dibuat",
-    "create_shortcut_error": "Gagal membuat pintasan"
+    "create_shortcut_error": "Gagal membuat pintasan",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Sudah di-crack",
+    "uncracked": "Belum di-crack",
+    "crack_group": "Grup",
+    "crack_date": "Tanggal crack",
+    "protection": "Proteksi"
   },
   "activation": {
     "title": "Aktifkan Hydra",

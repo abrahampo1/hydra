@@ -190,7 +190,13 @@
     "download_error_not_cached_on_real_debrid": "هذا التنزيل غير متوفر على Real-Debrid وجلب حالة التنزيل من Real-Debrid غير متاح حاليًا.",
     "download_error_not_cached_on_torbox": "هذا التنزيل غير متوفر على TorBox وجلب حالة التنزيل من TorBox غير متاح حاليًا.",
     "game_removed_from_favorites": "تمت إزالة اللعبة من المفضلة",
-    "game_added_to_favorites": "تمت إضافة اللعبة إلى المفضلة"
+    "game_added_to_favorites": "تمت إضافة اللعبة إلى المفضلة",
+    "crackwatch_status": "كراك ووتش",
+    "cracked": "مكسور",
+    "uncracked": "غير مكسور",
+    "crack_group": "المجموعة",
+    "crack_date": "تاريخ الكراك",
+    "protection": "الحماية"
   },
   "activation": {
     "title": "تفعيل Hydra",

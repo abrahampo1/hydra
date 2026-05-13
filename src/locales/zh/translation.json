@@ -365,7 +365,13 @@
     "would_you_recommend_this_game": "您想为此游戏留下评价吗？",
     "write_review_placeholder": "分享您对本游戏的看法...",
     "yes": "是",
-    "you_seemed_to_enjoy_this_game": "您似乎很喜欢这款游戏"
+    "you_seemed_to_enjoy_this_game": "您似乎很喜欢这款游戏",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "已破解",
+    "uncracked": "未破解",
+    "crack_group": "破解组",
+    "crack_date": "破解日期",
+    "protection": "保护"
   },
   "activation": {
     "title": "激活 Hydra",

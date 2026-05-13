@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import type {
+  CrackWatchStatus,
   HowLongToBeatCategory,
   SteamAppDetails,
   UserAchievement,
@@ -16,6 +17,7 @@ import {
   StarIcon,
 } from "@primer/octicons-react";
 import { HowLongToBeatSection } from "./how-long-to-beat-section";
+import { CrackWatchSection } from "./crackwatch-section";
 import { SidebarSection } from "../sidebar-section/sidebar-section";
 import { buildGameAchievementPath } from "@renderer/helpers";
 import "./sidebar.scss";
@@ -61,6 +63,11 @@ export function Sidebar() {
     data: HowLongToBeatCategory[] | null;
   }>({ isLoading: true, data: null });
 
+  const [crackwatch, setCrackwatch] = useState<{
+    isLoading: boolean;
+    data: CrackWatchStatus | null;
+  }>({ isLoading: true, data: null });
+
   const { userDetails } = useUserDetails();
   const [activeRequirement, setActiveRequirement] =
     useState<keyof SteamAppDetails["pc_requirements"]>("minimum");
@@ -92,6 +99,21 @@ export function Sidebar() {
         });
     }
   }, [objectId, shop]);
+
+  useEffect(() => {
+    if (objectId) {
+      setCrackwatch({ isLoading: true, data: null });
+
+      window.electron
+        .getCrackWatchStatus(objectId, shop, gameTitle)
+        .then((data) => {
+          setCrackwatch({ isLoading: false, data });
+        })
+        .catch(() => {
+          setCrackwatch({ isLoading: false, data: null });
+        });
+    }
+  }, [objectId, shop, gameTitle]);
 
   return (
     <aside className="content-sidebar">
@@ -220,6 +242,11 @@ export function Sidebar() {
       <HowLongToBeatSection
         howLongToBeatData={howLongToBeat.data}
         isLoading={howLongToBeat.isLoading}
+      />
+
+      <CrackWatchSection
+        data={crackwatch.data}
+        isLoading={crackwatch.isLoading}
       />
 
       <SidebarSection title={t("requirements")}>
