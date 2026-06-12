@@ -164,7 +164,9 @@ export class HydraApi {
         },
         (error) => {
           logger.error(" ---- RESPONSE ERROR -----");
-          const { config } = error;
+          // Errors thrown outside the HTTP layer (e.g. the local adapter) may
+          // not carry an axios config.
+          const config = error.config ?? {};
 
           const data = JSON.parse(config.data ?? null);
 
@@ -172,7 +174,7 @@ export class HydraApi {
             config.method,
             config.baseURL,
             config.url,
-            omit(config.headers, [
+            omit(config.headers ?? {}, [
               "accessToken",
               "refreshToken",
               "Authorization",

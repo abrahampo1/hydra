@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import type {
   AxiosAdapter,
   AxiosResponse,
@@ -9,6 +10,7 @@ import type { CatalogueSearchResult, GameStats, TrendingGame } from "@types";
 import { logger } from "../logger";
 import {
   buildSteamAssets,
+  getBrowseCatalogue,
   getSectionAssets,
   resolveSteamTitle,
   searchSteamGames,
@@ -16,6 +18,7 @@ import {
 import {
   annotateSourcesForTitles,
   findRepacks,
+  getSourceIdsByFingerprints,
   ingestDownloadSource,
 } from "./download-source-index";
 
@@ -71,34 +74,49 @@ const handleCatalogueSearch = async (config: InternalAxiosRequestConfig) => {
   const term: string = body.title ?? "";
   const take: number = body.take ?? 24;
   const skip: number = body.skip ?? 0;
+  const fingerprints: string[] = Array.isArray(body.downloadSourceFingerprints)
+    ? body.downloadSourceFingerprints
+    : [];
 
-  if (!term.trim()) {
-    return { edges: [] as CatalogueSearchResult[], count: 0 };
-  }
-
-  const items = await searchSteamGames(term, "english", skip + take + 12);
-  const page = items.slice(skip, skip + take);
+  // With a term we search the Steam store; without one (the default catalogue
+  // view) we browse the cached steam250 pool so the page is never empty.
+  const candidates = term.trim()
+    ? (await searchSteamGames(term, "english", skip + take + 12)).map(
+        (item) => ({ objectId: String(item.id), title: item.name })
+      )
+    : await getBrowseCatalogue();
 
   const sourcesByTitle = await annotateSourcesForTitles(
-    page.map((item) => item.name)
+    candidates.map((candidate) => candidate.title)
   );
 
-  const edges: CatalogueSearchResult[] = page.map((item) => {
-    const objectId = String(item.id);
-    const assets = buildSteamAssets(objectId, item.name);
+  let filtered = candidates;
+  if (fingerprints.length) {
+    const allowedIds = await getSourceIdsByFingerprints(fingerprints);
+    filtered = candidates.filter((candidate) =>
+      (sourcesByTitle.get(candidate.title) ?? []).some((id) =>
+        allowedIds.has(id)
+      )
+    );
+  }
+
+  const page = filtered.slice(skip, skip + take);
+
+  const edges: CatalogueSearchResult[] = page.map((candidate) => {
+    const assets = buildSteamAssets(candidate.objectId, candidate.title);
 
     return {
-      id: `steam:${objectId}`,
-      objectId,
-      title: item.name,
+      id: `steam:${candidate.objectId}`,
+      objectId: candidate.objectId,
+      title: candidate.title,
       shop: "steam" as const,
       genres: [],
       libraryImageUrl: assets.libraryImageUrl,
-      downloadSources: sourcesByTitle.get(item.name) ?? [],
+      downloadSources: sourcesByTitle.get(candidate.title) ?? [],
     };
   });
 
-  return { edges, count: items.length };
+  return { edges, count: filtered.length };
 };
 
 const handleCatalogueSuggestions = async (
@@ -128,9 +146,22 @@ const handleCatalogueSection = async (
   const params = config.params ?? {};
   const take = Number(params.take ?? 12);
 
+  const assets = await getSectionAssets(
+    category === "featured" ? "featured" : category,
+    take
+  );
+
+  const sourcesByTitle = await annotateSourcesForTitles(
+    assets.map((asset) => asset.title)
+  );
+
+  const annotated = assets.map((asset) => ({
+    ...asset,
+    downloadSources: sourcesByTitle.get(asset.title) ?? [],
+  }));
+
   if (category === "featured") {
-    const assets = await getSectionAssets("featured", take);
-    return assets.map(
+    return annotated.map(
       (asset): TrendingGame => ({
         ...asset,
         description: null,
@@ -139,14 +170,19 @@ const handleCatalogueSection = async (
     );
   }
 
-  return getSectionAssets(category, take);
+  return annotated;
 };
 
 const handleGameAssets = async (shop: string, objectId: string) => {
   if (shop !== "steam") return null;
 
   const title = (await resolveSteamTitle(objectId)) ?? "";
-  return buildSteamAssets(objectId, title);
+  const assets = buildSteamAssets(objectId, title);
+
+  if (!title) return assets;
+
+  const sourcesByTitle = await annotateSourcesForTitles([title]);
+  return { ...assets, downloadSources: sourcesByTitle.get(title) ?? [] };
 };
 
 const handleGameRepacks = async (
@@ -254,6 +290,18 @@ const resolveLocalRequest = async (
 };
 
 export const localApiAdapter: AxiosAdapter = async (config) => {
-  const data = await resolveLocalRequest(config);
-  return buildResponse(config, data);
+  try {
+    const data = await resolveLocalRequest(config);
+    return buildResponse(config, data);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error("Local API: request failed", {
+      method: config.method,
+      url: config.url,
+      message,
+    });
+    // Reject with a proper AxiosError (config attached) so HydraApi's
+    // interceptors and callers can handle it like any other request failure.
+    throw new AxiosError(message, AxiosError.ERR_BAD_RESPONSE, config);
+  }
 };

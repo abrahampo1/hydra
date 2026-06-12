@@ -57,17 +57,18 @@ export const loadState = async () => {
     DeckyPlugin.checkAndUpdateIfOutdated();
   }
 
+  // Migrate legacy sources and index any download source that still lacks
+  // local entries (e.g. sources added through the old remote backend) so
+  // repacks resolve offline. Independent of the API setup below so the local
+  // index is built even when the API bootstrap fails.
+  void (async () => {
+    await migrateDownloadSources();
+    await reconcileDownloadSourceEntries();
+  })();
+
   try {
     await HydraApi.setupApi();
     uploadGamesBatch();
-
-    // Migrate legacy sources and index any download source that still lacks
-    // local entries (e.g. sources added through the old remote backend) so
-    // repacks resolve offline. Kept off the startup critical path.
-    void (async () => {
-      await migrateDownloadSources();
-      await reconcileDownloadSourceEntries();
-    })();
 
     const { syncDownloadSourcesFromApi } = await import("./services/user");
     void syncDownloadSourcesFromApi();

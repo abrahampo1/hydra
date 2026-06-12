@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import type { ShopAssets } from "@types";
+import type { ShopAssets, Steam250Game } from "@types";
 
 import { gamesShopAssetsSublevel, levelKeys } from "@main/level";
 import { getSteamAppDetails } from "../steam";
@@ -103,4 +103,44 @@ export const getSectionAssets = async (
   return games
     .slice(0, take)
     .map((game) => buildSteamAssets(game.objectId, game.title));
+};
+
+let browseCache: { games: Steam250Game[]; fetchedAt: number } | null = null;
+const BROWSE_CACHE_TTL_MS = 30 * 60 * 1000;
+
+/** Most recognizable games first so the default listing feels curated. */
+const BROWSE_LIST_PATHS = [
+  "/most_played",
+  "/top250",
+  `/${new Date().getFullYear()}`,
+  "/hidden_gems",
+];
+
+/**
+ * Pool of well-known games used as the default catalogue listing when the
+ * user browses without a search term. Combines every steam250 list the app
+ * already consumes; cached in memory since scraping is slow.
+ */
+export const getBrowseCatalogue = async (): Promise<Steam250Game[]> => {
+  if (browseCache && Date.now() - browseCache.fetchedAt < BROWSE_CACHE_TTL_MS) {
+    return browseCache.games;
+  }
+
+  const lists = await Promise.all(
+    BROWSE_LIST_PATHS.map((path) => requestSteam250(path))
+  );
+
+  const seen = new Set<string>();
+  const games: Steam250Game[] = [];
+  for (const game of lists.flat()) {
+    if (!game || seen.has(game.objectId)) continue;
+    seen.add(game.objectId);
+    games.push(game);
+  }
+
+  if (games.length) {
+    browseCache = { games, fetchedAt: Date.now() };
+  }
+
+  return games;
 };

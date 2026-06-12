@@ -1,4 +1,4 @@
-import axios from "axios";
+import { BrowserWindow, app, net } from "electron";
 
 import type { DownloadSource, GameRepack } from "@types";
 import { DownloadSourceStatus } from "@shared";
@@ -24,6 +24,108 @@ import {
  * lives in `matching.ts`; this module only adds the storage/network glue.
  */
 
+/** Browser-like UA: the `Electron`/app tokens raise Cloudflare's bot score. */
+const browserLikeUserAgent = () =>
+  app.userAgentFallback.replace(/\s(Electron|hydralauncher|Hydra)\/\S+/gi, "");
+
+const parseSourceJson = (text: string): RawDownloadSourceJson =>
+  JSON.parse(text.replace(/^\uFEFF/, ""));
+
+/**
+ * Last-resort fetch for hosts behind a Cloudflare JS challenge: load the URL
+ * in a small visible window so the challenge can render and, if interactive,
+ * the user can complete it. The window's session shares cookies with the rest
+ * of the app, so once the challenge clears, the body is the raw JSON.
+ *
+ * The load is deliberately not awaited: the challenge page navigates several
+ * times before settling, which can leave `loadURL` pending indefinitely.
+ */
+const fetchSourceViaChallengeWindow = async (
+  url: string
+): Promise<RawDownloadSourceJson> => {
+  const window = new BrowserWindow({
+    width: 460,
+    height: 580,
+    title: "Security verification",
+    autoHideMenuBar: true,
+    webPreferences: {
+      sandbox: true,
+      contextIsolation: true,
+      backgroundThrottling: false,
+    },
+  });
+
+  window.webContents.setUserAgent(browserLikeUserAgent());
+
+  let closedByUser = false;
+  window.on("closed", () => {
+    closedByUser = true;
+  });
+
+  window.loadURL(url).catch(() => undefined);
+
+  try {
+    const deadline = Date.now() + 120_000;
+    while (Date.now() < deadline) {
+      if (closedByUser) {
+        throw new Error("Security verification window was closed");
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1_500));
+
+      if (closedByUser || window.isDestroyed()) {
+        throw new Error("Security verification window was closed");
+      }
+
+      const text: string = await window.webContents
+        .executeJavaScript("document.body ? document.body.innerText : ''", true)
+        .catch(() => "");
+
+      try {
+        return parseSourceJson(text);
+      } catch {
+        // Challenge still running; the page reloads itself once cleared.
+      }
+    }
+
+    throw new Error("Cloudflare challenge was not solved in time");
+  } finally {
+    if (!window.isDestroyed()) window.destroy();
+  }
+};
+
+/**
+ * Fetches a download source JSON through Chromium's network stack
+ * (`net.fetch`) with a browser-like UA \u2014 Node's TLS fingerprint (plain axios)
+ * gets rejected by Cloudflare regardless of headers. Falls back to a hidden
+ * window when the host still serves a JS challenge.
+ */
+const fetchDownloadSourceJson = async (
+  url: string
+): Promise<RawDownloadSourceJson> => {
+  const response = await net.fetch(url, {
+    headers: {
+      Accept: "application/json, text/plain, */*",
+      "User-Agent": browserLikeUserAgent(),
+    },
+    signal: AbortSignal.timeout(60_000),
+  });
+
+  if (response.ok) {
+    return parseSourceJson(await response.text());
+  }
+
+  if (response.status === 403 || response.status === 503) {
+    logger.info(
+      "Download source fetch was challenged, retrying in a visible window",
+      { url, status: response.status }
+    );
+    return fetchSourceViaChallengeWindow(url);
+  }
+
+  throw new Error(`Failed to fetch download source (HTTP ${response.status})`);
+};
+
 /**
  * Downloads and parses a download source JSON file, persisting its entries
  * locally so repacks can be resolved offline.
@@ -31,13 +133,7 @@ import {
 export const ingestDownloadSource = async (
   url: string
 ): Promise<DownloadSource> => {
-  const { data } = await axios.get<RawDownloadSourceJson | string>(url, {
-    responseType: "json",
-    timeout: 60_000,
-  });
-
-  const parsed: RawDownloadSourceJson =
-    typeof data === "string" ? JSON.parse(data) : data;
+  const parsed = await fetchDownloadSourceJson(url);
 
   if (!parsed || !Array.isArray(parsed.downloads)) {
     throw new Error("Invalid download source format");
@@ -81,6 +177,25 @@ export const annotateSourcesForTitles = async (
 ): Promise<Map<string, string[]>> => {
   const perSource = await downloadSourceEntriesSublevel.values().all();
   return annotateSourcesInEntries(perSource, titles);
+};
+
+/**
+ * Maps download source fingerprints (what the catalogue filter sends) to the
+ * locally stored source ids used by the entries index.
+ */
+export const getSourceIdsByFingerprints = async (
+  fingerprints: string[]
+): Promise<Set<string>> => {
+  if (!fingerprints.length) return new Set();
+
+  const wanted = new Set(fingerprints);
+  const sources = await downloadSourcesSublevel.values().all();
+
+  return new Set(
+    sources
+      .filter((source) => source.fingerprint && wanted.has(source.fingerprint))
+      .map((source) => source.id)
+  );
 };
 
 /**
