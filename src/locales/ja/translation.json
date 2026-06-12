@@ -554,7 +554,6 @@
     "removed": "未ダウンロード",
     "cancel": "キャンセル",
     "cancel_download": "ダウンロードをキャンセルしますか？",
-    "cancel_download_description": "このダウンロードをキャンセルしてもよろしいですか？ダウンロード済みのファイルはすべて削除されます。",
     "keep_downloading": "いいえ、ダウンロードを続ける",
     "yes_cancel": "はい、キャンセルする",
     "filter": "ダウンロード済みゲームを絞り込む",

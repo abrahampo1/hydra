@@ -412,7 +412,6 @@
     "removed": "Cancelado",
     "cancel": "Cancelar",
     "cancel_download": "Cancelar download?",
-    "cancel_download_description": "Tem certeza de que deseja cancelar este download? Todos os arquivos baixados serão excluídos.",
     "keep_downloading": "Não, continuar baixando",
     "yes_cancel": "Sim, cancelar",
     "filter": "Filtrar jogos baixados",

@@ -450,7 +450,6 @@
     "network": "RÉSEAU",
     "peak": "PIC",
     "cancel_download": "Annuler le téléchargement ?",
-    "cancel_download_description": "Êtes-vous sûr de vouloir annuler ce téléchargement ? Tous les fichiers téléchargés seront supprimés.",
     "keep_downloading": "Non, continuer le téléchargement",
     "yes_cancel": "Oui, annuler",
     "move_up": "Déplacer vers le haut",

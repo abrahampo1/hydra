@@ -58,28 +58,44 @@ export function useDownload() {
   };
 
   const removeGameInstaller = async (shop: GameShop, objectId: string) => {
-    dispatch(setGameDeleting(objectId));
+    // Consumers check isGameDeleting with the composite game id (`shop:objectId`)
+    const gameKey = `${shop}:${objectId}`;
+    dispatch(setGameDeleting(gameKey));
 
     try {
       await window.electron.deleteGameFolder(shop, objectId);
       updateLibrary();
     } finally {
-      dispatch(removeGameFromDeleting(objectId));
+      dispatch(removeGameFromDeleting(gameKey));
     }
   };
 
-  const cancelDownload = async (shop: GameShop, objectId: string) => {
+  const removeDownloadFromList = async (shop: GameShop, objectId: string) => {
+    await window.electron.removeGame(shop, objectId);
+    updateLibrary();
+  };
+
+  const cancelDownload = async (
+    shop: GameShop,
+    objectId: string,
+    deleteFiles = true
+  ) => {
     const gameId = `${shop}:${objectId}`;
     const isActiveDownload = lastPacket?.gameId === gameId;
 
-    await window.electron.cancelGameDownload(shop, objectId);
+    await window.electron.cancelGameDownload(shop, objectId, deleteFiles);
 
     if (isActiveDownload) {
       dispatch(clearDownload());
     }
 
     updateLibrary();
-    removeGameInstaller(shop, objectId);
+
+    if (deleteFiles) {
+      removeGameInstaller(shop, objectId);
+    } else {
+      removeDownloadFromList(shop, objectId);
+    }
   };
 
   const removeGameFromLibrary = (shop: GameShop, objectId: string) =>
@@ -133,6 +149,7 @@ export function useDownload() {
     cancelDownload,
     removeGameFromLibrary,
     removeGameInstaller,
+    removeDownloadFromList,
     isGameDeleting,
     pauseSeeding,
     resumeSeeding,

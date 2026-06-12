@@ -521,13 +521,16 @@ export class DownloadManager {
     return this.startDownload(download);
   }
 
-  static async cancelDownload(downloadKey = this.downloadingGameId) {
+  static async cancelDownload(
+    downloadKey = this.downloadingGameId,
+    deleteFiles = true
+  ) {
     const isActiveDownload = downloadKey === this.downloadingGameId;
 
     if (isActiveDownload) {
       if (this.usingJsDownloader && this.jsDownloader) {
         logger.log("[DownloadManager] Cancelling JS download");
-        this.jsDownloader.cancelDownload();
+        this.jsDownloader.cancelDownload(deleteFiles);
         this.jsDownloader = null;
         this.usingJsDownloader = false;
       } else if (!this.isPreparingDownload) {
@@ -986,6 +989,12 @@ export class DownloadManager {
 
       try {
         const options = await this.getJsDownloadOptions(download);
+
+        // The download may have been cancelled (or replaced by another one)
+        // while the download URL was being resolved
+        if (this.downloadingGameId !== downloadId) {
+          return;
+        }
 
         if (!options) {
           this.isPreparingDownload = false;

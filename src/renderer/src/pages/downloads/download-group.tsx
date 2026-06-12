@@ -1,6 +1,6 @@
 import type { GameShop, LibraryGame, SeedingStatus } from "@types";
 
-import { Badge, Button, ConfirmationModal } from "@renderer/components";
+import { Badge, Button } from "@renderer/components";
 import {
   formatDownloadProgress,
   buildGameDetailsPath,
@@ -44,6 +44,7 @@ import { MoreVertical, Folder, Upload, ArrowUpFromLine } from "lucide-react";
 import { average } from "color.js";
 
 import { HeroDownloadView } from "./hero-download-view";
+import { CancelDownloadModal } from "./cancel-download-modal";
 import { SelectExecutableActionModal } from "./select-executable-action-modal";
 import { listContainerVariants, listItemVariants } from "./download-animations";
 
@@ -331,14 +332,21 @@ export function DownloadGroup({
     setCancelModalVisible(true);
   }, []);
 
-  const handleConfirmCancel = useCallback(async () => {
-    if (gameToCancelShop && gameToCancelObjectId) {
-      await cancelDownload(gameToCancelShop, gameToCancelObjectId);
-    }
-    setCancelModalVisible(false);
-    setGameToCancelShop(null);
-    setGameToCancelObjectId(null);
-  }, [gameToCancelShop, gameToCancelObjectId, cancelDownload]);
+  const handleConfirmCancel = useCallback(
+    async (deleteFiles: boolean) => {
+      if (gameToCancelShop && gameToCancelObjectId) {
+        await cancelDownload(
+          gameToCancelShop,
+          gameToCancelObjectId,
+          deleteFiles
+        );
+      }
+      setCancelModalVisible(false);
+      setGameToCancelShop(null);
+      setGameToCancelObjectId(null);
+    },
+    [gameToCancelShop, gameToCancelObjectId, cancelDownload]
+  );
 
   const handleCancelModalClose = useCallback(() => {
     setCancelModalVisible(false);
@@ -465,7 +473,7 @@ export function DownloadGroup({
           },
         },
         {
-          label: t("delete"),
+          label: t("remove"),
           disabled: deleting,
           icon: <TrashIcon />,
           onClick: () => {
@@ -628,12 +636,8 @@ export function DownloadGroup({
 
     return (
       <>
-        <ConfirmationModal
+        <CancelDownloadModal
           visible={cancelModalVisible}
-          title={t("cancel_download")}
-          descriptionText={t("cancel_download_description")}
-          confirmButtonLabel={t("yes_cancel")}
-          cancelButtonLabel={t("keep_downloading")}
           onConfirm={handleConfirmCancel}
           onClose={handleCancelModalClose}
         />
@@ -812,12 +816,8 @@ export function DownloadGroup({
 
   return (
     <>
-      <ConfirmationModal
+      <CancelDownloadModal
         visible={cancelModalVisible}
-        title={t("cancel_download")}
-        descriptionText={t("cancel_download_description")}
-        confirmButtonLabel={t("yes_cancel")}
-        cancelButtonLabel={t("keep_downloading")}
         onConfirm={handleConfirmCancel}
         onClose={handleCancelModalClose}
       />

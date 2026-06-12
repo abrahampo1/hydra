@@ -431,7 +431,6 @@
     "resume_seeding": "Semear",
     "options": "Opções",
     "cancel_download": "Cancelar transferência?",
-    "cancel_download_description": "Tens a certeza de que desejas cancelar esta transferência? Todos os ficheiros transferidos serão eliminados.",
     "keep_downloading": "Não, continuar a transferir",
     "yes_cancel": "Sim, cancelar",
     "extract": "Extrair ficheiros",

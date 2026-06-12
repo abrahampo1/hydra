@@ -32,8 +32,11 @@ contextBridge.exposeInMainWorld("electron", {
     ipcRenderer.invoke("startGameDownload", payload),
   addGameToQueue: (payload: StartGameDownloadPayload) =>
     ipcRenderer.invoke("addGameToQueue", payload),
-  cancelGameDownload: (shop: GameShop, objectId: string) =>
-    ipcRenderer.invoke("cancelGameDownload", shop, objectId),
+  cancelGameDownload: (
+    shop: GameShop,
+    objectId: string,
+    deleteFiles?: boolean
+  ) => ipcRenderer.invoke("cancelGameDownload", shop, objectId, deleteFiles),
   pauseGameDownload: (shop: GameShop, objectId: string) =>
     ipcRenderer.invoke("pauseGameDownload", shop, objectId),
   resumeGameDownload: (shop: GameShop, objectId: string) =>

@@ -319,6 +319,7 @@ export function GameOptionsModal({
         visible={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         deleteGame={handleDeleteGame}
+        showDeleteFilesCheckbox={false}
       />
 
       <RemoveGameFromLibraryModal

@@ -1,11 +1,9 @@
 @use "../../scss/globals.scss";
 
-.delete-game-modal {
-  &__content {
-    display: flex;
-    flex-direction: column;
-    gap: calc(globals.$spacing-unit * 3);
-  }
+.cancel-download-modal {
+  display: flex;
+  flex-direction: column;
+  gap: calc(globals.$spacing-unit * 3);
 
   &__actions {
     display: flex;
