@@ -545,7 +545,13 @@
     "download_error_torrent_no_files_selected": "Sélectionnez au moins un fichier torrent pour démarrer le téléchargement.",
     "download_error_torrent_invalid_file_selection": "Les fichiers torrent sélectionnés sont invalides. Veuillez recharger et réessayer.",
     "download_error_torrent_too_many_files": "Ce torrent contient trop de fichiers pour être affiché en toute sécurité.",
-    "download_error_torrent_files_unavailable": "Impossible de récupérer les fichiers torrent. Veuillez réessayer."
+    "download_error_torrent_files_unavailable": "Impossible de récupérer les fichiers torrent. Veuillez réessayer.",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Cracké",
+    "uncracked": "Non cracké",
+    "crack_group": "Groupe",
+    "crack_date": "Date du crack",
+    "protection": "Protection"
   },
   "activation": {
     "title": "Activer Hydra",

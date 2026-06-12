@@ -508,7 +508,13 @@
     "hide": "Hide",
     "create_steam_shortcut_modal_vr_flag": "VR Game (In Steam: update the VR flag or delete/recreate the shortcut)",
     "create_steam_shortcut_modal_create_button": "Create",
-    "create_steam_shortcut_modal_cancel_button": "Cancel"
+    "create_steam_shortcut_modal_cancel_button": "Cancel",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Spart",
+    "uncracked": "Nespart",
+    "crack_group": "Grup",
+    "crack_date": "Data spargerii",
+    "protection": "Protecție"
   },
   "activation": {
     "title": "Activează Hydra",

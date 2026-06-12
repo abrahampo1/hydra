@@ -580,7 +580,13 @@
     "transfer_unknown_size": "nieznany",
     "not_enough_space_detail": "Za mało miejsca — potrzeba {{needed}}, dostępne jest tylko {{available}}.",
     "detecting_drives": "Wykrywanie napędów...",
-    "browse": "Przeglądaj"
+    "browse": "Przeglądaj",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Crackowane",
+    "uncracked": "Niecrackowane",
+    "crack_group": "Grupa",
+    "crack_date": "Data cracka",
+    "protection": "Ochrona"
   },
   "activation": {
     "title": "Aktywuj Hydra",

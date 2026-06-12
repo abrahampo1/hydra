@@ -40,6 +40,7 @@ import type {
   RomEntry,
   RssFeed,
   NewsArticle,
+  CrackWatchStatus,
 } from "@types";
 import type { AxiosProgressEvent } from "axios";
 
@@ -86,6 +87,11 @@ declare global {
     ) => Promise<ShopDetailsWithAssets | null>;
     getRandomGame: () => Promise<Steam250Game>;
     getGameStats: (objectId: string, shop: GameShop) => Promise<GameStats>;
+    getCrackWatchStatus: (
+      objectId: string,
+      shop: GameShop,
+      title: string
+    ) => Promise<CrackWatchStatus | null>;
     getGameAssets: (
       objectId: string,
       shop: GameShop

@@ -534,7 +534,13 @@
     "create_steam_shortcut_modal_cancel_button": "Mégse",
     "delete_shortcut_success": "Steam parancsikon sikeresen törölve",
     "delete_shortcut_error": "Nem sikerült törölni a Steam parancsikont",
-    "delete_steam_shortcut": "Steam parancsikon törlése"
+    "delete_steam_shortcut": "Steam parancsikon törlése",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Feltörve",
+    "uncracked": "Nincs feltörve",
+    "crack_group": "Csoport",
+    "crack_date": "Feltörés dátuma",
+    "protection": "Védelem"
   },
   "activation": {
     "title": "Hydra Aktiválása",

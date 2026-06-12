@@ -834,7 +834,13 @@
     "create_steam_shortcut_modal_cancel_button": "Cancel",
     "delete_shortcut_success": "Steam shortcut deleted successfully",
     "delete_shortcut_error": "Failed to delete Steam shortcut",
-    "delete_steam_shortcut": "Delete Steam shortcut"
+    "delete_steam_shortcut": "Delete Steam shortcut",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Cracked",
+    "uncracked": "Uncracked",
+    "crack_group": "Group",
+    "crack_date": "Crack date",
+    "protection": "Protection"
   },
   "activation": {
     "title": "Activate Hydra",

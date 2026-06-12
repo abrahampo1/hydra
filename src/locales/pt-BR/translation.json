@@ -534,7 +534,13 @@
     "launch_options_description_linux": "Adicione argumentos de inicialização do jogo ou use <code>%command%</code> para envolver o comando de inicialização.",
     "create_steam_shortcut_modal_vr_flag": "Jogo VR (Na Steam: atualize a flag VR ou exclua/recrie o atalho)",
     "create_steam_shortcut_modal_create_button": "Criar",
-    "create_steam_shortcut_modal_cancel_button": "Cancelar"
+    "create_steam_shortcut_modal_cancel_button": "Cancelar",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Crackeado",
+    "uncracked": "Sem crack",
+    "crack_group": "Grupo",
+    "crack_date": "Data do crack",
+    "protection": "Proteção"
   },
   "activation": {
     "title": "Ativação",

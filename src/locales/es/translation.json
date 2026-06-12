@@ -809,7 +809,13 @@
     "torrent_files_disclaimer": "Opción avanzada: si no sabés lo que hace esto, dejá la selección predeterminada.",
     "winetricks_not_available_tooltip": "Winetricks no está disponible en tu PATH",
     "create_steam_shortcut_modal_create_button": "Crear",
-    "create_steam_shortcut_modal_cancel_button": "Cancelar"
+    "create_steam_shortcut_modal_cancel_button": "Cancelar",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Crackeado",
+    "uncracked": "Sin crackear",
+    "crack_group": "Grupo",
+    "crack_date": "Fecha del crack",
+    "protection": "Protección"
   },
   "activation": {
     "title": "Activar Hydra",

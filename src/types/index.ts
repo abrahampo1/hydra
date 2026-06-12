@@ -481,6 +481,7 @@ export * from "./level.types";
 export * from "./theme.types";
 export * from "./rom.types";
 export * from "./news.types";
+export * from "./crackwatch.types";
 
 export interface GoogleDriveTokens {
   accessToken: string;

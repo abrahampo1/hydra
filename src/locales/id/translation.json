@@ -534,7 +534,13 @@
     "create_steam_shortcut_modal_cancel_button": "Batal",
     "delete_shortcut_success": "Pintasan Steam berhasil dihapus",
     "delete_shortcut_error": "Gagal menghapus pintasan Steam",
-    "delete_steam_shortcut": "Hapus pintasan Steam"
+    "delete_steam_shortcut": "Hapus pintasan Steam",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Sudah di-crack",
+    "uncracked": "Belum di-crack",
+    "crack_group": "Grup",
+    "crack_date": "Tanggal crack",
+    "protection": "Proteksi"
   },
   "activation": {
     "title": "Aktifkan Hydra",

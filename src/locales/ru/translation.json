@@ -576,7 +576,13 @@
     "create_steam_shortcut_modal_cancel_button": "Отмена",
     "delete_shortcut_success": "Ярлык Steam успешно удалён",
     "delete_shortcut_error": "Не удалось удалить ярлык Steam",
-    "delete_steam_shortcut": "Удалить ярлык Steam"
+    "delete_steam_shortcut": "Удалить ярлык Steam",
+    "crackwatch_status": "CrackWatch",
+    "cracked": "Взломана",
+    "uncracked": "Не взломана",
+    "crack_group": "Группа",
+    "crack_date": "Дата взлома",
+    "protection": "Защита"
   },
   "activation": {
     "title": "Активировать Hydra",
