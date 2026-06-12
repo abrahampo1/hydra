@@ -20,6 +20,7 @@ import {
   WSClient,
   logger,
   GoogleDriveService,
+  reconcileDownloadSourceEntries,
 } from "@main/services";
 import { migrateDownloadSources } from "./helpers/migrate-download-sources";
 
@@ -59,7 +60,14 @@ export const loadState = async () => {
   try {
     await HydraApi.setupApi();
     uploadGamesBatch();
-    void migrateDownloadSources();
+
+    // Migrate legacy sources and index any download source that still lacks
+    // local entries (e.g. sources added through the old remote backend) so
+    // repacks resolve offline. Kept off the startup critical path.
+    void (async () => {
+      await migrateDownloadSources();
+      await reconcileDownloadSourceEntries();
+    })();
 
     const { syncDownloadSourcesFromApi } = await import("./services/user");
     void syncDownloadSourcesFromApi();

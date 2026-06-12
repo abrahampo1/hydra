@@ -238,6 +238,23 @@ export interface DownloadSourceDownload {
   fileSize: string;
 }
 
+/**
+ * A single parsed download entry from a download source JSON file, stored
+ * locally so repacks can be matched client-side without a remote backend.
+ */
+export interface DownloadSourceEntry {
+  sourceId: string;
+  sourceName: string;
+  title: string;
+  /** `formatName(title)` precomputed for fast game-title matching. */
+  formattedTitle: string;
+  uris: string[];
+  fileSize: string | null;
+  uploadDate: string | null;
+  /** `uploadDate` parsed to epoch millis (0 when unknown) for `since` checks. */
+  uploadDateMs: number;
+}
+
 export interface GameStats {
   downloadCount: number;
   playerCount: number;

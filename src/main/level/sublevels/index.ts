@@ -8,6 +8,7 @@ export * from "./game-achievements";
 export * from "./keys";
 export * from "./themes";
 export * from "./download-sources";
+export * from "./download-source-entries";
 export * from "./downloadSourcesCheckTimestamp";
 export * from "./local-notifications";
 export * from "./roms";
