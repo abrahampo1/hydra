@@ -17,6 +17,15 @@ export class WSClient {
   static async connect() {
     this.shouldReconnect = true;
 
+    // The presence/social WebSocket is backed by the third-party server and
+    // requires an authenticated session. Without one there is nothing to join,
+    // so skip connecting (and the reconnect loop) instead of spinning on
+    // UserNotLoggedInError.
+    if (!HydraApi.isLoggedIn()) {
+      logger.info("WS: not authenticated, skipping connection");
+      return;
+    }
+
     try {
       const { token } = await HydraApi.post<{ token: string }>("/auth/ws");
 

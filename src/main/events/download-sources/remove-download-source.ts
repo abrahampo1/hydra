@@ -1,4 +1,8 @@
-import { HydraApi } from "@main/services";
+import {
+  HydraApi,
+  clearAllDownloadSourceEntries,
+  removeDownloadSourceEntries,
+} from "@main/services";
 import { downloadSourcesSublevel } from "@main/level";
 import { registerEvent } from "../register-event";
 
@@ -19,8 +23,10 @@ const removeDownloadSource = async (
 
   if (removeAll) {
     await downloadSourcesSublevel.clear();
+    await clearAllDownloadSourceEntries();
   } else if (downloadSourceId) {
     await downloadSourcesSublevel.del(downloadSourceId);
+    await removeDownloadSourceEntries(downloadSourceId);
   }
 };
 
