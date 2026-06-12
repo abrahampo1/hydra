@@ -12,6 +12,7 @@ import { db } from "@main/level";
 import { levelKeys } from "@main/level/sublevels";
 import type { Auth, User } from "@types";
 import { WSClient } from "./ws";
+import { localApiAdapter } from "./local-api";
 
 export interface HydraApiOptions {
   needsAuth?: boolean;
@@ -127,6 +128,9 @@ export class HydraApi {
     this.instance = axios.create({
       baseURL: import.meta.env.MAIN_VITE_API_URL,
       headers: { "User-Agent": `Hydra Launcher v${appVersion}` },
+      // Resolve every backend call locally (public Steam APIs + local download
+      // source index) so the launcher works without the third-party backend.
+      adapter: localApiAdapter,
     });
 
     if (this.ADD_LOG_INTERCEPTOR) {
