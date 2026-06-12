@@ -1,51 +1,28 @@
 import axios from "axios";
-import crypto from "node:crypto";
 
-import type { DownloadSource, DownloadSourceEntry, GameRepack } from "@types";
-import { DownloadSourceStatus, formatName } from "@shared";
+import type { DownloadSource, GameRepack } from "@types";
+import { DownloadSourceStatus } from "@shared";
 
 import {
   downloadSourceEntriesSublevel,
   downloadSourcesSublevel,
 } from "@main/level";
 import { logger } from "../logger";
+import {
+  type RawDownloadSourceJson,
+  annotateSourcesInEntries,
+  findRepacksInEntries,
+  hashId,
+  parseDownloadSourceEntries,
+} from "./matching";
 
 /**
  * Local ingestion and matching for download sources. A download source is a
  * public JSON file listing repacks; the third-party backend used to index and
  * search these. Here we download and parse the JSON ourselves, store the
- * entries locally and match them to games using the same `formatName`
- * normalization the renderer relies on.
+ * entries locally and match them to games. The pure parsing/matching logic
+ * lives in `matching.ts`; this module only adds the storage/network glue.
  */
-
-interface RawDownloadSourceDownload {
-  title?: string;
-  uris?: string[];
-  fileSize?: string | null;
-  uploadDate?: string | null;
-}
-
-interface RawDownloadSourceJson {
-  name?: string;
-  downloads?: RawDownloadSourceDownload[];
-}
-
-const hashId = (input: string, length: number) =>
-  crypto.createHash("sha256").update(input).digest("hex").slice(0, length);
-
-/**
- * Matches a formatted game title against a formatted repack title. The game
- * name must appear as a contiguous run of whole words inside the repack title
- * (e.g. "elden ring" matches "elden ring v1 12 fitgirl repack").
- */
-const matchesGame = (
-  formattedGame: string,
-  formattedEntry: string
-): boolean => {
-  if (!formattedGame || !formattedEntry) return false;
-  if (formattedEntry === formattedGame) return true;
-  return ` ${formattedEntry} `.includes(` ${formattedGame} `);
-};
 
 /**
  * Downloads and parses a download source JSON file, persisting its entries
@@ -69,28 +46,7 @@ export const ingestDownloadSource = async (
   const id = hashId(url, 24);
   const name = parsed.name?.trim() || new URL(url).hostname;
 
-  const entries: DownloadSourceEntry[] = parsed.downloads
-    .filter(
-      (download): download is RawDownloadSourceDownload =>
-        !!download &&
-        typeof download.title === "string" &&
-        Array.isArray(download.uris)
-    )
-    .map((download) => {
-      const uploadDate = download.uploadDate ?? null;
-      const uploadDateMs = uploadDate ? new Date(uploadDate).getTime() : 0;
-
-      return {
-        sourceId: id,
-        sourceName: name,
-        title: download.title as string,
-        formattedTitle: formatName(download.title as string),
-        uris: (download.uris ?? []).filter(Boolean),
-        fileSize: download.fileSize ?? null,
-        uploadDate,
-        uploadDateMs: Number.isNaN(uploadDateMs) ? 0 : uploadDateMs,
-      };
-    });
+  const entries = parseDownloadSourceEntries(parsed, id, name);
 
   await downloadSourceEntriesSublevel.put(id, entries);
 
@@ -112,37 +68,8 @@ export const findRepacks = async (
   gameTitle: string,
   allowedSourceIds?: string[]
 ): Promise<GameRepack[]> => {
-  const formattedGame = formatName(gameTitle);
-  if (!formattedGame) return [];
-
-  const allowed = allowedSourceIds?.length ? new Set(allowedSourceIds) : null;
-
   const perSource = await downloadSourceEntriesSublevel.values().all();
-  const repacks: GameRepack[] = [];
-
-  for (const entries of perSource) {
-    if (!entries.length) continue;
-    if (allowed && !allowed.has(entries[0].sourceId)) continue;
-
-    for (let i = 0; i < entries.length; i++) {
-      const entry = entries[i];
-      if (!matchesGame(formattedGame, entry.formattedTitle)) continue;
-
-      repacks.push({
-        id: `${entry.sourceId}:${i}`,
-        title: entry.title,
-        fileSize: entry.fileSize,
-        uris: entry.uris,
-        unavailableUris: [],
-        uploadDate: entry.uploadDate,
-        downloadSourceId: entry.sourceId,
-        downloadSourceName: entry.sourceName,
-        createdAt: entry.uploadDate ?? new Date(0).toISOString(),
-      });
-    }
-  }
-
-  return repacks;
+  return findRepacksInEntries(perSource, gameTitle, allowedSourceIds);
 };
 
 /**
@@ -152,36 +79,8 @@ export const findRepacks = async (
 export const annotateSourcesForTitles = async (
   titles: string[]
 ): Promise<Map<string, string[]>> => {
-  const formatted = titles.map((title) => ({
-    title,
-    formattedGame: formatName(title),
-  }));
-
-  const result = new Map<string, string[]>();
-  for (const { title } of formatted) result.set(title, []);
-
   const perSource = await downloadSourceEntriesSublevel.values().all();
-
-  for (const entries of perSource) {
-    if (!entries.length) continue;
-    const sourceId = entries[0].sourceId;
-
-    for (const { title, formattedGame } of formatted) {
-      if (!formattedGame) continue;
-      const sources = result.get(title);
-      if (!sources || sources.includes(sourceId)) continue;
-
-      if (
-        entries.some((entry) =>
-          matchesGame(formattedGame, entry.formattedTitle)
-        )
-      ) {
-        sources.push(sourceId);
-      }
-    }
-  }
-
-  return result;
+  return annotateSourcesInEntries(perSource, titles);
 };
 
 /**

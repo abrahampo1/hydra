@@ -6,6 +6,9 @@ import { gamesShopAssetsSublevel, levelKeys } from "@main/level";
 import { getSteamAppDetails } from "../steam";
 import { requestSteam250 } from "../steam-250";
 import { logger } from "../logger";
+import { buildSteamAssets } from "./steam-assets";
+
+export { buildSteamAssets } from "./steam-assets";
 
 /**
  * Local replacement for the third-party Hydra catalogue backend. Everything
@@ -13,8 +16,6 @@ import { logger } from "../logger";
  * the well-known CDN asset paths) plus the steam250 lists already used by the
  * app, so the catalogue keeps working without losbroxas.org.
  */
-
-const STEAM_APP_CDN = "https://cdn.cloudflare.steamstatic.com/steam/apps";
 
 interface SteamStoreSearchItem {
   id: number;
@@ -27,27 +28,6 @@ interface SteamStoreSearchResponse {
   total: number;
   items: SteamStoreSearchItem[];
 }
-
-/**
- * Builds a `ShopAssets` object from the predictable Steam CDN asset paths.
- * Some games miss a few of these files; the renderer degrades gracefully when
- * an image 404s, so it is fine to always provide the conventional URLs.
- */
-export const buildSteamAssets = (
-  objectId: string,
-  title: string
-): ShopAssets => ({
-  objectId,
-  shop: "steam",
-  title,
-  iconUrl: `${STEAM_APP_CDN}/${objectId}/capsule_231x87.jpg`,
-  libraryHeroImageUrl: `${STEAM_APP_CDN}/${objectId}/library_hero.jpg`,
-  libraryImageUrl: `${STEAM_APP_CDN}/${objectId}/library_600x900.jpg`,
-  logoImageUrl: `${STEAM_APP_CDN}/${objectId}/logo.png`,
-  logoPosition: null,
-  coverImageUrl: `${STEAM_APP_CDN}/${objectId}/header.jpg`,
-  downloadSources: [],
-});
 
 /**
  * Resolves the canonical title for a Steam objectId. Prefers the locally
