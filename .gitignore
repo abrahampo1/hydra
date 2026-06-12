@@ -18,6 +18,7 @@ hydra-python-rpc/
 *storybook.log
 
 aria2/
+tsconfig.node.tsbuildinfo
 
 # Claude Code temporary worktrees
 .claude/worktrees/

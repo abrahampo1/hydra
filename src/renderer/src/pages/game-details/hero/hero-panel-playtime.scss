@@ -1,6 +1,18 @@
 @use "../../../scss/globals.scss";
 
 .hero-panel-playtime {
+  display: flex;
+  align-items: center;
+  gap: calc(globals.$spacing-unit * 3);
+  width: 100%;
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit * 0.5);
+    min-width: 0;
+  }
+
   &__download-details {
     gap: globals.$spacing-unit;
     display: flex;
@@ -23,5 +35,126 @@
   &__manual-warning {
     color: #f59e0b; // Warning amber color
     flex-shrink: 0;
+  }
+
+  &__playing-now {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: globals.$seeding-color;
+    flex-shrink: 0;
+    animation: hero-panel-playtime-live-pulse 1.6s ease-in-out infinite;
+  }
+
+  &__streak {
+    display: flex;
+    align-items: center;
+    gap: globals.$spacing-unit;
+    padding: calc(globals.$spacing-unit * 0.75)
+      calc(globals.$spacing-unit * 1.75) calc(globals.$spacing-unit * 0.75)
+      calc(globals.$spacing-unit * 1.25);
+    border-radius: 999px;
+    border: 1px solid rgba(255, 140, 50, 0.3);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 90, 30, 0.16) 0%,
+      rgba(255, 140, 50, 0.05) 100%
+    );
+    flex-shrink: 0;
+  }
+
+  &__streak-flame {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__streak-flame-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+    animation: hero-panel-playtime-flame-bob 2.4s ease-in-out infinite;
+  }
+
+  &__streak-flame-glow {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      rgba(255, 140, 50, 0.55) 0%,
+      rgba(255, 140, 50, 0) 70%
+    );
+    filter: blur(6px);
+    animation: hero-panel-playtime-glow-pulse 2.4s ease-in-out infinite;
+  }
+
+  &__streak-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1;
+  }
+
+  &__streak-days {
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    background: linear-gradient(90deg, #ffd27a 0%, #ff7a3d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &__streak-record {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    color: globals.$body-color;
+    opacity: 0.75;
+  }
+}
+
+@keyframes hero-panel-playtime-live-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(74, 222, 128, 0);
+  }
+}
+
+@keyframes hero-panel-playtime-flame-bob {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.06);
+  }
+}
+
+@keyframes hero-panel-playtime-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.15);
   }
 }

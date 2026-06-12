@@ -27,3 +27,4 @@ export * from "./local-api";
 export * from "./notifications/local-notifications";
 export * from "./rom-save-manager";
 export * from "./rom-scraper";
+export * from "./crackwatch";

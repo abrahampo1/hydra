@@ -4,6 +4,12 @@ import cn from "classnames";
 import { levelDBService } from "@renderer/services/leveldb.service";
 import { orderBy } from "lodash-es";
 import { useNavigate } from "react-router-dom";
+import {
+  ClockIcon,
+  PlayIcon,
+  StackIcon,
+  TrophyIcon,
+} from "@primer/octicons-react";
 
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 
@@ -301,39 +307,61 @@ export default function Home() {
           <section className="home__section">
             <h2 className="home__section-title">{t("continue_playing")}</h2>
             <div className="home__horizontal-scroll">
-              {recentGames.map((game) => (
-                <button
-                  key={game.id}
-                  className="home__recent-game-card"
-                  onClick={() => handleRecentGameClick(game)}
-                >
-                  <div className="home__recent-game-image">
-                    {game.iconUrl ? (
-                      <img
-                        src={game.iconUrl}
-                        alt={game.title}
-                        className="home__recent-game-icon"
-                      />
-                    ) : (
-                      <div className="home__recent-game-placeholder" />
-                    )}
-                  </div>
-                  <div className="home__recent-game-info">
-                    <span className="home__recent-game-title">
-                      {game.title}
-                    </span>
-                    <span className="home__recent-game-playtime">
-                      {formatPlayTime(game.playTimeInMilliseconds)}
-                    </span>
-                    <StreakBadge
-                      currentStreak={game.currentStreak}
-                      longestStreak={game.longestStreak}
-                      lastStreakDate={game.lastStreakDate}
-                      variant="compact"
-                    />
-                  </div>
-                </button>
-              ))}
+              {recentGames.map((game) => {
+                const cardImage = game.libraryImageUrl ?? game.coverImageUrl;
+
+                return (
+                  <button
+                    key={game.id}
+                    className="home__recent-game-card"
+                    onClick={() => handleRecentGameClick(game)}
+                  >
+                    <div className="home__recent-game-media">
+                      {cardImage ? (
+                        <img
+                          src={cardImage}
+                          alt={game.title}
+                          className="home__recent-game-cover"
+                          loading="lazy"
+                        />
+                      ) : game.iconUrl ? (
+                        <img
+                          src={game.iconUrl}
+                          alt={game.title}
+                          className="home__recent-game-icon"
+                        />
+                      ) : (
+                        <div className="home__recent-game-placeholder" />
+                      )}
+
+                      <div className="home__recent-game-hover">
+                        <span className="home__recent-game-play">
+                          <PlayIcon size={20} />
+                        </span>
+                      </div>
+
+                      <div className="home__recent-game-streak">
+                        <StreakBadge
+                          currentStreak={game.currentStreak}
+                          longestStreak={game.longestStreak}
+                          lastStreakDate={game.lastStreakDate}
+                          variant="compact"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="home__recent-game-info">
+                      <span className="home__recent-game-title">
+                        {game.title}
+                      </span>
+                      <span className="home__recent-game-playtime">
+                        <ClockIcon size={12} />
+                        {formatPlayTime(game.playTimeInMilliseconds)}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </section>
         )}
@@ -347,31 +375,46 @@ export default function Home() {
               <h3 className="home__panel-title">{t("your_stats")}</h3>
               <div className="home__stats-grid">
                 <div className="home__stat-item">
-                  <span className="home__stat-value">
-                    {userStats?.libraryCount ?? library.length}
+                  <span className="home__stat-icon home__stat-icon--teal">
+                    <StackIcon size={16} />
                   </span>
-                  <span className="home__stat-label">{t("total_games")}</span>
+                  <div className="home__stat-content">
+                    <span className="home__stat-value">
+                      {userStats?.libraryCount ?? library.length}
+                    </span>
+                    <span className="home__stat-label">{t("total_games")}</span>
+                  </div>
                 </div>
                 <div className="home__stat-item">
-                  <span className="home__stat-value">
-                    {userStats
-                      ? formatTotalPlayTime(
-                          userStats.totalPlayTimeInSeconds.value
-                        )
-                      : "0h"}
+                  <span className="home__stat-icon home__stat-icon--blue">
+                    <ClockIcon size={16} />
                   </span>
-                  <span className="home__stat-label">
-                    {t("total_playtime")}
-                  </span>
+                  <div className="home__stat-content">
+                    <span className="home__stat-value">
+                      {userStats
+                        ? formatTotalPlayTime(
+                            userStats.totalPlayTimeInSeconds.value
+                          )
+                        : "0h"}
+                    </span>
+                    <span className="home__stat-label">
+                      {t("total_playtime")}
+                    </span>
+                  </div>
                 </div>
                 {userStats?.unlockedAchievementSum != null && (
                   <div className="home__stat-item">
-                    <span className="home__stat-value">
-                      {userStats.unlockedAchievementSum}
+                    <span className="home__stat-icon home__stat-icon--gold">
+                      <TrophyIcon size={16} />
                     </span>
-                    <span className="home__stat-label">
-                      {t("achievements_unlocked")}
-                    </span>
+                    <div className="home__stat-content">
+                      <span className="home__stat-value">
+                        {userStats.unlockedAchievementSum}
+                      </span>
+                      <span className="home__stat-label">
+                        {t("achievements_unlocked")}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -432,20 +475,6 @@ export default function Home() {
             {t("surprise_me")}
           </Button>
         </section>
-
-        <h2 className="home__title">
-          {currentCatalogueCategory === CatalogueCategory.Hot && (
-            <div className="home__title-icon">
-              <img
-                src={flameIconAnimated}
-                alt="Flame animation"
-                className="home__title-flame-icon"
-              />
-            </div>
-          )}
-
-          {t(currentCatalogueCategory)}
-        </h2>
 
         <section className="home__cards">
           {isLoading

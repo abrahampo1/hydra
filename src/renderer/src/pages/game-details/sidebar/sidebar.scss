@@ -104,6 +104,69 @@
   }
 }
 
+.crackwatch {
+  &__container {
+    padding: calc(globals.$spacing-unit * 2);
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit * 1.5);
+  }
+
+  &__badge {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit / 2);
+    padding: calc(globals.$spacing-unit / 2) calc(globals.$spacing-unit * 1.5);
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: globals.$small-font-size;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &--cracked {
+      background: rgba(46, 160, 67, 0.15);
+      color: #3fb950;
+      border: 1px solid rgba(46, 160, 67, 0.4);
+    }
+
+    &--uncracked {
+      background: rgba(248, 81, 73, 0.15);
+      color: #f85149;
+      border: 1px solid rgba(248, 81, 73, 0.4);
+    }
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: globals.$spacing-unit;
+  }
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: globals.$spacing-unit;
+    font-size: globals.$small-font-size;
+  }
+
+  &__label {
+    color: globals.$muted-color;
+  }
+
+  &__value {
+    color: #fff;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  &__skeleton {
+    border-radius: 8px;
+    height: 24px;
+  }
+}
+
 .stats {
   &__section {
     display: flex;
