@@ -8,10 +8,26 @@
   }
 
   &__reviews-title {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 1.25);
     font-size: 1.25rem;
     font-weight: 600;
     color: globals.$muted-color;
     margin: 0;
+
+    &::before {
+      content: "";
+      width: 4px;
+      height: 18px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      background: linear-gradient(
+        180deg,
+        globals.$brand-teal 0%,
+        globals.$brand-blue 100%
+      );
+    }
   }
 
   &__reviews-title-group {

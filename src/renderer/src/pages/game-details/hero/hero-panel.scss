@@ -2,7 +2,7 @@
 
 .hero-panel {
   width: 100%;
-  height: 72px;
+  height: auto;
   min-height: 72px;
   padding: calc(globals.$spacing-unit * 2) calc(globals.$spacing-unit * 3);
   background: rgba(0, 0, 0, 0.6);
@@ -63,6 +63,18 @@
 
   &--downloading {
     background-color: rgba(34, 197, 94, 0.05);
+  }
+
+  &--streak {
+    border-color: rgba(255, 140, 50, 0.3);
+    background:
+      radial-gradient(
+        ellipse at 15% 50%,
+        rgba(255, 110, 40, 0.12) 0%,
+        transparent 60%
+      ),
+      rgba(0, 0, 0, 0.6);
+    box-shadow: 0 4px 18px rgba(255, 90, 30, 0.12);
   }
 
   &--extracting {
