@@ -47,6 +47,9 @@
   }
 
   &__section-title {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 1.25);
     font-size: 18px;
     font-weight: 700;
     color: #fff;
@@ -54,6 +57,19 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     margin: 0;
     letter-spacing: -0.01em;
+
+    &::before {
+      content: "";
+      width: 4px;
+      height: 18px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      background: linear-gradient(
+        180deg,
+        globals.$brand-teal 0%,
+        globals.$brand-blue 100%
+      );
+    }
   }
 
   &__description {

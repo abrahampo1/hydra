@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import cn from "classnames";
 
 import { useAppSelector, useDate, useDownload } from "@renderer/hooks";
+import { getDisplayStreak } from "@shared";
 
 import { HeroPanelActions } from "./hero-panel-actions";
 import { HeroPanelPlaytime } from "./hero-panel-playtime";
@@ -60,6 +61,17 @@ export function HeroPanel() {
     ? (lastPacket?.progress ?? 0)
     : (game?.download?.progress ?? 0);
 
+  const displayStreak = game
+    ? getDisplayStreak(
+        {
+          currentStreak: game.currentStreak ?? 0,
+          longestStreak: game.longestStreak ?? 0,
+          lastStreakDate: game.lastStreakDate ?? null,
+        },
+        new Date()
+      )
+    : 0;
+
   return (
     <div className="hero-panel__container">
       <div
@@ -67,6 +79,8 @@ export function HeroPanel() {
           "hero-panel--downloading": showProgressBar && !isPaused,
           "hero-panel--extracting": isExtracting,
           "hero-panel--paused": isPaused,
+          "hero-panel--streak":
+            displayStreak >= 2 && !showProgressBar && !isExtracting,
         })}
       >
         {showProgressBar && (
