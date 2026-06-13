@@ -308,7 +308,15 @@ export default function Home() {
             <h2 className="home__section-title">{t("continue_playing")}</h2>
             <div className="home__horizontal-scroll">
               {recentGames.map((game) => {
-                const cardImage = game.libraryImageUrl ?? game.coverImageUrl;
+                // Prefer the 2:3 portrait poster (matches the card frame) so
+                // wide header art doesn't get its logo cropped off the sides.
+                // Steam stores a wide header as libraryImageUrl for some games,
+                // which gets its logo cropped in the 2:3 card. Always prefer the
+                // proper portrait poster for Steam (falling back via onError).
+                const cardImage =
+                  game.shop === "steam"
+                    ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.objectId}/library_600x900.jpg`
+                    : (game.libraryImageUrl ?? game.coverImageUrl);
 
                 return (
                   <button
@@ -323,6 +331,14 @@ export default function Home() {
                           alt={game.title}
                           className="home__recent-game-cover"
                           loading="lazy"
+                          onError={(e) => {
+                            if (
+                              game.coverImageUrl &&
+                              e.currentTarget.src !== game.coverImageUrl
+                            ) {
+                              e.currentTarget.src = game.coverImageUrl;
+                            }
+                          }}
                         />
                       ) : game.iconUrl ? (
                         <img
