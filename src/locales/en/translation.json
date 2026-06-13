@@ -400,6 +400,8 @@
     "start_browsing_description": "Select a genre above or click Browse All to start discovering games.",
     "trailer_showcase": "Watch Trailers",
     "search_placeholder": "Search games...",
+    "search_prompt_title": "Search for games",
+    "search_prompt_description": "Type a game name to find it across your download sources.",
     "protondb": "ProtonDB",
     "compatibility_requirements": "Linux compatibility",
     "protondb_minimum": "Minimum ProtonDB tier",

@@ -386,6 +386,8 @@
     "clear_all_filters": "Limpiar todos los filtros",
     "no_results_title": "Sin resultados",
     "no_results_description": "Intenta ajustar tus filtros o búsqueda para encontrar lo que buscas.",
+    "search_prompt_title": "Busca juegos",
+    "search_prompt_description": "Escribe el nombre de un juego para encontrarlo en tus fuentes de descarga.",
     "available": "Disponible",
     "not_available": "No disponible",
     "protondb": "ProtonDB",

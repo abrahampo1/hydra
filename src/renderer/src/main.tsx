@@ -26,6 +26,7 @@ import { addCookieInterceptor } from "./cookies";
 
 import { levelDBService } from "./services/leveldb.service";
 import Catalogue from "./pages/catalogue/catalogue";
+import SearchResults from "./pages/search/search-results";
 import Home from "./pages/home/home";
 import Downloads from "./pages/downloads/downloads";
 import GameDetails from "./pages/game-details/game-details";
@@ -88,6 +89,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route element={<App />}>
               <Route path="/" element={<Home />} />
               <Route path="/catalogue" element={<Catalogue />} />
+              <Route path="/search" element={<SearchResults />} />
               <Route path="/library" element={<Library />} />
               <Route path="/downloads" element={<Downloads />} />
               <Route path="/game/:shop/:objectId" element={<GameDetails />} />

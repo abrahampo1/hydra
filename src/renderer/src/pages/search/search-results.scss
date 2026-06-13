@@ -1,0 +1,96 @@
+@use "../../scss/globals.scss";
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: calc(globals.$spacing-unit * 3);
+  padding: calc(globals.$spacing-unit * 3);
+  width: 100%;
+  overflow-y: auto;
+
+  &__search-box {
+    display: flex;
+    align-items: center;
+    gap: globals.$spacing-unit;
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: calc(globals.$spacing-unit * 1.5) calc(globals.$spacing-unit * 2);
+    transition: border-color 0.2s ease;
+
+    &:focus-within {
+      border-color: globals.$muted-color;
+    }
+  }
+
+  &__search-icon {
+    color: globals.$muted-color;
+    flex-shrink: 0;
+  }
+
+  &__input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: globals.$body-color;
+    font-size: 18px;
+
+    &::placeholder {
+      color: #8e919b;
+    }
+  }
+
+  &__count {
+    color: globals.$muted-color;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: calc(globals.$spacing-unit * 2);
+  }
+
+  &__skeleton {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: globals.$spacing-unit;
+    text-align: center;
+    color: globals.$muted-color;
+    padding: calc(globals.$spacing-unit * 8) 0;
+
+    h2 {
+      margin: 0;
+      color: globals.$body-color;
+    }
+
+    p {
+      margin: 0;
+      max-width: 420px;
+    }
+  }
+
+  &__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(globals.$spacing-unit * 2);
+  }
+
+  &__page-indicator {
+    color: globals.$muted-color;
+    font-size: 14px;
+    min-width: 60px;
+    text-align: center;
+  }
+}

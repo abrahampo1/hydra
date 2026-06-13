@@ -170,18 +170,16 @@ export function Header() {
   };
 
   const executeSearch = (query: string) => {
-    if (!isOnRomsPage && query.trim()) {
-      const context = isOnLibraryPage ? "library" : "catalogue";
-      addToHistory(query, context);
-    }
-    handleSearch(query);
+    const trimmed = query.trim();
 
-    if (
-      !isOnLibraryPage &&
-      !isOnRomsPage &&
-      !location.pathname.startsWith("/catalogue")
-    ) {
-      navigate("/catalogue");
+    // Library and ROMs filter their own list in place.
+    if (isOnLibraryPage || isOnRomsPage) {
+      if (!isOnRomsPage && trimmed) addToHistory(query, "library");
+      handleSearch(query);
+    } else if (trimmed) {
+      // Everywhere else, Enter opens the dedicated game search page.
+      addToHistory(query, "catalogue");
+      navigate(`/search?q=${encodeURIComponent(trimmed)}`);
     }
 
     setIsDropdownVisible(false);
