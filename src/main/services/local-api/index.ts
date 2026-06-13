@@ -1,4 +1,4 @@
-import { AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 import type {
   AxiosAdapter,
   AxiosResponse,
@@ -26,20 +26,27 @@ export * from "./steam-catalogue";
 export * from "./download-source-index";
 
 /**
- * Local, self-hosted replacement for the third-party Hydra backend.
+ * Hybrid backend adapter.
  *
  * `HydraApi` is the single choke point for every backend HTTP call (both the
  * main process and the renderer's generic `hydraApi` proxy go through it).
- * Installing this axios adapter makes those requests resolve against public
- * Steam endpoints and the local download-source index instead of
- * losbroxas.org, so the launcher's core (browse catalogue, find repacks,
- * download, manage library) works without any third-party server.
+ * This adapter serves the launcher's core locally — browse catalogue, find
+ * repacks, game assets — from public Steam endpoints and the local
+ * download-source index, so that part keeps working without the third-party
+ * server.
  *
- * Authenticated/social/cloud endpoints are never reached in this mode: callers
- * pass `needsAuth`, and `HydraApi.validateOptions` throws `UserNotLoggedInError`
- * before the request, which the UI already degrades gracefully around. The
- * catch-all below keeps any unexpected call from crashing.
+ * Everything it doesn't serve locally (sign-in/profile, token refresh, social,
+ * cloud saves, achievements, stats…) is delegated to the real backend at
+ * `MAIN_VITE_API_URL` via the default HTTP adapter, so logging in and account
+ * features work as before. Endpoints with no local handler return the
+ * `PASS_TO_REMOTE` sentinel to opt into that delegation.
  */
+
+/** This request has no local handler and must hit the real backend. */
+const PASS_TO_REMOTE = Symbol("pass-to-remote");
+
+/** The real HTTP adapter (Node) used to reach `MAIN_VITE_API_URL`. */
+const remoteAdapter = axios.getAdapter(axios.defaults.adapter);
 
 const buildResponse = (
   config: InternalAxiosRequestConfig,
@@ -213,8 +220,10 @@ const handleDownloadSourcesAdd = async (config: InternalAxiosRequestConfig) => {
 };
 
 /**
- * Resolves a single backend request locally. Returns the response payload, or
- * `null` for endpoints that have no local equivalent.
+ * Resolves a single backend request locally. Returns the response payload for
+ * locally-served endpoints, or the `PASS_TO_REMOTE` sentinel for everything
+ * else (account/auth/social/cloud), which the adapter forwards to the real
+ * backend.
  */
 const resolveLocalRequest = async (
   config: InternalAxiosRequestConfig
@@ -275,24 +284,16 @@ const resolveLocalRequest = async (
     return [];
   }
 
-  // /auth/* — logout/refresh are no-ops without a remote session.
-  if (segments[0] === "auth") {
-    if (segments[1] === "refresh") return { accessToken: "", expiresIn: 0 };
-    return {};
-  }
-
-  logger.info("Local API: unhandled endpoint, returning empty response", {
-    method,
-    path: parsedUrl.pathname,
-  });
-
-  return null;
+  // Account/auth/social/cloud (sign-in, /profile/*, token refresh, friends,
+  // cloud saves, achievements…) are served by the real backend.
+  return PASS_TO_REMOTE;
 };
 
 export const localApiAdapter: AxiosAdapter = async (config) => {
+  let data: unknown;
+
   try {
-    const data = await resolveLocalRequest(config);
-    return buildResponse(config, data);
+    data = await resolveLocalRequest(config);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     logger.error("Local API: request failed", {
@@ -304,4 +305,12 @@ export const localApiAdapter: AxiosAdapter = async (config) => {
     // interceptors and callers can handle it like any other request failure.
     throw new AxiosError(message, AxiosError.ERR_BAD_RESPONSE, config);
   }
+
+  // Forward to the real backend, letting its real responses and errors
+  // (401s, etc.) propagate untouched so auth handling works normally.
+  if (data === PASS_TO_REMOTE) {
+    return remoteAdapter(config);
+  }
+
+  return buildResponse(config, data);
 };
