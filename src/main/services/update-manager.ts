@@ -1,4 +1,4 @@
-import updater, { UpdateInfo } from "electron-updater";
+import updater, { type ProgressInfo, UpdateInfo } from "electron-updater";
 import { logger, WindowManager } from "@main/services";
 import { AppUpdaterEvent, UserPreferences } from "@types";
 import { app } from "electron";
@@ -18,6 +18,15 @@ export class UpdateManager {
 
   private static mockValuesForDebug() {
     this.sendEvent({ type: "update-available", info: { version: "3.3.1" } });
+    this.sendEvent({
+      type: "download-progress",
+      info: {
+        percent: 42,
+        transferred: 42_000_000,
+        total: 100_000_000,
+        bytesPerSecond: 5_000_000,
+      },
+    });
     this.sendEvent({ type: "update-downloaded" });
   }
 
@@ -49,9 +58,25 @@ export class UpdateManager {
     if (this.listenersRegistered) return;
     this.listenersRegistered = true;
 
+    autoUpdater.on("checking-for-update", () => {
+      this.sendEvent({ type: "checking-for-update" });
+    });
+
     autoUpdater.on("update-available", (info: UpdateInfo) => {
       this.sendEvent({ type: "update-available", info });
       this.newVersion = info.version;
+    });
+
+    autoUpdater.on("download-progress", (info: ProgressInfo) => {
+      this.sendEvent({
+        type: "download-progress",
+        info: {
+          percent: info.percent,
+          transferred: info.transferred,
+          total: info.total,
+          bytesPerSecond: info.bytesPerSecond,
+        },
+      });
     });
 
     autoUpdater.on("update-downloaded", () => {
@@ -65,6 +90,11 @@ export class UpdateManager {
 
     autoUpdater.on("update-not-available", () => {
       this.sendEvent({ type: "update-not-available" });
+    });
+
+    autoUpdater.on("error", (error) => {
+      logger.error("Auto updater error", error);
+      this.sendEvent({ type: "error" });
     });
   }
 

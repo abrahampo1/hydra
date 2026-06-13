@@ -324,6 +324,7 @@
     "news": "News",
     "version_available_install": "Version {{version}} available. Click here to restart and install.",
     "version_available_download": "Version {{version}} available. Click here to download.",
+    "version_downloading": "Downloading update {{version}}… {{percent}}%",
     "scan_games_tooltip": "Scan PC for installed games",
     "scan_games_title": "Scan PC for installed games",
     "scan_games_description": "This will scan your disks for known game executables. This may take several minutes.",
@@ -365,6 +366,8 @@
     "ready_to_install": "Ready to install",
     "ready_to_install_description": "Version {{version}} has been downloaded and is ready to install.",
     "restart_and_install": "Restart and install",
+    "update_error": "Update failed",
+    "update_error_description": "Something went wrong while checking for updates. Please try again.",
     "downloading_batch": "Downloading {{title}}… ({{percentage}} complete {{filesDownloaded}}/{{filesTotal}} files) - Completion {{eta}} - {{speed}}",
     "calculating_eta_batch": "Downloading {{title}}… ({{percentage}} complete {{filesDownloaded}}/{{filesTotal}} files) - Calculating remaining time…"
   },

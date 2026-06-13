@@ -322,6 +322,7 @@
     "news": "Noticias",
     "version_available_install": "Versión {{version}} disponible. Pulsa aquí para reiniciar e instalar.",
     "version_available_download": "Versión {{version}} disponible. Pulsa aquí para descargar.",
+    "version_downloading": "Descargando actualización {{version}}… {{percent}}%",
     "scan_games_tooltip": "Escanear PC en busca de juegos instalados",
     "scan_games_title": "Escanear PC en busca de juegos instalados",
     "scan_games_description": "Esto escaneará tus discos en busca de ejecutables de juegos conocidos. Esto puede tardar varios minutos.",
@@ -363,6 +364,8 @@
     "ready_to_install": "Lista para instalar",
     "ready_to_install_description": "La versión {{version}} se ha descargado y está lista para instalar.",
     "restart_and_install": "Reiniciar e instalar",
+    "update_error": "Error al actualizar",
+    "update_error_description": "Algo salió mal al buscar actualizaciones. Inténtalo de nuevo.",
     "downloading_batch": "Descargando {{title}}… ({{percentage}} commpletado {{filesDownloaded}}/{{filesTotal}} archivos) - Finalizando en {{eta}} - {{speed}}",
     "calculating_eta_batch": "Descargando {{title}}… ({{percentage}} completado {{filesDownloaded}}/{{filesTotal}} archivos) - Calculando tiempo restante…"
   },

@@ -29,4 +29,49 @@
       cursor: pointer;
     }
   }
+
+  &__downloading {
+    display: flex;
+    align-items: center;
+    gap: globals.$spacing-unit;
+    color: #8e919b;
+    font-size: 12px;
+  }
+
+  &__downloading-label {
+    display: flex;
+    align-items: center;
+    gap: globals.$spacing-unit;
+    white-space: nowrap;
+  }
+
+  &__downloading-icon {
+    color: globals.$success-color;
+    animation: auto-update-spin 1s linear infinite;
+  }
+
+  &__progress-bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    min-width: 80px;
+  }
+
+  &__progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background-color: globals.$success-color;
+    transition: width 0.2s ease;
+  }
+}
+
+@keyframes auto-update-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

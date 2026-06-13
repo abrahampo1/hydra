@@ -108,10 +108,24 @@ export interface SteamGame {
   clientIcon: string | null;
 }
 
+export interface UpdateDownloadProgress {
+  /** 0-100 */
+  percent: number;
+  /** bytes downloaded so far */
+  transferred: number;
+  /** total bytes to download */
+  total: number;
+  /** current download speed in bytes per second */
+  bytesPerSecond: number;
+}
+
 export type AppUpdaterEvent =
+  | { type: "checking-for-update" }
   | { type: "update-available"; info: { version: string } }
+  | { type: "download-progress"; info: UpdateDownloadProgress }
   | { type: "update-downloaded" }
-  | { type: "update-not-available" };
+  | { type: "update-not-available" }
+  | { type: "error" };
 
 /* Events */
 export interface StartGameDownloadPayload {
