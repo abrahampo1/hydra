@@ -75,8 +75,6 @@ const parseBody = (config: InternalAxiosRequestConfig): any => {
   return data;
 };
 
-const STEAM_STORE_APP_URL = "https://store.steampowered.com/app";
-
 const handleCatalogueSearch = async (config: InternalAxiosRequestConfig) => {
   const body = parseBody(config) ?? {};
   const term: string = body.title ?? "";
@@ -169,13 +167,17 @@ const handleCatalogueSection = async (
   }));
 
   if (category === "featured") {
-    return annotated.map(
-      (asset): TrendingGame => ({
+    return annotated.map((asset): TrendingGame => {
+      // The Hero navigates to `uri` with react-router, so it must be an
+      // in-app game-details path (matches buildGameDetailsPath), not an
+      // external Steam store URL.
+      const search = new URLSearchParams({ title: asset.title });
+      return {
         ...asset,
         description: null,
-        uri: `${STEAM_STORE_APP_URL}/${asset.objectId}`,
-      })
-    );
+        uri: `/game/${asset.shop}/${asset.objectId}?${search.toString()}`,
+      };
+    });
   }
 
   return annotated;
