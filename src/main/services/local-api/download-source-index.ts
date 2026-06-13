@@ -1,4 +1,4 @@
-import { BrowserWindow, app, net } from "electron";
+import { app, net } from "electron";
 
 import type { DownloadSource, GameRepack } from "@types";
 import { DownloadSourceStatus } from "@shared";
@@ -32,73 +32,14 @@ const parseSourceJson = (text: string): RawDownloadSourceJson =>
   JSON.parse(text.replace(/^\uFEFF/, ""));
 
 /**
- * Last-resort fetch for hosts behind a Cloudflare JS challenge: load the URL
- * in a small visible window so the challenge can render and, if interactive,
- * the user can complete it. The window's session shares cookies with the rest
- * of the app, so once the challenge clears, the body is the raw JSON.
- *
- * The load is deliberately not awaited: the challenge page navigates several
- * times before settling, which can leave `loadURL` pending indefinitely.
- */
-const fetchSourceViaChallengeWindow = async (
-  url: string
-): Promise<RawDownloadSourceJson> => {
-  const window = new BrowserWindow({
-    width: 460,
-    height: 580,
-    title: "Security verification",
-    autoHideMenuBar: true,
-    webPreferences: {
-      sandbox: true,
-      contextIsolation: true,
-      backgroundThrottling: false,
-    },
-  });
-
-  window.webContents.setUserAgent(browserLikeUserAgent());
-
-  let closedByUser = false;
-  window.on("closed", () => {
-    closedByUser = true;
-  });
-
-  window.loadURL(url).catch(() => undefined);
-
-  try {
-    const deadline = Date.now() + 120_000;
-    while (Date.now() < deadline) {
-      if (closedByUser) {
-        throw new Error("Security verification window was closed");
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 1_500));
-
-      if (closedByUser || window.isDestroyed()) {
-        throw new Error("Security verification window was closed");
-      }
-
-      const text: string = await window.webContents
-        .executeJavaScript("document.body ? document.body.innerText : ''", true)
-        .catch(() => "");
-
-      try {
-        return parseSourceJson(text);
-      } catch {
-        // Challenge still running; the page reloads itself once cleared.
-      }
-    }
-
-    throw new Error("Cloudflare challenge was not solved in time");
-  } finally {
-    if (!window.isDestroyed()) window.destroy();
-  }
-};
-
-/**
  * Fetches a download source JSON through Chromium's network stack
  * (`net.fetch`) with a browser-like UA \u2014 Node's TLS fingerprint (plain axios)
- * gets rejected by Cloudflare regardless of headers. Falls back to a hidden
- * window when the host still serves a JS challenge.
+ * gets rejected by Cloudflare regardless of headers.
+ *
+ * This stays silent and never opens a window: hosts that serve a JS challenge
+ * (e.g. Cloudflare) simply throw here, and the caller falls back to adding the
+ * source through the real backend, which fetches it server-side \u2014 the way it
+ * worked before the local index existed.
  */
 const fetchDownloadSourceJson = async (
   url: string
@@ -111,19 +52,13 @@ const fetchDownloadSourceJson = async (
     signal: AbortSignal.timeout(60_000),
   });
 
-  if (response.ok) {
-    return parseSourceJson(await response.text());
-  }
-
-  if (response.status === 403 || response.status === 503) {
-    logger.info(
-      "Download source fetch was challenged, retrying in a visible window",
-      { url, status: response.status }
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch download source (HTTP ${response.status})`
     );
-    return fetchSourceViaChallengeWindow(url);
   }
 
-  throw new Error(`Failed to fetch download source (HTTP ${response.status})`);
+  return parseSourceJson(await response.text());
 };
 
 /**
@@ -156,6 +91,10 @@ export const ingestDownloadSource = async (
     createdAt: new Date().toISOString(),
   };
 };
+
+/** Source ids that have entries indexed in the local repack index. */
+export const getIndexedSourceIds = async (): Promise<string[]> =>
+  downloadSourceEntriesSublevel.keys().all();
 
 /**
  * Finds every repack matching a game title across the locally stored sources.

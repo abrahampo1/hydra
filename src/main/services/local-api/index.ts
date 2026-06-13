@@ -18,6 +18,7 @@ import {
 import {
   annotateSourcesForTitles,
   findRepacks,
+  getIndexedSourceIds,
   getSourceIdsByFingerprints,
   ingestDownloadSource,
 } from "./download-source-index";
@@ -199,13 +200,24 @@ const handleGameRepacks = async (
 ) => {
   if (shop !== "steam") return [];
 
-  const title = await resolveSteamTitle(objectId);
-  if (!title) return [];
-
   const params = config.params ?? {};
   const allowed = Array.isArray(params.downloadSourceIds)
     ? (params.downloadSourceIds as string[])
     : undefined;
+
+  // Sources added through the backend (e.g. Cloudflare-protected ones that
+  // can't be fetched client-side) have no local entries. When none of the
+  // requested sources are indexed locally, let the backend resolve the
+  // repacks — it parsed those sources server-side.
+  const indexedIds = new Set(await getIndexedSourceIds());
+  const hasLocalSource = allowed
+    ? allowed.some((id) => indexedIds.has(id))
+    : indexedIds.size > 0;
+
+  if (!hasLocalSource) return PASS_TO_REMOTE;
+
+  const title = await resolveSteamTitle(objectId);
+  if (!title) return [];
 
   return findRepacks(title, allowed);
 };
@@ -216,7 +228,20 @@ const handleDownloadSourcesAdd = async (config: InternalAxiosRequestConfig) => {
 
   if (!url) throw new Error("Missing download source url");
 
-  return ingestDownloadSource(url);
+  try {
+    // Index the source locally so the catalogue and repacks resolve offline.
+    return await ingestDownloadSource(url);
+  } catch (err) {
+    // Hosts behind a bot challenge (e.g. Cloudflare) can't be fetched
+    // client-side. Rather than prompting the user, hand the add off to the
+    // real backend, which fetches and parses the source server-side — the way
+    // it worked before the local index existed.
+    logger.info(
+      "Local source indexing unavailable; delegating add to the backend",
+      { url, message: err instanceof Error ? err.message : String(err) }
+    );
+    return PASS_TO_REMOTE;
+  }
 };
 
 /**
