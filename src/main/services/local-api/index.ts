@@ -5,7 +5,7 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 
-import type { CatalogueSearchResult, GameStats, TrendingGame } from "@types";
+import type { CatalogueSearchResult, TrendingGame } from "@types";
 
 import { logger } from "../logger";
 import {
@@ -283,21 +283,10 @@ const resolveLocalRequest = async (
     if (resource === "download-sources") {
       return handleGameRepacks(shop, objectId, config);
     }
-    if (resource === "stats") {
-      return {
-        downloadCount: 0,
-        playerCount: 0,
-        averageScore: null,
-        reviewCount: 0,
-      } satisfies GameStats;
-    }
     if (resource === "how-long-to-beat") return null;
-    if (resource === "reviews") {
-      if (segments[4] === "check") return { hasReviewed: false };
-      return { reviews: [], totalCount: 0 };
-    }
     // Download/queue reports — nothing to record without a backend.
     if (resource === "download") return {};
+    // stats and reviews come from the original backend (PASS_TO_REMOTE below).
   }
 
   // /download-sources/*
